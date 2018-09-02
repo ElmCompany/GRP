@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+  <database name="VIEW EHCM_EMPSUPVISNODE_V">
+    <view name="EHCM_EMPSUPVISNODE_V"><![CDATA[SELECT a.ehcm_empsupvisnode_v_id, a.ad_client_id, a.ad_org_id, a.isactive, a.created, a.createdby, a.updated, a.updatedby, a.ehcm_emp_perinfo_id FROM (SELECT sup.ehcm_emp_supervisor_id AS ehcm_empsupvisnode_v_id, sup.ad_client_id, sup.ad_org_id, sup.isactive, sup.created, sup.createdby, sup.updated, sup.updatedby, sup.ehcm_emp_perinfo_id FROM ehcm_emp_supervisor sup UNION SELECT supnode.ehcm_emp_supervisornode_id AS ehcm_empsupvisnode_v_id, supnode.ad_client_id, supnode.ad_org_id, supnode.isactive, supnode.created, supnode.createdby, supnode.updated, supnode.updatedby, supnode.ehcm_emp_perinfo_id FROM ehcm_emp_supervisornode supnode) a]]></view>
+  </database>

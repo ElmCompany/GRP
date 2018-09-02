@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_SALESREGION_COSTCENTER">
+    <trigger name="EHCM_SALESREGION_COSTCENTER" table="C_SALESREGION" fires="before" insert="false" update="false" delete="true" foreach="row">
+      <body><![CDATA[v_org_id VARCHAR2(32);
+v_client_id  VARCHAR2(32);
+v_status VARCHAR2(60);
+v_count NUMBER;
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+	--while deleting the update totalpayment as difference of current amount
+
+	IF DELETING THEN
+	select sr.em_efin_costorg,sr.ad_client_id into v_org_id,v_client_id from c_salesregion sr 
+	left join ad_org org on sr.ad_org_id = org.ad_org_id
+	and org.value = sr.value and org.em_efin_costcenter = 'Y'
+	where sr.ad_org_id = :old.ad_org_id;
+	 select count(ad_org_id) into v_count  from c_validcombination where ad_org_id in 
+			(select  replace(unnest(string_to_array
+			(public.eut_getparentorglist(v_client_id,v_org_id),',')::
+			character varying []),'''','')) and c_validcombination.ad_client_id = v_client_id and 
+			c_validcombination.em_efin_uniquecode is not null and  c_validcombination.em_efin_uniquecode not ilike '%-null%';
+			IF(v_count > 0) THEN
+			RAISE_APPLICATION_ERROR(-20501,'@Ehcm_CostCenterDelete@');
+			END IF;
+	
+	END IF;
+	END EHCM_SALESREGION_COSTCENTER
+]]></body>
+    </trigger>
+  </database>

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION EHCM_PAYROLL_REVOKE">
+    <function name="EHCM_PAYROLL_REVOKE" type="NULL">
+      <parameter name="p_pinstance_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <body><![CDATA[/*************************************************************************
+* All Rights Reserved.
+* Contributor(s): Gowtham.
+This payroll revoke process will delete all lines and dependent element in earning and deductions.
+************************************************************************/
+ v_Record_id VARCHAR2(32);
+ Cur_Parameter Record;
+ BEGIN
+  
+  SELECT Record_ID into v_Record_id FROM AD_PINSTANCE WHERE AD_PInstance_ID=p_PInstance_ID;
+    update ehcm_payroll_process_hdr set status = 'DR' where ehcm_payroll_process_hdr_id = v_Record_id;
+  	FOR Cur_Parameter in (select ehcm_payroll_process_lne_id from ehcm_payroll_process_lne where ehcm_payroll_process_hdr_id=v_Record_id)
+  	LOOP
+    		update ehcm_earn_deduct_elm set processed='N' where ehcm_payroll_process_lne_id = Cur_Parameter.ehcm_payroll_process_lne_id;
+  	END LOOP;
+
+  AD_UPDATE_PINSTANCE(p_PInstance_ID, null, 'N', 1, null) ;
+END EHCM_PAYROLL_REVOKE
+]]></body>
+    </function>
+  </database>

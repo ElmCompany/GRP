@@ -1,0 +1,862 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="EmployeesInformationReport" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="6ff0dccb-056f-491d-b18b-1af8a3c953d2">
+	<property name="ireport.zoom" value="1.210000000000001"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="425"/>
+	<parameter name="inpEmpId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="inpDepartmentId" class="java.lang.String"/>
+	<parameter name="inpEmpTypeId" class="java.lang.String"/>
+	<parameter name="inpEmpGradeFromId" class="java.lang.String"/>
+	<parameter name="inpEmpGradeToId" class="java.lang.String"/>
+	<parameter name="inpLineManagerId" class="java.lang.String"/>
+	<parameter name="inpGenderId" class="java.lang.String"/>
+	<parameter name="inpEndDateH" class="java.lang.String"/>
+	<parameter name="inpStartDateH" class="java.lang.String"/>
+	<parameter name="inpClientId" class="java.lang.String"/>
+	<parameter name="inpDepartmentName" class="java.lang.String"/>
+	<parameter name="inpEmpStatus" class="java.lang.String"/>
+	<parameter name="inpEndDate" class="java.lang.String"/>
+	<parameter name="inpStartDate" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select emp.value as empno,emp.arabicfullname as empname,empinfomax.changereason,eut_convert_to_hijri(to_char(empinfosd.startdate,'YYYY-MM-DD')) as startdate,
+n.name as nationality,pos.job_no as position,eut_convert_to_hijri(to_char(emp.govhiredate,'YYYY-MM-DD')) as govhiredate,
+eut_convert_to_hijri(to_char(emp.hiredate,'YYYY-MM-DD')) as hiredate,coalesce(trl.name,list.name) as qualification,
+eut_convert_to_hijri(to_char(emp.Dob,'YYYY-MM-DD')) as dob,coalesce(statuslist.name,status.name) as empstatus,
+ehcm_calculate_age(emp.ehcm_emp_perinfo_id,emp.ad_client_id,to_char(emp.dob,'YYYY-MM-DD'),to_char(now(),'YYYY-MM-DD')) as age,
+ehcm_calculate_age(emp.ehcm_emp_perinfo_id,emp.ad_client_id,to_char(emp.startdate,'YYYY-MM-DD'),to_char(coalesce(empinfomax.enddate,now()),'YYYY-MM-DD')) as period,
+grcl.name as empcategory,org.name as dept,emp.nationality_identifier as nationalidentifer,grcl.name as empcategory,gr.name as grade,
+jobs.job_title as title,(jobs.value || concat('-',jobs.job_title)) as positiontitle,
+case when emp.gender='M' then 'Male' when emp.gender='F' then 'Female' end as gender,payscln.amount as basicsalary,qual.degree as degree,
+superemp.arabicfullname as linemanager,(select case when emp.isactive = 'N' then eut_convert_to_hijri(to_char(termin.enddate,'YYYY-MM-DD'))
+ when termin.changereason='T' then eut_convert_to_hijri(to_char(termin.startdate,'YYYY-MM-DD')) end
+ from ehcm_employment_info termin where  termin.ehcm_emp_perinfo_id= emp.ehcm_emp_perinfo_id
+ order by created  desc limit 1 ) as endofservice,coalesce(decbal.period_of_service,0) as
+period_of_service
+from ehcm_emp_perinfo emp
+left join
+(select empinfo.changereason,empinfo.ehcm_emp_perinfo_id,empinfo.ehcm_position_id,empinfo.deptcode,empinfo.employmentgrade,empinfo.jobcode,
+empinfo.ehcm_payscaleline_id,empinfo.EHCM_Emp_Supervisor_id,empinfo.enddate
+from ehcm_employment_info empinfo where empinfo.created  =
+(select max(info.created) from ehcm_employment_info info where info.ehcm_emp_perinfo_id = empinfo.ehcm_emp_perinfo_id))
+ empinfomax on emp.ehcm_emp_perinfo_id = empinfomax.ehcm_emp_perinfo_id
+left join
+ (select empinfoh.startdate,empinfoh.ehcm_emp_perinfo_id from ehcm_employment_info empinfoh where empinfoh.changereason = 'H')
+ empinfosd on emp.ehcm_emp_perinfo_id = empinfosd.ehcm_emp_perinfo_id
+left join ehcm_position pos on pos.ehcm_position_id = empinfomax.ehcm_position_id
+left join ehcm_gradeclass grcl on grcl.ehcm_gradeclass_id = emp.ehcm_gradeclass_id
+left join ad_org org on org.ad_org_id = empinfomax.deptcode
+left join ehcm_grade gr on gr.ehcm_grade_id=empinfomax.employmentgrade
+left join Ehcm_jobs jobs on jobs.ehcm_jobs_id = empinfomax.jobcode
+left join ad_ref_list listst on listst.value=emp.employment_status and listst.ad_reference_id='BD5BC7FE25C64B158971A7DCE5732DE9'
+left join AD_Ref_List_Trl trlst on listst.ad_ref_list_id=trlst.ad_ref_list_id and trlst.ad_language='ar_SA'
+left join ehcm_addnationality n on n.ehcm_addnationality_id = emp.ehcm_addnationality_id
+left join ehcm_qualification qual on qual.ehcm_emp_perinfo_id = emp.ehcm_emp_perinfo_id
+left join ad_ref_list list on list.value=qual.edulevel and list.ad_reference_id='3FA605387FD5432BB9F334A3CB7C4965'
+left join AD_Ref_List_Trl trl on list.ad_ref_list_id=trl.ad_ref_list_id and trl.ad_language='ar_SA'
+left join ehcm_payscaleline payscln on payscln.ehcm_payscaleline_id=empinfomax.ehcm_payscaleline_id
+left join EHCM_Emp_Supervisor superv on superv.EHCM_Emp_Supervisor_id = empinfomax.EHCM_Emp_Supervisor_id
+left join ehcm_emp_perinfo superemp on superemp.ehcm_emp_perinfo_id = superv.ehcm_emp_perinfo_id
+left join ehcm_employeestatus_v status on status.ehcm_employeestatus_v_id= emp.ehcm_emp_perinfo_id
+left join AD_Ref_List_Trl statuslist on statuslist.ad_ref_list_id= status.ad_ref_list_id and statuslist.ad_language='ar_SA'
+left join ( select coalesce(decbal.period_of_service,0) as period_of_service, decbal.ehcm_emp_perinfo_id  from ehcm_decision_balance decbal join ehcm_deci_bal_hdr decbalhdr on decbalhdr.ehcm_deci_bal_hdr_id= decbal.ehcm_deci_bal_hdr_id
+where decbalhdr.status='CO' and  decbal.decision_type='TPS')
+decbal on decbal. ehcm_emp_perinfo_id= emp.ehcm_emp_perinfo_id
+
+where emp.ad_client_id =  $P{inpClientId}
+and case when $P{inpEmpId} is null then true else emp.ehcm_emp_perinfo_id=$P{inpEmpId} end
+and case when $P{inpDepartmentId} is null then true else empinfomax.deptcode=$P{inpDepartmentId} end
+and case when $P{inpEmpTypeId} is null then true else emp.ehcm_gradeclass_id=$P{inpEmpTypeId} end
+and case when $P{inpEmpStatus} is null then true else status.statusvalue=$P{inpEmpStatus} end
+and case when $P{inpGenderId} is null then true else emp.gender=$P{inpGenderId} end
+and case when $P{inpLineManagerId} is null then true else empinfomax.EHCM_Emp_Supervisor_id = $P{inpLineManagerId} end
+and empinfosd.startdate between cast($P{inpStartDate} as date) and cast($P{inpEndDate} as date)
+and case when ($P{inpEmpGradeFromId}='0'  and $P{inpEmpGradeToId}='0') then true else true end
+and case when ($P{inpEmpGradeFromId}='0' and $P{inpEmpGradeToId}!='0') then gr.value<=$P{inpEmpGradeToId} else true end
+and case when ($P{inpEmpGradeFromId}!='0' and $P{inpEmpGradeToId}='0') then gr.value>=$P{inpEmpGradeFromId} else true end
+and case when ($P{inpEmpGradeFromId}!='0' and $P{inpEmpGradeToId}!='0') then(gr.value>=$P{inpEmpGradeFromId} and gr.value<=$P{inpEmpGradeToId}) else true end order by empno asc]]>
+	</queryString>
+	<field name="empno" class="java.lang.String"/>
+	<field name="empname" class="java.lang.String"/>
+	<field name="changereason" class="java.lang.String"/>
+	<field name="startdate" class="java.lang.String"/>
+	<field name="nationality" class="java.lang.String"/>
+	<field name="position" class="java.lang.String"/>
+	<field name="govhiredate" class="java.lang.String"/>
+	<field name="hiredate" class="java.lang.String"/>
+	<field name="qualification" class="java.lang.String"/>
+	<field name="dob" class="java.lang.String"/>
+	<field name="empstatus" class="java.lang.String"/>
+	<field name="age" class="java.lang.String"/>
+	<field name="period" class="java.lang.String"/>
+	<field name="empcategory" class="java.lang.String"/>
+	<field name="dept" class="java.lang.String"/>
+	<field name="nationalidentifer" class="java.lang.String"/>
+	<field name="grade" class="java.lang.String"/>
+	<field name="title" class="java.lang.String"/>
+	<field name="positiontitle" class="java.lang.String"/>
+	<field name="gender" class="java.lang.String"/>
+	<field name="basicsalary" class="java.math.BigDecimal"/>
+	<field name="degree" class="java.lang.String"/>
+	<field name="linemanager" class="java.lang.String"/>
+	<field name="endofservice" class="java.lang.String"/>
+	<field name="period_of_service" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="162" splitType="Stretch">
+			<image hAlign="Center">
+				<reportElement x="400" y="0" width="155" height="54" uuid="d70ae7de-223e-42cc-a6e7-e87a6d57098b"/>
+				<imageExpression><![CDATA[org.openbravo.erpCommon.utility.Utility.showImageLogo("yourcompanylegal","")]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="82" y="89" width="72" height="22" forecolor="#33FF33" uuid="9043468f-b43d-4b76-b926-c479e272fe33"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic" size="14"/>
+				</textElement>
+				<text><![CDATA[المرفقـات ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="82" y="45" width="72" height="22" forecolor="#33FF33" uuid="6acc79f4-65ff-4a89-98f6-1a0fadb79854"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic" size="14"/>
+				</textElement>
+				<text><![CDATA[الرقـــــــم ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="82" y="67" width="72" height="22" forecolor="#33FF33" uuid="c12ea538-7bd9-451c-936b-c2c63bb2bc25"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic" size="14"/>
+				</textElement>
+				<text><![CDATA[التاريـــخ ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="75" y="67" width="7" height="22" uuid="eb48a5c8-6c99-4b09-ad9f-1130bc3bd5fa"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic" size="14"/>
+				</textElement>
+				<text><![CDATA[:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="75" y="89" width="7" height="22" uuid="203c228c-0cd0-44db-bea1-92375e288dbf"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic" size="14"/>
+				</textElement>
+				<text><![CDATA[:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="75" y="45" width="7" height="22" uuid="2d7aba53-f69e-4438-aa3e-81a6a151718e"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic" size="14"/>
+				</textElement>
+				<text><![CDATA[:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="212" y="99" width="133" height="28" uuid="2a335027-cfc9-47d4-a006-5538d9f7a7f6"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[بيان بمعلومات الموظفين ]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="127" width="555" height="29" uuid="9481b01e-cadc-4bec-b53e-bb296ca65bb8"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA["من " + "الفترة " + " " +sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($P{inpStartDateH})+ " " + "هـ " + "الى " + " " + sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($P{inpEndDateH}) + " " + "هـ"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="166" y="54" width="361" height="22" uuid="1892fa41-b9a4-4bff-bd72-87a0cf0b365a"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{inpDepartmentName}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="94">
+			<printWhenExpression><![CDATA[$V{REPORT_COUNT} > 0]]></printWhenExpression>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="513">
+			<staticText>
+				<reportElement mode="Opaque" x="442" y="14" width="114" height="30" backcolor="#33FFFF" uuid="eb9b944f-6c44-4b92-b20d-60f2cc435261"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[الاسم]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="390" y="14" width="52" height="30" backcolor="#33FFFF" uuid="40e19de8-ac01-4ff8-82b6-f852f077921a"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[الرقم الوظيفي]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="306" y="14" width="84" height="30" backcolor="#33FFFF" uuid="5d56d2ac-53df-4055-b5ed-131c5d3c88d3"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[المسمى الوظيفي]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="221" y="14" width="85" height="30" backcolor="#33FFFF" uuid="92800fca-dd20-471e-8a42-0d6ed1aee951"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[تاريخ التعيين  في الدولة]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="146" y="14" width="75" height="30" backcolor="#33FFFF" uuid="97b0882f-1331-40fc-bb14-561b8d8796af"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[تاريخ التعيين  في الجهة]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="64" y="14" width="82" height="30" backcolor="#33FFFF" uuid="743b5521-4fa8-4909-9e41-b26d5ecb773a"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[تاريخ نهاية الخدمة]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="1" y="14" width="63" height="30" backcolor="#33FFFF" uuid="6e11161f-59f3-4f6c-8f29-cfc68348e9ce"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[المؤهل]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="442" y="44" width="114" height="142" isPrintWhenDetailOverflows="true" uuid="63fcfa54-39e5-44b9-ab33-7570eaacbe8c"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{empname}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="390" y="44" width="52" height="142" uuid="38361dcc-2e05-4baf-8586-722362f3821c"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{empno})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="306" y="44" width="84" height="142" uuid="dd9afcec-d3f0-4847-a6da-18e25f614945"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{title})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="221" y="44" width="85" height="142" uuid="7ef1963d-a256-4999-8056-3b3f8666559e"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{govhiredate})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="146" y="44" width="75" height="142" uuid="e034a2ec-d522-40d1-bca0-05aa25204ba4"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{hiredate})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="64" y="44" width="82" height="142" uuid="2c071783-f731-4bef-82fe-77a3f5fadb00"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{endofservice})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="1" y="44" width="63" height="142" uuid="f1173a32-cca4-4fa1-a46e-8cbf5a6e901d"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qualification}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="442" y="212" width="109" height="30" backcolor="#33FFFF" uuid="dbbd5f78-fd82-403d-86f3-f37cc9aad701"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[مدة الخدمة]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="296" y="212" width="80" height="30" backcolor="#33FFFF" uuid="57e802b9-e462-4827-abd7-5a93a46e7464"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[العمر]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="376" y="212" width="66" height="60" backcolor="#33FFFF" uuid="c895759b-70e4-4e2f-b958-5834461b0890"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[تاريخ الميلاد
+
+
+
+
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="96" y="212" width="200" height="60" backcolor="#33FFFF" uuid="925e0411-6fa3-423e-8a3e-43653ab891f1"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[المدير المباشر]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="5" y="212" width="91" height="60" backcolor="#33FFFF" uuid="7255bde0-57fa-4d6d-a8e7-7df7fde6a41d"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[الحالة]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="527" y="242" width="24" height="30" backcolor="#33FFFF" uuid="7e49700c-293f-4567-bbce-0e4d4a65032c"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[سنة]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="484" y="242" width="43" height="30" backcolor="#33FFFF" uuid="2f95be5c-2e93-40ad-8f0a-c05bb318bf4d"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[شهر]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="442" y="242" width="42" height="30" backcolor="#33FFFF" uuid="bfd1b9f5-a772-43ea-80e0-6e16da340259"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[يوم]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="356" y="242" width="20" height="30" backcolor="#33FFFF" uuid="32764362-ad9d-419b-a28d-308086eb575f"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[سنة]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="324" y="242" width="32" height="30" backcolor="#33FFFF" uuid="284ca348-976f-40fc-abd3-0aa2c9b72b0f"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[شهر]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="296" y="242" width="28" height="30" backcolor="#33FFFF" uuid="126de096-9b19-4297-a2b6-262215334d10"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[يوم]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="527" y="272" width="24" height="129" uuid="0a97f73b-9320-499a-a8eb-6f42b12e13d4"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount((new BigDecimal($F{period}.split("-")[0]).add($F{period_of_service})).toString())]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="484" y="272" width="43" height="129" uuid="7f3db3f7-c7b0-4127-9c33-c1dd4fae7f91"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{period}.split("-")[1].toString())]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="442" y="272" width="42" height="129" uuid="184cccc4-f9db-4cd4-8185-ce4ae1b014a3"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{period}.split("-")[2].toString())]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="376" y="272" width="66" height="129" uuid="0c33305a-8db6-4c86-adf1-f30299545869"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{dob})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="356" y="272" width="20" height="129" uuid="2df39038-579e-4bda-b56f-874af45369c4"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{age}.split("-")[0].toString())]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="324" y="272" width="32" height="129" uuid="af062609-e1b8-41a1-a3d8-fa778f342a3d"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{age}.split("-")[1].toString())]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="296" y="272" width="28" height="129" uuid="2a51bedd-1c70-46f8-b45f-aa0cf775a17f"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{age}.split("-")[2].toString())]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="96" y="272" width="200" height="129" isPrintWhenDetailOverflows="true" uuid="cc93f4a4-7cc6-4626-a20a-fe16f91f75e3"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{linemanager})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="5" y="272" width="91" height="129" uuid="51b68039-b99f-4bd8-89a2-e9999cad0c68"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{empstatus}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="420" width="82" height="30" backcolor="#33FFFF" uuid="ea4540c5-bed3-4674-93d7-221d86acb4b0"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[الراتب الاساسي]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="326" y="420" width="66" height="30" backcolor="#33FFFF" uuid="e8cc862f-1fb8-4f8c-b294-075b645de81b"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[المرتبة]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="145" y="450" width="54" height="57" uuid="e5361d02-a77d-4f50-a711-56a6091ff6d1"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{nationality})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="450" width="82" height="57" uuid="29816839-6fef-4e07-9a52-45bcd0e28e20"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount( new java.text.DecimalFormat("###0.##").format($F{basicsalary}))]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="82" y="420" width="63" height="30" backcolor="#33FFFF" uuid="91978895-36f1-48cd-80a9-03f6898864cc"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[الجنس]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="261" y="420" width="65" height="30" backcolor="#33FFFF" uuid="06fa58bf-e2b2-4775-bb47-7506be92ec13"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[الدرجة]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="82" y="450" width="63" height="57" uuid="5645eb66-5d84-433d-9212-994add7cadcf"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{gender}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="199" y="450" width="62" height="57" uuid="7f1e1cd3-c713-4a67-b016-0090a756f076"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{nationalidentifer})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="458" y="450" width="97" height="57" uuid="acaea9c8-28d7-47c5-9ecf-8f4088ead484"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{dept})]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="458" y="420" width="97" height="30" backcolor="#33FFFF" uuid="7fa30a07-6457-4879-9a98-b2482bb5187a"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[الإدارة]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="145" y="420" width="54" height="30" backcolor="#33FFFF" uuid="40bc2888-a52c-483e-93e9-43a6f7a4835d"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[الجنسية]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="199" y="420" width="62" height="30" backcolor="#33FFFF" uuid="cc158408-9dce-4c03-b99e-d0f2b47fcb1a"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[السجل المدني]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="326" y="450" width="66" height="57" uuid="cc2bb7ab-1440-4b2a-810f-03909ceb90f5"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{grade})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="261" y="450" width="65" height="57" uuid="ba5c5ba0-fd0e-49a6-a330-2e98de49e4d8"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{degree})]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="392" y="420" width="66" height="30" backcolor="#33FFFF" uuid="d10aedaa-023a-4556-b0ce-cfd6a516c5a2"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14"/>
+				</textElement>
+				<text><![CDATA[فئة الموظف]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="392" y="450" width="66" height="57" uuid="c230f795-4dcc-49d4-aaed-1e616415b2f9"/>
+				<box rightPadding="4">
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic"/>
+				</textElement>
+				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{empcategory})]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<noData>
+		<band height="49">
+			<staticText>
+				<reportElement x="129" y="13" width="313" height="25" uuid="4f269d9e-d538-470f-84ff-5462a40fcfd6"/>
+				<box rightPadding="4"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Traditional Arabic Bold" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[لاتوجد بيانات]]></text>
+			</staticText>
+		</band>
+	</noData>
+</jasperReport>

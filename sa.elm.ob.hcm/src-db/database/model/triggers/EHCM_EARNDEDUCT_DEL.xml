@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_EARNDEDUCT_DEL">
+    <trigger name="EHCM_EARNDEDUCT_DEL" table="EHCM_EARN_DEDUCT_ELM" fires="before" insert="false" update="false" delete="true" foreach="row">
+      <body><![CDATA[/*************************************************************************
+* All Rights Reserved. 
+* Trigger to delete earning and deduction element reference.
+* Contributor(s):  Gowtham.
+************************************************************************/
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+
+	-- Insert Operation
+	IF DELETING THEN
+    	delete from ehcm_earn_deduct_elmref where ehcm_earn_deduct_elm_id=:old.ehcm_earn_deduct_elm_id;
+	END IF;	
+	
+END EHCM_EARNDEDUCT_DEL
+]]></body>
+    </trigger>
+  </database>

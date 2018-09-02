@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_EMP_UPDTSUPORDINATECOUNT">
+    <trigger name="EHCM_EMP_UPDTSUPORDINATECOUNT" table="EHCM_EMP_SUPERVISORNODE" fires="after" insert="true" update="true" delete="true" foreach="row">
+      <body><![CDATA[
+v_status VARCHAR2(60);
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+
+	IF INSERTING THEN
+    update ehcm_emp_supervisor set  noofsubordinates=noofsubordinates+1 where ehcm_emp_supervisor_id= :new.ehcm_emp_supervisor_id;
+	
+    update ehcm_emp_supervisornode set  noofsubordinates=noofsubordinates+1 where ehcm_emp_perinfo_id=(
+    select ehcm_emp_perinfo_id from ehcm_emp_supervisor where ehcm_emp_supervisor_id=:new.ehcm_emp_supervisor_id);
+	END IF;
+    IF UPDATING THEN
+	
+	
+	END IF;
+    IF DELETING THEN
+	update ehcm_emp_supervisor set  noofsubordinates=noofsubordinates-1 where ehcm_emp_supervisor_id= :old.ehcm_emp_supervisor_id;
+	update ehcm_emp_supervisornode set  noofsubordinates=noofsubordinates-1 where ehcm_emp_perinfo_id=(
+    select ehcm_emp_perinfo_id from ehcm_emp_supervisor where ehcm_emp_supervisor_id=:old.ehcm_emp_supervisor_id);
+	END IF;
+	END EHCM_EMP_UPDTSUPORDINATECOUNT
+]]></body>
+    </trigger>
+  </database>

@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+  <database name="MODIFIED TABLE AD_ORG">
+    <table name="AD_ORG" primaryKey="AD_ORG_KEY">
+      <column name="EM_EHCM_ORG_CATEGORY" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_ORG_CLASSIFICATION" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_REGION" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_LOCATION" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_ORGTYP" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_AD_ORG_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_UPDATE_PARENT" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_DECISIONNO" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_ISHRORG" primaryKey="false" required="false" type="VARCHAR" size="2" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_PARENT_ORG" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_ESCM_LOC" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_ISHR" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default><![CDATA[N]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_C_REGION" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <foreign-key foreignTable="AD_ORG" name="EM_EHCM_AD_ORG_KEY">
+        <reference local="EM_EHCM_AD_ORG_ID" foreign="AD_ORG_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="C_REGION" name="EM_EHCM_C_REGION_FK">
+        <reference local="EM_EHCM_C_REGION" foreign="C_REGION_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_ORG_CATEGOTY" name="EM_EHCM_CATEGORY">
+        <reference local="EM_EHCM_ORG_CATEGORY" foreign="EHCM_ORG_CATEGOTY_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_ORG_CLASSFICATION" name="EM_EHCM_CLASSIFICATION">
+        <reference local="EM_EHCM_ORG_CLASSIFICATION" foreign="EHCM_ORG_CLASSFICATION_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="ESCM_LOCATION" name="EM_EHCM_ESCM_LOCATION">
+        <reference local="EM_EHCM_ESCM_LOC" foreign="ESCM_LOCATION_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_LOCATION" name="EM_EHCM_LOCATION">
+        <reference local="EM_EHCM_LOCATION" foreign="EHCM_LOCATION_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_ORG_TYPE" name="EM_EHCM_ORGTYPE">
+        <reference local="EM_EHCM_ORGTYP" foreign="EHCM_ORG_TYPE_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_REGION" name="EM_EHCM_REGION">
+        <reference local="EM_EHCM_REGION" foreign="EHCM_REGION_ID"/>
+      </foreign-key>
+    </table>
+  </database>

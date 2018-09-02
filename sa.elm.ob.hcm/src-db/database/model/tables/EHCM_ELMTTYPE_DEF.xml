@@ -1,0 +1,170 @@
+<?xml version="1.0"?>
+  <database name="TABLE EHCM_ELMTTYPE_DEF">
+    <table name="EHCM_ELMTTYPE_DEF" primaryKey="EHCM_ELTYDE_KEY">
+      <column name="EHCM_ELMTTYPE_DEF_ID" primaryKey="true" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="AD_CLIENT_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="AD_ORG_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ISACTIVE" primaryKey="false" required="true" type="CHAR" size="1" autoIncrement="false">
+        <default><![CDATA[Y]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="CREATED" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default><![CDATA[SYSDATE]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="CREATEDBY" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="UPDATED" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default><![CDATA[SYSDATE]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="UPDATEDBY" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ELEMENTCODE" primaryKey="false" required="true" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ELEMENTNAME" primaryKey="false" required="true" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="REPORTINGNAME" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ELEDESCRIPTION" primaryKey="false" required="true" type="VARCHAR" size="255" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ELEMENTCLASSI" primaryKey="false" required="true" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="START_DATE" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="END_DATE" primaryKey="false" required="false" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="PROCNGTYPE" primaryKey="false" required="true" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="PROCNGTERMINATE" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EPRIORITY" primaryKey="false" required="true" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="PROCESSINRUN" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="MULTIENTRY" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="INDIRECTRESULT" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="RECALEVENT" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="PROEVENT" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="PRORULE" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_ELEMENT_CATGRY_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="RECURR_CONDITION" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="RECURR_MONTHS" primaryKey="false" required="false" type="DECIMAL" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ELEMENT_SRC" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_GRADERATES_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="BASEPROCESS" primaryKey="false" required="true" type="VARCHAR" size="60" autoIncrement="false">
+        <default><![CDATA[E]]></default>
+        <onCreateDefault><![CDATA['E']]></onCreateDefault>
+      </column>
+      <column name="EXTENDPROCESS" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="MONTHDAYS" primaryKey="false" required="true" type="VARCHAR" size="60" autoIncrement="false">
+        <default><![CDATA[CD]]></default>
+        <onCreateDefault><![CDATA['CD']]></onCreateDefault>
+      </column>
+      <column name="EHCM_PAYROLL_GLOBALVALUE_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <foreign-key foreignTable="AD_CLIENT" name="EHCM_ELTYDE_CLI">
+        <reference local="AD_CLIENT_ID" foreign="AD_CLIENT_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_ELEMENT_CATGRY" name="EHCM_ELTYDE_ECATE">
+        <reference local="EHCM_ELEMENT_CATGRY_ID" foreign="EHCM_ELEMENT_CATGRY_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_PAYROLL_GLOBALVALUE" name="EHCM_ELTYDE_GLOBAL">
+        <reference local="EHCM_PAYROLL_GLOBALVALUE_ID" foreign="EHCM_PAYROLL_GLOBALVALUE_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_GRADERATES" name="EHCM_ELTYDE_GRDRATE">
+        <reference local="EHCM_GRADERATES_ID" foreign="EHCM_GRADERATES_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="AD_ORG" name="EHCM_ELTYDE_ORG">
+        <reference local="AD_ORG_ID" foreign="AD_ORG_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_EVENT_GROUP" name="EHCM_EVTGRPPRORA">
+        <reference local="PROEVENT" foreign="EHCM_EVENT_GROUP_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_EVENT_GROUP" name="EHCM_EVTGRPRETRO">
+        <reference local="RECALEVENT" foreign="EHCM_EVENT_GROUP_ID"/>
+      </foreign-key>
+      <unique name="EHCM_EUNICODE">
+        <unique-column name="ELEMENTCODE"/>
+        <unique-column name="AD_CLIENT_ID"/>
+      </unique>
+      <unique name="EHCM_EUNINAME">
+        <unique-column name="ELEMENTNAME"/>
+        <unique-column name="AD_CLIENT_ID"/>
+      </unique>
+      <unique name="EHCM_EUNIREPNAME">
+        <unique-column name="REPORTINGNAME"/>
+        <unique-column name="AD_CLIENT_ID"/>
+      </unique>
+    </table>
+  </database>

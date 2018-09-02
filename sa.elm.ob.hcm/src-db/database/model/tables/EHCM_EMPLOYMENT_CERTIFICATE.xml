@@ -1,0 +1,184 @@
+<?xml version="1.0"?>
+  <database name="TABLE EHCM_EMPLOYMENT_CERTIFICATE">
+    <table name="EHCM_EMPLOYMENT_CERTIFICATE" primaryKey="EHCM_EMPLOYMENT_CERTIFICATE_KEY">
+      <column name="EHCM_EMPLOYMENT_CERTIFICATE_ID" primaryKey="true" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="AD_CLIENT_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="AD_ORG_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ISACTIVE" primaryKey="false" required="true" type="CHAR" size="1" autoIncrement="false">
+        <default><![CDATA[Y]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="CREATED" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default><![CDATA[SYSDATE]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="CREATEDBY" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="UPDATED" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default><![CDATA[SYSDATE]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="UPDATEDBY" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_EMP_PERINFO_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_EMPLOYMENT_INFO_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EMP_TYPE" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EMP_NAME" primaryKey="false" required="false" type="VARCHAR" size="2000" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="HIRE_DATE" primaryKey="false" required="false" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ASSIGNED_DEPT" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="SECTION_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_PAYSCALELINE_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_GRADE_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_POSITION_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="JOB_TITLE" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EMPLOYMENTGRADE" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_GRADECLASS_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EMP_STATUS" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="CERTIFICATION_TYPE" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_EMPLOYMENT_CERTIFICATE_TO" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="INCLUDE_SALARY" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default><![CDATA[N]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="CERTIFICATION_OUTPUT_LANGUAGE" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="APPROVE_REQUIRED" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default><![CDATA[N]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="NO_OF_COPIES" primaryKey="false" required="false" type="DECIMAL" autoIncrement="false">
+        <default><![CDATA[1]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="REQUEST_DATE" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="REMARKS" primaryKey="false" required="false" type="VARCHAR" size="2000" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="LETTER_NO" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="LETTER_DATE" primaryKey="false" required="false" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="CERTIFICATE_STATUS" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default><![CDATA[DR]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="ACTION" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default><![CDATA[CO]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="DEPARTMENT_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <foreign-key foreignTable="EHCM_DEFLOOKUPS_TYPELN" name="EHCM_CERT_TYPE">
+        <reference local="CERTIFICATION_TYPE" foreign="EHCM_DEFLOOKUPS_TYPELN_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_DEFLOOKUPS_TYPELN" name="EHCM_CERTOUTP_LKUP">
+        <reference local="CERTIFICATION_OUTPUT_LANGUAGE" foreign="EHCM_DEFLOOKUPS_TYPELN_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_GRADE" name="EHCM_EMP_CERT_GRADE">
+        <reference local="EMPLOYMENTGRADE" foreign="EHCM_GRADE_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_EMP_PERINFO" name="EHCM_EMP_CERTI_EMP">
+        <reference local="EHCM_EMP_PERINFO_ID" foreign="EHCM_EMP_PERINFO_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="AD_ORG" name="EHCM_EMPL_CERTIF_ORG">
+        <reference local="AD_ORG_ID" foreign="AD_ORG_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_EMPLOYMENT_INFO" name="EHCM_EMPL_EMPINF">
+        <reference local="EHCM_EMPLOYMENT_INFO_ID" foreign="EHCM_EMPLOYMENT_INFO_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_GRADECLASS" name="EHCM_EMPL_GRDCLASS">
+        <reference local="EHCM_GRADECLASS_ID" foreign="EHCM_GRADECLASS_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="AD_CLIENT" name="EHCM_EMPLOY_CERTI_CLI">
+        <reference local="AD_CLIENT_ID" foreign="AD_CLIENT_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="AD_ORG" name="EHCM_EMPLOY_CERTI_SEC">
+        <reference local="SECTION_ID" foreign="AD_ORG_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_GRADE" name="EHCM_EMPLOY_GRADE">
+        <reference local="EHCM_GRADE_ID" foreign="EHCM_GRADE_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_PAYSCALELINE" name="EHCM_EMPLOY_PAYSCL">
+        <reference local="EHCM_PAYSCALELINE_ID" foreign="EHCM_PAYSCALELINE_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_POSITION" name="EHCM_EMPLOY_POS">
+        <reference local="EHCM_POSITION_ID" foreign="EHCM_POSITION_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="AD_ORG" name="EHCM_EMPTKT_DEP">
+        <reference local="DEPARTMENT_ID" foreign="AD_ORG_ID"/>
+      </foreign-key>
+    </table>
+  </database>

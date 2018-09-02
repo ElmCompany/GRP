@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_BPARTNER_SEARCHKEY_TRG">
+    <trigger name="EHCM_BPARTNER_SEARCHKEY_TRG" table="C_BPARTNER" fires="before" insert="false" update="true" delete="false" foreach="row">
+      <body><![CDATA[  v_employee_status VARCHAR(32);--OBTG:VARCHAR2-- 
+  v_count integer;
+BEGIN
+IF TG_OP='UPDATE' THEN
+	IF(:new.em_ehcm_emp_perinfo_id !='') THEN
+		select status into v_employee_status from ehcm_emp_perinfo where ehcm_emp_perinfo_id = :new.em_ehcm_emp_perinfo_id;
+		--Restrict to modify the search key of an employee
+		IF(:old.value!=:new.value and :new.em_ehcm_processing!='Y') THEN
+			RAISE_APPLICATION_ERROR(-20000,'@EHCM_bpartner_searchkey@');
+		END IF;
+		--Restrict to make the business partner as active if the employee is terminated
+		select count(ehcm_emp_perinfo_id) into v_count from ehcm_empstatus where ehcm_emp_perinfo_id = :new.em_ehcm_emp_perinfo_id;
+		IF((v_employee_status='TE') and (:new.isactive='Y')) or ((v_count >0) and (:new.isactive='Y'))THEN
+			RAISE_APPLICATION_ERROR(-20000,'@EHCM_bpartner_isactive@');
+		END IF;
+	END IF;
+	:new.em_ehcm_processing='N' ;
+	 
+END IF;			
+IF DELETING THEN 
+	RETURN OLD; 
+  ELSE 
+	RETURN NEW; 
+END IF;
+END EHCM_BPARTNER_SEARCHKEY_TRG
+]]></body>
+    </trigger>
+  </database>

@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION EHCM_EXTEND_EMPAGECALCULATION">
+    <function name="EHCM_EXTEND_EMPAGECALCULATION" type="VARCHAR">
+      <parameter name="p_client_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <body><![CDATA[/*************************************************************************
+	* All Rights Reserved.
+	* Contributor(s): Poongodi 15-02-18
+	************************************************************************/
+	v_totalyear NUMBER;
+	Cur_EmpDetail Record;
+	v_startdate VARCHAR(32);
+	p_startdate VARCHAR(32);
+	v_maxempage NUMBER;
+	v_employeeList VARCHAR(32767);
+	vp  VARCHAR(32);
+	BEGIN
+	v_employeeList:='';
+    --TO get maximum employee age from client window
+   select coalesce(em_ehcm_maxempage,0) into v_maxempage from ad_client where ad_client_id = p_client_id;
+
+   --To get the employee those are active and not in terminated.
+    for Cur_EmpDetail in (select ehcm_emp_perinfo_id,dob from ehcm_emp_perinfo where 
+                          Status='I' and isactive='Y' and ad_client_id = p_client_id 
+                          and Employment_Status not in ('TE'))
+                         loop
+                          -- To get dob of employee
+                         v_startdate = Cur_EmpDetail.dob;
+                          -- Take current date
+						select TO_DATE(to_char(current_timestamp,'yyyy-MM-dd'),'yyyy-MM-dd') into p_startdate from dual;
+						-- Calculate employee age based on procedure
+                        select  split_part((ehcm_calculate_age(Cur_EmpDetail.ehcm_emp_perinfo_id, 
+                                                              p_client_id,v_startdate,p_startdate)),'-',1)
+                         into v_totalyear from dual ;
+                         --Allow only extension for those emp have 60 age. 
+                         if( v_totalyear >= v_maxempage) then
+                         vp := Cur_EmpDetail.ehcm_emp_perinfo_id;
+                         v_employeeList:= v_employeeList ||''''||vp||'''';
+                         v_employeeList:= v_employeeList ||',';
+                         end if;
+                         end loop;
+                         RETURN v_employeeList;
+END EHCM_EXTEND_EMPAGECALCULATION
+]]></body>
+    </function>
+  </database>

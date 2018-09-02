@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION EHCM_SUMOFLEVTRANSACTION">
+    <function name="EHCM_SUMOFLEVTRANSACTION" type="NUMERIC">
+      <parameter name="p_employee_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_absencetpe_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_startdate" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="days" type="NUMERIC" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_calstartdate" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <body><![CDATA[v_sumofleaves NUMBER;
+
+v_depentdentId VARCHAR2(32);
+v_resetdate VARCHAR2(32);
+v_absenceId VARCHAR2(32);
+v_hijiridate VARCHAR2(32);
+v_fstGerDate  VARCHAR2(32);
+v_startdate VARCHAR2(32);
+v_hiremonth NUMBER;
+v_nowmonth NUMBER;
+v_levstartmonth NUMBER;
+v_hireday  NUMBER;
+v_levstartday NUMBER;
+BEGIN
+
+
+	v_startdate:=p_calstartdate;
+/*get absence id or dependent id */
+	select  dependent_id into v_depentdentId from ehcm_absencetype_action where   ehcm_absence_type_id =p_absencetpe_id;
+	IF(v_depentdentId is not null ) THEN
+		select  accrual_reset_date into v_resetdate from ehcm_absence_type
+		 where   ehcm_absence_type_id =v_depentdentId;
+	ELSE
+	v_absenceId:=p_absencetpe_id;
+	select  accrual_reset_date into v_resetdate from ehcm_absence_type
+		 where   ehcm_absence_type_id =v_absenceId;
+	END IF;
+	/*end */
+	   -- convert the leave startdate in hijiri format
+               select eut_convert_to_hijri(p_startdate) into v_hijiridate from dual ; 
+               --raise notice '% v_hijiridate ',v_hijiridate;
+              
+	 -- take the year first date passing hijirdate
+               select  eut_convertto_gregorian('01-01-'||(split_part(v_hijiridate,'-',3))) into v_fstGerDate from dual ; 
+	      --raise notice '% v_fstGerDate ',v_fstGerDate;
+	   
+     
+	--raise notice '%,% extend v_startdate', v_startdate,v_enddate;
+    
+	
+		/*IF(v_resetdate='BHY') THEN
+			v_startdate:=v_fstGerDate;
+		ELSE IF(v_resetdate='BGY') THEN
+			v_startdate:=(split_part(v_today,'-',1))|| '-01-01';
+		ELSE IF(v_resetdate='HAD') THEN
+			v_hiremonth := (split_part(v_hiredate,'-',2));
+			v_levstartmonth := (split_part(v_hijiridate,'-',2));
+			v_hireday := (split_part(v_hiredate,'-',1));
+			v_levstartday := (split_part(v_hijiridate,'-',1));
+				IF((v_levstartmonth-v_hiremonth) < 0) THEN
+					v_startdate:=v_preyearfirstdatedate;
+				ELSE IF ((v_levstartmonth-v_hiremonth)= 0) THEN
+					IF((v_levstartday-v_hireday) <= 0) THEN
+						v_startdate:=v_preyearfirstdatedate;
+					ELSE
+						v_startdate:=v_fstGerDate;
+					END IF;
+				ELSE IF ((v_levstartmonth-v_hiremonth) > 0) THEN
+					v_startdate:=v_fstGerDate;
+				END IF;
+				END IF;
+				END IF;
+		END IF;
+		END IF;
+		END IF;		*/
+		select coalesce(sum(leavedays),0) into v_sumofleaves from ehcm_emp_leaveln   where ehcm_emp_leave_id  
+		 in ( select ehcm_emp_leave_id from ehcm_emp_leave   where ehcm_emp_perinfo_id =p_employee_id  
+		 and ehcm_absence_type_id=p_absencetpe_id) and leavedays < days and leave_type='AB' and startdate >= v_startdate :: DATE
+		and enddate <= p_startdate :: DATE; 
+ 
+return v_sumofleaves;
+END EHCM_SUMOFLEVTRANSACTION
+]]></body>
+    </function>
+  </database>

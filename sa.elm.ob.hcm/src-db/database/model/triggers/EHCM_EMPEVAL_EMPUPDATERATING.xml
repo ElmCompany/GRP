@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_EMPEVAL_EMPUPDATERATING">
+    <trigger name="EHCM_EMPEVAL_EMPUPDATERATING" table="EHCM_EMPEVAL_COMPETENCY" fires="after" insert="true" update="true" delete="true" foreach="row">
+      <body><![CDATA[v_count NUMBER;
+V_PERCENTAGE  NUMBER;
+v_empeval_id varchar(32); --OBTG:VARCHAR2--
+
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+
+   IF INSERTING OR  UPDATING  THEN 
+   v_empeval_id:=:new.ehcm_empevaluation_emp_id;
+   ELSE
+      v_empeval_id:=:old.ehcm_empevaluation_emp_id;
+   END IF;
+   
+    select SUM(percentage)/count(ehcm_empeval_competency_id)  INTO v_count from ehcm_empeval_competency 
+    WHERE  ehcm_empevaluation_emp_id= v_empeval_id and percentage is not null ;
+
+	IF INSERTING OR  UPDATING  OR DELETING THEN
+    update ehcm_empevaluation_emp set overallrating=v_count
+    where ehcm_empevaluation_emp_id=v_empeval_id;
+    END IF;
+   
+	END EHCM_EMPEVAL_EMPUPDATERATING
+]]></body>
+    </trigger>
+  </database>

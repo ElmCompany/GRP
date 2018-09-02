@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION EHCM_DROPCHKLEAVEAVAILABLECHAR">
+    <function name="EHCM_DROPCHKLEAVEAVAILABLECHAR" type="NULL">
+      <body><![CDATA[/*************************************************************************
+* All Rights Reserved.
+* Author(s): DIVYAJ
+************************************************************************/
+
+BEGIN
+
+	DROP FUNCTION  IF EXISTS
+    public.ehcm_chkavailableleave(character varying, character varying, character varying, character varying, character varying, NUMBER, character varying, character varying, character varying);
+END EHCM_DROPCHKLEAVEAVAILABLECHAR
+]]></body>
+    </function>
+  </database>

@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_UPDATEPOS">
+    <trigger name="EHCM_UPDATEPOS" table="EHCM_UPDATEPOSITION" fires="after" insert="true" update="true" delete="false" foreach="row">
+      <body><![CDATA[
+v_oldseqno NUMBER:=0;   
+v_newseqno NUMBER:=0;   
+v_trxtype VARCHAR(60);
+
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+
+	-- Insert Operation
+	IF (INSERTING or UPDATING) THEN	
+		select value into v_trxtype from ehcm_postransactiontype where ehcm_postransactiontype_id=:new.ehcm_postransactiontype_id;
+		select seqno into v_oldseqno from ehcm_grade where ehcm_grade_id=:new.ehcm_grade_id;		
+		select seqno into v_newseqno from ehcm_grade where ehcm_grade_id=:new.new_ehcm_grade_id;		
+			
+		IF (v_trxtype='UGPO' or v_trxtype='UGREPO' or v_trxtype='UGTRPO' or v_trxtype='UGRETRPO' or v_trxtype='UGFRPO') THEN 	
+			IF (v_newseqno=v_oldseqno or v_newseqno<v_oldseqno) THEN
+			 RAISE_APPLICATION_ERROR(-20501,'@Ehcm_GradeGreater@');
+			END IF;
+		END IF;
+
+		IF (v_trxtype='DGPO' or v_trxtype='DGREPO' or v_trxtype='DGFRPO' or v_trxtype='DGTRPO' or v_trxtype='DGRETRPO') THEN 	
+			IF (v_newseqno=v_oldseqno or v_newseqno>v_oldseqno) THEN
+			 RAISE_APPLICATION_ERROR(-20501,'@Ehcm_GradeLesser@');
+			END IF;
+		END IF;
+	END IF;
+	
+	END EHCM_UPDATEPOS
+]]></body>
+    </trigger>
+  </database>

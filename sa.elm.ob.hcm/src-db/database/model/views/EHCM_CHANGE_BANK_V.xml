@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+  <database name="VIEW EHCM_CHANGE_BANK_V">
+    <view name="EHCM_CHANGE_BANK_V"><![CDATA[SELECT bd.ehcm_ppm_bankdetail_id AS ehcm_change_bank_v_id, bd.ad_client_id, bd.ad_org_id, bd.isactive, bd.created, bd.createdby, bd.updated, bd.updatedby, bd.efin_bank_id, bd.bankbranch, bd.accountname, bd.accountnumber, bd.percentage, (bk.bankname || '-') || bd.accountnumber AS bankname, COALESCE(eut_convert_to_hijri(to_char(bd.startdate, 'yyyy-MM-dd')), NULL) AS startdate, COALESCE(eut_convert_to_hijri(to_char(bd.enddate, 'yyyy-MM-dd')), NULL) AS enddate, bd.isdefault, ppm.value, ppm.name, ppm.c_currency_id, ppm.ehcm_emp_perinfo_id FROM ehcm_ppm_bankdetail bd LEFT JOIN efin_bank bk ON bk.efin_bank_id = bd.efin_bank_id LEFT JOIN ehcm_personal_paymethd ppm ON ppm.ehcm_personal_paymethd_id = bd.ehcm_personal_paymethd_id]]></view>
+  </database>

@@ -1,0 +1,291 @@
+<?xml version="1.0"?>
+  <database name="TABLE EHCM_TICKETORDERTRANSACTION">
+    <table name="EHCM_TICKETORDERTRANSACTION" primaryKey="EHCM_TKTORDER_KEY">
+      <column name="EHCM_TICKETORDERTRANSACTION_ID" primaryKey="true" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="AD_CLIENT_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="AD_ORG_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ISACTIVE" primaryKey="false" required="true" type="CHAR" size="1" autoIncrement="false">
+        <default><![CDATA[Y]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="CREATED" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default><![CDATA[SYSDATE]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="CREATEDBY" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="UPDATED" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default><![CDATA[SYSDATE]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="UPDATEDBY" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_EMP_PERINFO_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EMP_TYPE" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EMP_NAME" primaryKey="false" required="false" type="VARCHAR" size="2000" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="HIRE_DATE" primaryKey="false" required="false" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="DEPARTMENT_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="SECTION_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_PAYSCALELINE_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_GRADE_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_POSITION_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="JOB_TITLE" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ASSIGNED_DEPT" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EMPLOYMENTGRADE" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_GRADECLASS_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EMP_STATUS" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="DECISION_TYPE" primaryKey="false" required="true" type="VARCHAR" size="60" autoIncrement="false">
+        <default><![CDATA[CR]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="CANCELDATE" primaryKey="false" required="false" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="DECISION_STATUS" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default><![CDATA[UP]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="REASON" primaryKey="false" required="true" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ORIGINAL_DECISION_NO" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="LETTER_NO" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="LETTER_DATE" primaryKey="false" required="false" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="DECISION_NO" primaryKey="false" required="true" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="DECISION_DATE" primaryKey="false" required="false" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="REQUESTDATE" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default><![CDATA[SYSDATE]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="TRAVELSTARTDATE" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default><![CDATA[SYSDATE]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="TRAVELENDDATE" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default><![CDATA[SYSDATE]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="TRAVELROUOTE" primaryKey="false" required="true" type="VARCHAR" size="200" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ROUNDTRIP_TICKET" primaryKey="false" required="true" type="CHAR" size="1" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="TICKET_CLASS" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="TICKET_NO" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="DEPENDENT1" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="DEPENDENT2" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="DEPENDENT3" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="DEPENDENT4" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="DEPENDENT5" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="DEPENDENT6" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ADULT_TICKET_PRICE" primaryKey="false" required="true" type="DECIMAL" autoIncrement="false">
+        <default><![CDATA[0]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_AUTHORIZE_PERSON_ID" primaryKey="false" required="false" type="VARCHAR" size="256" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="AUTHORIZE_PERSON_TITLE" primaryKey="false" required="false" type="VARCHAR" size="256" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="PAYMENT_PERIOD" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ISSUED" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="REACTIVATE" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_EMP_BUSINESSMISSION_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_EMP_SCHOLARSHIP_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_PAYROLL_PROCESS_LNE_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="PROCESSED" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default><![CDATA[N]]></default>
+        <onCreateDefault/>
+      </column>
+      <foreign-key foreignTable="EHCM_EMP_BUSINESSMISSION" name="EHCM_EMPTKT_BM">
+        <reference local="EHCM_EMP_BUSINESSMISSION_ID" foreign="EHCM_EMP_BUSINESSMISSION_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="AD_CLIENT" name="EHCM_EMPTKT_CLI">
+        <reference local="AD_CLIENT_ID" foreign="AD_CLIENT_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="AD_ORG" name="EHCM_EMPTKT_DEP">
+        <reference local="DEPARTMENT_ID" foreign="AD_ORG_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_DEPENDENTS" name="EHCM_EMPTKT_DEP1">
+        <reference local="DEPENDENT1" foreign="EHCM_DEPENDENTS_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_DEPENDENTS" name="EHCM_EMPTKT_DEP2">
+        <reference local="DEPENDENT2" foreign="EHCM_DEPENDENTS_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_DEPENDENTS" name="EHCM_EMPTKT_DEP3">
+        <reference local="DEPENDENT3" foreign="EHCM_DEPENDENTS_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_DEPENDENTS" name="EHCM_EMPTKT_DEP4">
+        <reference local="DEPENDENT4" foreign="EHCM_DEPENDENTS_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_DEPENDENTS" name="EHCM_EMPTKT_DEP5">
+        <reference local="DEPENDENT5" foreign="EHCM_DEPENDENTS_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_DEPENDENTS" name="EHCM_EMPTKT_DEP6">
+        <reference local="DEPENDENT6" foreign="EHCM_DEPENDENTS_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_EMP_PERINFO" name="EHCM_EMPTKT_EMP">
+        <reference local="EHCM_EMP_PERINFO_ID" foreign="EHCM_EMP_PERINFO_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_GRADE" name="EHCM_EMPTKT_EMPGRADE">
+        <reference local="EMPLOYMENTGRADE" foreign="EHCM_GRADE_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_GRADE" name="EHCM_EMPTKT_GRADE">
+        <reference local="EHCM_GRADE_ID" foreign="EHCM_GRADE_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_GRADECLASS" name="EHCM_EMPTKT_GRDCLASS">
+        <reference local="EHCM_GRADECLASS_ID" foreign="EHCM_GRADECLASS_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_TICKETORDERTRANSACTION" name="EHCM_EMPTKT_ODR_DEC">
+        <reference local="ORIGINAL_DECISION_NO" foreign="EHCM_TICKETORDERTRANSACTION_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="AD_ORG" name="EHCM_EMPTKT_ORG">
+        <reference local="AD_ORG_ID" foreign="AD_ORG_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_PAYROLLDEF_PERIOD" name="EHCM_EMPTKT_PAYPER">
+        <reference local="PAYMENT_PERIOD" foreign="EHCM_PAYROLLDEF_PERIOD_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_PAYROLL_PROCESS_LNE" name="EHCM_EMPTKT_PAYROLL_LNE">
+        <reference local="EHCM_PAYROLL_PROCESS_LNE_ID" foreign="EHCM_PAYROLL_PROCESS_LNE_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_PAYSCALELINE" name="EHCM_EMPTKT_PAYSCL">
+        <reference local="EHCM_PAYSCALELINE_ID" foreign="EHCM_PAYSCALELINE_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_POSITION" name="EHCM_EMPTKT_POS">
+        <reference local="EHCM_POSITION_ID" foreign="EHCM_POSITION_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_EMP_SCHOLARSHIP" name="EHCM_EMPTKT_SC">
+        <reference local="EHCM_EMP_SCHOLARSHIP_ID" foreign="EHCM_EMP_SCHOLARSHIP_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="AD_ORG" name="EHCM_EMPTKT_SEC">
+        <reference local="SECTION_ID" foreign="AD_ORG_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_DEFLOOKUPS_TYPELN" name="EHCM_EMPTKT_TKTCLS">
+        <reference local="TICKET_CLASS" foreign="EHCM_DEFLOOKUPS_TYPELN_ID"/>
+      </foreign-key>
+      <unique name="EHCM_EMPTKT_DECNO_UNIQUE">
+        <unique-column name="DECISION_NO"/>
+        <unique-column name="AD_CLIENT_ID"/>
+      </unique>
+    </table>
+  </database>

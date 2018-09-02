@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_ORGPARENT_TRG">
+    <trigger name="EHCM_ORGPARENT_TRG" table="AD_ORG" fires="after" insert="true" update="false" delete="false" foreach="row">
+      <body><![CDATA[
+  TYPE RECORD IS REF CURSOR;
+  v_parentId VARCHAR2(32);
+  v_treeId VARCHAR2(32);
+  v_count NUMBER;
+  v_hrorgtype VARCHAR2(32);
+  v_ishrorg VARCHAR(1);--OBTG:VARCHAR2--
+    
+BEGIN
+    
+    IF AD_isTriggerEnabled()='N' THEN RETURN;
+    END IF;
+
+v_parentId = :new.em_ehcm_ad_org_id;  
+SELECT COALESCE(em_ehcm_ishrorg,'N') INTO v_ishrorg from ad_org where ad_org_id = :new.ad_org_id;
+--RAISE_APPLICATION_ERROR(-20000,v_ishrorg);
+
+IF(v_ishrorg='Y') THEN
+UPDATE ad_treenode
+    SET parent_id = (COALESCE(v_parentId, '0'))
+  WHERE node_id =:new.ad_org_id;
+
+
+  SELECT tr.ad_tree_id INTO v_treeId FROM ad_org o JOIN ad_tree tr ON tr.ad_client_id = o.ad_client_id 
+WHERE o.ad_org_id = :new.ad_org_id  AND tr.treetype = 'OO';
+
+ SELECT count(*) INTO v_count FROM ad_treenode WHERE node_id = :new.ad_org_id;
+
+IF(v_count = 0) THEN
+  --  Insert into TreeNode
+    INSERT
+    INTO AD_TreeNode
+      (
+        ad_treeNode_Id, AD_Client_ID, AD_Org_ID, IsActive,
+        Created, CreatedBy, Updated,
+        UpdatedBy, AD_Tree_ID, Node_ID,
+        Parent_ID, SeqNo
+      )
+      VALUES
+      (
+        get_uuid(), :new.AD_Client_ID, :new.AD_Org_ID, :new.IsActive,
+        :new.Created, :new.CreatedBy, :new.Updated,
+        :new.UpdatedBy, v_treeId, :new.AD_Org_ID,
+        v_parentId,(
+        CASE :new.IsSummary
+          WHEN 'Y'
+          THEN 100
+          ELSE 999
+        END
+        )
+      )
+      ;
+END IF;
+END IF;
+
+IF INSERTING THEN
+
+	select ehcm_org_type_id into v_hrorgtype from ehcm_org_type where value ilike '%ORG%' ;
+	IF :new.em_ehcm_orgtyp is null THEN
+	:new.em_ehcm_orgtyp := v_hrorgtype;
+	END IF;
+	--update ad_org set em_ehcm_orgtyp=v_hrorgtype where em_ehcm_orgtyp is null and ad_org_id=NEW.ad_org_id;
+END IF;
+END EHCM_ORGPARENT_TRG
+]]></body>
+    </trigger>
+  </database>

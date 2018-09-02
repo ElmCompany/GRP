@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_UPDATEEMPLEAVE_TRG">
+    <trigger name="EHCM_UPDATEEMPLEAVE_TRG" table="EHCM_EMP_LEAVELN" fires="after" insert="true" update="true" delete="true" foreach="row">
+      <body><![CDATA[v_diff NUMBER;
+v_availeddays NUMBER;
+v_availabledays NUMBER;
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+    -- Insert Operation
+	IF INSERTING THEN
+        IF(:new.leavedays > 0) THEN
+           IF( :new.leave_action='OB') THEN 
+       		update ehcm_emp_leave set availabledays=availabledays+:new.leavedays
+        	where ehcm_emp_leave_id=:new.ehcm_emp_leave_id;
+            ELSE 
+            update ehcm_emp_leave set availeddays = availeddays+:new.leavedays , availabledays=availabledays-:new.leavedays
+        	where ehcm_emp_leave_id=:new.ehcm_emp_leave_id;
+            END IF;
+        END IF;
+	END IF;	
+    -- Update Operation
+    IF UPDATING THEN  
+             IF(:new.leavedays <> :old.leavedays ) THEN
+                
+                v_diff:= :new.leavedays -:old.leavedays; 
+              -- RAISE NOTICE '%', v_diff;
+
+               update ehcm_emp_leave set availeddays = availeddays+v_diff , availabledays=availabledays-v_diff
+                where ehcm_emp_leave_id=:new.ehcm_emp_leave_id;
+                
+            END IF;
+	END IF;	
+	-- Delete Operation
+	IF DELETING THEN
+    --IF(old.leave_action='CR' or old.leave_action='EX') THEN
+     IF(:old.leave_action='OB') THEN
+           update ehcm_emp_leave set  availabledays=availabledays-:OLD.leavedays
+                where ehcm_emp_leave_id=:old.ehcm_emp_leave_id;
+     ELSE 
+    		    update ehcm_emp_leave set availeddays = availeddays-:OLD.leavedays , availabledays=availabledays+:OLD.leavedays
+                where ehcm_emp_leave_id=:old.ehcm_emp_leave_id;
+     END IF;
+    
+                select  availeddays,availabledays into v_availeddays,v_availabledays from ehcm_emp_leave where  ehcm_emp_leave_id =:OLD.ehcm_emp_leave_id;
+
+
+               IF(v_availeddays=0 and  v_availabledays <=0 ) THEN
+                delete from ehcm_emp_leave where ehcm_emp_leave_id =:OLD.ehcm_emp_leave_id;
+                END IF;
+   -- ELSE IF(old.leave_action='UP' or old.leave_action='CO') THEN
+    
+    --END IF;
+    --END IF;
+    
+	END IF;	
+
+	END EHCM_UPDATEEMPLEAVE_TRG
+]]></body>
+    </trigger>
+  </database>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+
+  <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="https://code.highcharts.com/modules/exporting.js"></script>
+  <script>
+
+
+  Highcharts.chart('container', {
+    title: {
+        text: ''
+    },
+
+     tooltip: {
+        useHTML: true
+    },
+
+    credits: {
+      enabled: false
+    },
+
+    exporting: {
+        enabled: false
+    },
+
+    series: [ {
+        type: 'pie',
+        name: 'مجموع الوظائف',
+        useHTML: true,
+        data: [{
+            name: 'وظائف مجمدة',
+            y: 7,
+            color: "#DFE0E2" // Jane's color
+        }, {
+            name: 'وظائف مشغولة',
+            y: 120,
+            color: "#0f97a6" // John's color
+        }, {
+            name: 'وظائف شاغرة',
+            y: 45,
+            color: "#A2AEBB" // Joe's color
+        }, {
+            name: 'وظائف محجوزة',
+            y: 24,
+            color: "#75ABBC" // Joe's color
+        }],
+
+        size: '100%',
+        showInLegend: false,
+        dataLabels: {
+            enabled: true,
+            useHTML: true
+        }
+    }]
+});
+
+
+
+  </script>
+</body>
+</html>

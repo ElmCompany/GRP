@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+  <database name="VIEW EHCM_POSITIONVALUE_V">
+    <view name="EHCM_POSITIONVALUE_V"><![CDATA[SELECT pos.ehcm_position_id AS ehcm_positionvalue_v_id, pos.ad_client_id, pos.ad_org_id, pos.isactive, pos.created, pos.createdby, pos.updated, pos.updatedby, pos.ehcm_postransactiontype_id, pos.transaction_status, pos.department_id, pos.section_id, (((((grade.value || '-') || pos.job_no) || '-') || job.job_title) || '-') || COALESCE(sec.name, '') AS name, pos.ehcm_grade_id, pos.ehcm_jobs_id FROM ehcm_position pos LEFT JOIN ehcm_grade grade ON grade.ehcm_grade_id = pos.ehcm_grade_id LEFT JOIN ad_org sec ON sec.ad_org_id = pos.section_id LEFT JOIN ehcm_jobs job ON job.ehcm_jobs_id = pos.ehcm_jobs_id]]></view>
+  </database>

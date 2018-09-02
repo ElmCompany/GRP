@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_PAYROLLLINE_AFTR_DEL">
+    <trigger name="EHCM_PAYROLLLINE_AFTR_DEL" table="EHCM_PAYROLL_PROCESS_LNE" fires="after" insert="false" update="false" delete="true" foreach="row">
+      <body><![CDATA[/*************************************************************************
+* All Rights Reserved. 
+* Trigger for delete payroll line dependents.
+* Contributor(s):  Gowtham.
+************************************************************************/
+v_ElementCount NUMBER;
+v_FailCount NUMBER;
+v_LineCount NUMBER;
+v_PayCount NUMBER;
+v_earnded_pay VARCHAR2(32);
+
+BEGIN
+v_ElementCount := 0;
+v_FailCount := 0;
+v_LineCount := 0;
+v_PayCount := 0;
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+
+	-- Delete Operation
+	IF DELETING THEN
+    
+    	--if there is no element then delete employee too in earning and deduction.
+        select count(ehcm_earn_deduct_elm_id) into v_ElementCount from ehcm_earn_deduct_elm where ehcm_earn_deduct_emp_id=:old.ehcm_earn_deduct_emp_id and ehcm_payroll_process_lne_id!=:old.ehcm_payroll_process_lne_id;
+        IF (v_ElementCount = 0) THEN
+        
+        	select ehcm_earn_deduct_payroll_id into v_earnded_pay from ehcm_earn_deduct_emp where ehcm_earn_deduct_emp_id = :old.ehcm_earn_deduct_emp_id;
+            
+            update ehcm_payroll_process_lne set ehcm_earn_deduct_emp_id = null where ehcm_earn_deduct_emp_id = :old.ehcm_earn_deduct_emp_id;
+            
+        	delete from ehcm_earn_deduct_emp where ehcm_earn_deduct_emp_id = :old.ehcm_earn_deduct_emp_id;
+            
+            select count(ehcm_earn_deduct_emp_id) into v_PayCount from ehcm_earn_deduct_emp where ehcm_earn_deduct_payroll_id=v_earnded_pay;
+            
+            IF (v_PayCount = 0) THEN
+            	delete from ehcm_earn_deduct_payroll where ehcm_earn_deduct_payroll_id=v_earnded_pay;
+            END IF;
+            
+        END IF;
+                
+        --Get count of failure lines.
+        select count(ehcm_payroll_process_lne_id) into v_FailCount from ehcm_payroll_process_lne where ehcm_payroll_process_hdr_id = :old.ehcm_payroll_process_hdr_id and status='F';
+        --Get count of total lines.
+        select count(ehcm_payroll_process_lne_id) into v_LineCount from ehcm_payroll_process_lne where ehcm_payroll_process_hdr_id = :old.ehcm_payroll_process_hdr_id;
+
+        IF v_LineCount > 0 and v_FailCount = 0 THEN
+        	update ehcm_payroll_process_hdr set status = 'DR' where ehcm_payroll_process_hdr_id = :old.ehcm_payroll_process_hdr_id;
+        END IF;
+        
+        IF v_LineCount = 0 THEN
+        	update ehcm_payroll_process_hdr set status = 'UP' where ehcm_payroll_process_hdr_id = :old.ehcm_payroll_process_hdr_id;
+        END IF;
+	END IF;	
+	
+END EHCM_PAYROLLLINE_AFTR_DEL
+]]></body>
+    </trigger>
+  </database>

@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+  <database name="VIEW EHCM_DEPENDENTS_V">
+    <view name="EHCM_DEPENDENTS_V"><![CDATA[SELECT dep.ehcm_dependents_id AS ehcm_dependents_v_id, dep.ad_client_id, dep.ad_org_id, dep.isactive, dep.created, dep.createdby, dep.updated, dep.updatedby, dep.ehcm_emp_perinfo_id, dep.relationship, dep.firstname, dep.fathername, dep.grandfather, dep.fourthname, dep.family, dep.dob, dep.gender, (((((ad_ref_list.name || '-') || (dep.firstname || '-')) || (dep.fathername || '-')) || (dep.grandfather || '-')) || (dep.fourthname || '-')) || (dep.family || '-') AS dependentname, dep.nationalidentifier, dep.startdate, dep.enddate, dep.phoneno, dep.location, dep.age FROM ehcm_dependents dep JOIN ad_ref_list ON ad_ref_list.value = dep.relationship AND ad_ref_list.ad_reference_id = 'FE365705D1AB4E86986C7264040976F2']]></view>
+  </database>

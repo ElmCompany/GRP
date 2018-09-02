@@ -1,0 +1,308 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION EHCM_GETACCRUALSTARTENDDATE">
+    <function name="EHCM_GETACCRUALSTARTENDDATE" type="NULL">
+      <parameter name="p_employee_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_startdate" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_resetdate" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_frequency" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_absencetype_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_subtype_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_yearstartdate" type="VARCHAR" mode="out">
+        <default/>
+      </parameter>
+      <parameter name="p_yearenddate" type="VARCHAR" mode="out">
+        <default/>
+      </parameter>
+      <parameter name="p_prevyearstartdate" type="VARCHAR" mode="out">
+        <default/>
+      </parameter>
+      <parameter name="p_prevyearenddate" type="VARCHAR" mode="out">
+        <default/>
+      </parameter>
+      <body><![CDATA[v_hijiridate VARCHAR2(32);
+v_fstGerDate VARCHAR2(32);
+v_nxtyrGerDate  VARCHAR2(32);
+v_hiremonth NUMBER;
+v_nowmonth NUMBER;
+v_levstartmonth NUMBER;
+v_hireday  DECIMAL;
+v_hiredate VARCHAR(32);--OBTG:VARCHAR2--
+v_hiredategre VARCHAR(32);--OBTG:VARCHAR2--
+v_levstartday  NUMBER;
+v_hireanngredate  VARCHAR2(32);
+v_hireannnextgredate  VARCHAR2(32);
+v_preyearfirstdatedate VARCHAR2(32);
+v_preyearlastdate VARCHAR2(32);
+v_compare NUMBER;
+v_startdate VARCHAR2(32);
+v_enddate VARCHAR2(32);
+v_frequency VARCHAR2(32);
+v_resetdate VARCHAR2(32);
+v_startyear NUMBER;
+
+v_firstleaveoccfstyrgreg VARCHAR2(32);
+v_firstleaveoccfstyrhiji VARCHAR2(32);
+v_firstyear NUMBER;
+v_diff NUMBER;
+v_firstmonth NUMBER;
+v_firstday NUMBER;
+v_freqinput NUMBER;
+
+v_decisionbalanceId VARCHAR2(32);
+
+BEGIN
+
+ 		v_resetdate:=p_resetdate;
+        v_frequency:=p_frequency;
+        
+          -- get employee hire date in hijiri format	
+          SELECT eut_convert_to_hijri(to_char(hiredate, 'yyyy-MM-dd')), hiredate INTO v_hiredate, v_hiredategre FROM ehcm_emp_perinfo WHERE ehcm_emp_perinfo_id = p_employee_id;
+          --raise notice '%,% v_hiredate ', v_hiredate, v_hiredategre;
+          
+     -- get leave start date in hijiri format
+       select eut_convert_to_hijri(p_startdate) into v_hijiridate from dual ; 
+       --raise notice '% v_hijiridate ',v_hijiridate;
+
+		-- get year first date by passing hijirdate
+       select  eut_convertto_gregorian('01-01-'||(split_part(v_hijiridate,'-',3))) into v_fstGerDate from dual ; 
+  		--raise notice '% v_fstGerDate ',v_fstGerDate;
+
+		 -- take next year first date passing hijirdate
+       select  eut_convertto_gregorian('01-01-'||(split_part(v_hijiridate,'-',3):: int +1 )::text ) into v_nxtyrGerDate from dual ; 
+   		--raise notice '% v_nxtyrGerDate ',v_nxtyrGerDate;
+        
+            -- get previous year startdate and enddate based on  accural reset date  and frequence
+                IF(v_resetdate = 'BHY' OR v_resetdate = 'BGY') THEN
+                  IF(v_frequency = 'HY') THEN
+                  	-- get previous year startdate  by using leave startdate in hijir format
+                        SELECT eut_convertto_gregorian('01-01-' || (split_part(v_hijiridate, '-', 3):: INT - 1 )::text ) INTO v_preyearfirstdatedate FROM dual ; 
+                        --raise notice '% ,% v_nxtyrGerDate ', v_nxtyrGerDate, v_preyearfirstdatedate;
+
+                     -- get previous year last date by taking max of previous year first date and startdate of this year
+                        SELECT to_char(MAX(gregorian_date), 'yyyy-mm-dd') INTO v_preyearlastdate FROM eut_hijri_dates WHERE gregorian_date >= v_preyearfirstdatedate ::TIMESTAMP 
+                        AND gregorian_date < v_fstGerDate ::TIMESTAMP ;
+                        --raise notice '% v_preyearlastdate ', v_preyearlastdate; 
+                        
+                  ELSE IF(v_frequency = 'GY') THEN 
+                          SELECT to_char(date_trunc('year', p_startdate::DATE) - INTERVAL '1 year', 'yyyy-mm-dd'),
+                          to_char(date_trunc('year', p_startdate ::DATE) - INTERVAL '1 year' + INTERVAL '12 month' - INTERVAL '1 day', 'yyyy-mm-dd')
+                          INTO v_preyearfirstdatedate, v_preyearlastdate;
+                          --raise notice '%,% v_preyearfirstdatedate ', v_preyearfirstdatedate, v_preyearlastdate;
+                  END IF;
+                 END IF;--
+                --if reset date is hire anniversary date 
+                 ELSE IF (v_resetdate = 'HAD') THEN
+                    -- if frequency is hijiri yearly get preivous year and current year based on hiredate
+                        IF(v_frequency = 'HY') THEN 
+                              --raise notice '%v_frequency', v_hiredate;
+                              v_hiremonth := (split_part(v_hiredate, '-', 2));
+                              v_levstartmonth := (split_part(v_hijiridate, '-', 2));
+                              v_hireday := (split_part(v_hiredate, '-', 1));
+                              v_levstartday := (split_part(v_hijiridate, '-', 1));
+                              SELECT eut_convertto_gregorian ((SELECT TO_CHAR((split_part(v_hiredate, '-', 1))::INT, 'fm00')) || '-' || (SELECT TO_CHAR((split_part(v_hiredate, '-', 2))::INT, 'fm00')) || '-' || (split_part(v_hijiridate, '-', 3))) INTO v_hireanngredate FROM dual; 
+                              SELECT eut_convertto_gregorian ((SELECT TO_CHAR((split_part(v_hiredate, '-', 1))::INT, 'fm00')) || '-' || (SELECT TO_CHAR((split_part(v_hiredate, '-', 2))::INT, 'fm00')) || '-' || ((split_part(v_hijiridate, '-', 3)):: INT - 1)) INTO v_preyearfirstdatedate FROM dual; 
+                              SELECT eut_convertto_gregorian ((SELECT TO_CHAR((split_part(v_hiredate, '-', 1))::INT, 'fm00')) || '-' || (SELECT TO_CHAR((split_part(v_hiredate, '-', 2))::INT, 'fm00')) || '-' || ((split_part(v_hijiridate, '-', 3)):: INT + 1)) INTO v_hireannnextgredate FROM dual; 
+
+                              --raise notice '%v_hireanngredate', v_hireanngredate;
+                                
+                              SELECT CASE WHEN v_hiredate <= v_preyearfirstdatedate THEN 1 ELSE - 1 END INTO v_compare;
+                              IF(v_compare = 1) THEN
+                                SELECT to_char(MAX(gregorian_date), 'yyyy-mm-dd') INTO v_preyearlastdate FROM eut_hijri_dates WHERE gregorian_date >= v_preyearfirstdatedate ::TIMESTAMP 
+                                AND gregorian_date < v_hireanngredate ::TIMESTAMP ;
+                              END IF; 
+                        -- if frequency is gregorian yearly get preivous year and current year based on hiredate			
+                        ELSE 
+                              v_hiremonth := (split_part(v_hiredategre, '-', 2));
+                              v_levstartmonth := (split_part(p_startdate, '-', 2));
+                              v_hireday := (split_part(REPLACE(v_hiredategre,' ', '-'), '-', 3));
+                              v_levstartday := (split_part(REPLACE(p_startdate,' ', '-'), '-', 3));
+                              v_hireanngredate := (split_part(p_startdate, '-', 1)) || '-' || v_hiremonth || '-' || v_hireday;
+                              v_hireannnextgredate := (split_part(p_startdate, '-', 1)):: INT + 1 || '-' || v_hiremonth || '-' || v_hireday;
+                              v_preyearfirstdatedate := (split_part(p_startdate, '-', 1)):: INT - 1 || '-' || v_hiremonth || '-' || v_hireday;
+                             -- raise notice '%v_hiredategre', v_hiredategre <= v_preyearfirstdatedate;
+                              
+                              SELECT CASE WHEN v_hiredategre <= v_preyearfirstdatedate THEN 1 ELSE - 1 END INTO v_compare;
+                              IF(v_compare = 1) THEN
+                                SELECT to_char(MAX(gregorian_date), 'yyyy-mm-dd') INTO v_preyearlastdate FROM eut_hijri_dates WHERE gregorian_date >= v_preyearfirstdatedate ::TIMESTAMP 
+                                AND gregorian_date < v_hireanngredate ::TIMESTAMP ;
+                                --raise notice '% v_preyearlastdate ', v_preyearlastdate; 
+                              END IF;
+                    END IF; 
+                  END IF;
+                END IF;
+                   --raise notice '%,%,%,% v_preyearfirstdatedate ', v_preyearfirstdatedate, v_preyearlastdate,v_fstGerDate,v_nxtyrGerDate;
+        		 -- calculate the start date based on accrual reset date and frequncey
+                    IF(v_resetdate='BHY') THEN
+                        v_startdate:=v_fstGerDate;
+                        v_enddate:=v_nxtyrGerDate;
+                    ELSE IF(v_resetdate='BGY') THEN
+                        v_startdate:=(split_part(p_startdate,'-',1))|| '-01-01';
+                        v_enddate:=(split_part(p_startdate,'-',1)):: int +1|| '-01-01';
+                    ELSE IF(v_resetdate='HAD') THEN			
+                       -- raise notice '%,%,%,%,%,%,% v_hiremonth ',v_levstartmonth,v_hiremonth,v_levstartmonth,v_hireday,v_levstartday,v_hiredategre,p_startdate;	
+                        IF((v_levstartmonth-v_hiremonth) < 0) THEN  
+                            v_startdate:=v_preyearfirstdatedate;--v_hireannprevyear;
+                            v_enddate:=v_preyearlastdate;
+                            raise notice '% less zero',v_startdate;
+                        ELSE IF ((v_levstartmonth-v_hiremonth)= 0) THEN
+                            IF((v_levstartday-v_hireday) >= 0) THEN
+                                v_startdate:=v_hireanngredate;
+                                v_enddate:=v_hireannnextgredate;
+                                -- raise notice '%,% v_hireanngredate',v_hireanngredate,v_hireannnextgredate;
+                                 
+                                  SELECT to_char(gregorian_date, 'yyyy-MM-dd') into v_enddate FROM eut_hijri_dates
+                                    WHERE gregorian_date <  v_enddate  :: DATE
+                                    ORDER BY gregorian_date desc
+                                    LIMIT 1 ;
+                            ELSE
+                                 v_startdate:=v_preyearfirstdatedate;--v_hireannprevyear;
+                                 v_enddate:=v_preyearlastdate;
+                               -- raise notice '% v_preyearfirstdatedate',v_startdate;
+                                --raise notice '% MONTH 0 BUT DAY GREATER',v_startdate;
+                            END IF;
+                        ELSE IF ((v_levstartmonth-v_hiremonth) > 0) THEN
+                            v_startdate:=v_hireanngredate;
+                            v_enddate:=v_hireannnextgredate;
+                            
+                            SELECT to_char(gregorian_date, 'yyyy-MM-dd') into v_enddate FROM eut_hijri_dates
+                                    WHERE gregorian_date <  v_enddate  :: DATE
+                                    ORDER BY gregorian_date desc
+                                    LIMIT 1 ;
+                        END IF;
+                        END IF;
+                        END IF;
+                       /* IF(v_frequency = 'HY') THEN
+                         SELECT to_char(gregorian_date, 'yyyy-MM-dd') into  v_enddate FROM eut_hijri_dates
+                        WHERE gregorian_date > v_enddate:: DATE
+                        ORDER BY gregorian_date asc
+                        LIMIT 1 ;
+                        END If;*/
+                        
+                    ELSE IF (v_resetdate='FS') THEN	
+                      v_startdate:=v_hiredategre;
+                      v_enddate:='2058-06-21';
+                    ELSE IF (v_resetdate='LO') THEN	
+
+                        SELECT startdate,ehcm_decision_balance_id INTO v_firstleaveoccfstyrgreg, v_decisionbalanceId from ehcm_emp_leaveblockln
+                        where   ehcm_emp_leaveblock_id in (  select ehcm_emp_leaveblock_id from ehcm_emp_leaveblock 
+                        where ehcm_absence_type_id =p_absencetype_id and ehcm_emp_perinfo_id = p_employee_id
+                        and p_startdate ::timestamp  between TO_DATE(to_char(startdate,'dd-MM-yyyy'),'dd-MM-yyyy') 
+                        and TO_DATE(to_char(coalesce (enddate,TO_DATE('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy'))
+                        ORDER BY created ASC LIMIT 1;
+                      
+          
+                        --RAISE notice '%,% v_firstleaveoccfstyrgreg,%', v_firstleaveoccfstyrgreg,v_decisionbalanceId,p_startdate;
+                        v_freqinput := v_frequency;
+
+                        IF(v_firstleaveoccfstyrgreg is null) then 
+                            v_startyear := split_part(v_hijiridate, '-', 3);
+                            v_startdate := split_part(v_hijiridate, '-', 1) || '-' || split_part(v_hijiridate, '-', 2) || '-' || (v_startyear);
+                            v_enddate := split_part(v_hijiridate, '-', 1) || '-' || split_part(v_hijiridate, '-', 2) || '-' || (v_startyear + v_freqinput);
+
+                            --raise notice '%,% v_enddate ',v_startdate,v_enddate;
+                            v_startdate := (SELECT to_char(eut_convertto_gregorian(v_startdate), 'yyyy-MM-dd') AS v_startdate FROM dual) ; 
+                            v_enddate := (SELECT to_char(eut_convertto_gregorian(v_enddate), 'yyyy-MM-dd') AS v_enddate FROM dual) ; 
+                            
+                            --RAISE notice '%,%v_startdate', v_startdate, v_enddate;
+                            
+                         ELSE IF(v_decisionbalanceId is not null) THEN
+                         
+                         	SELECT eut_convert_to_hijri(v_firstleaveoccfstyrgreg) INTO v_firstleaveoccfstyrhiji FROM dual ; 
+                            v_startyear := split_part(v_firstleaveoccfstyrhiji, '-', 3);
+                                       
+                            v_enddate := split_part(v_firstleaveoccfstyrhiji, '-', 1) || '-' || split_part(v_firstleaveoccfstyrhiji, '-', 2) || '-' || (v_startyear + v_freqinput);
+
+                            --raise notice '%,% v_enddate ',v_startdate,v_enddate;
+                            v_startdate := v_firstleaveoccfstyrgreg; 
+                            v_enddate := (SELECT to_char(eut_convertto_gregorian(v_enddate), 'yyyy-MM-dd') AS v_enddate FROM dual) ; 
+                            
+                            --RAISE notice '%,%v_startdate', v_startdate, v_enddate;
+                            
+                        ELSE
+
+                        	SELECT eut_convert_to_hijri(v_firstleaveoccfstyrgreg) INTO v_firstleaveoccfstyrhiji FROM dual ; 
+
+                        	--RAISE notice '% v_firstleaveoccfstyrhiji', v_firstleaveoccfstyrhiji;
+                            v_firstyear := split_part(v_firstleaveoccfstyrhiji, '-', 3);
+                            --RAISE notice '% v_firstyear', v_firstyear;
+                            v_startyear := split_part(v_hijiridate, '-', 3);
+                            --RAISE notice '% v_startyear', v_startyear;
+                            v_diff := v_startyear - v_firstyear;
+                            --RAISE notice '% v_diff1', v_diff;
+                            v_diff := v_diff%v_freqinput; 
+                            --RAISE notice '% v_diff', v_diff;
+
+                        -- check two dates are greater than or lesser than if vminus is zero;
+                            IF(v_diff = 0) THEN
+                                v_firstmonth := (split_part(v_firstleaveoccfstyrhiji, '-', 2));
+                                v_levstartmonth := (split_part(v_hijiridate, '-', 2));
+                                v_firstday := (split_part(v_firstleaveoccfstyrhiji, '-', 1));
+                                v_levstartday := (split_part(v_hijiridate, '-', 1));
+                                --RAISE notice '% v_levstartday', v_firstmonth || '-' || v_levstartmonth || '-' || v_firstday || '-' || v_levstartday;
+                                IF((v_levstartmonth - v_firstmonth) < 0) THEN--finished
+                                    v_startdate := v_firstleaveoccfstyrhiji;
+                                    v_enddate := split_part(v_firstleaveoccfstyrhiji, '-', 1) || '-' || split_part(v_firstleaveoccfstyrhiji, '-', 2) || '-' || (split_part(v_hijiridate, '-', 3));--v_hijiridate;
+                                ELSE IF ((v_levstartmonth - v_firstmonth) = 0) THEN 
+                        			IF((v_levstartday - v_firstday) < 0) THEN--finished
+                                        v_startdate := split_part(v_firstleaveoccfstyrhiji, '-', 1) || '-' || split_part(v_firstleaveoccfstyrhiji, '-', 2) || '-' || (v_startyear - v_freqinput) ;
+                                        v_enddate := split_part(v_firstleaveoccfstyrhiji, '-', 1) || '-' || split_part(v_firstleaveoccfstyrhiji, '-', 2) || '-' || (split_part(v_hijiridate, '-', 3));
+                                        -- minus one days
+                        			ELSE
+                                        v_startdate := split_part(v_hijiridate, '-', 1) || '-' || split_part(v_hijiridate, '-', 2) || '-' || v_startyear;
+                                        v_enddate := split_part(v_hijiridate, '-', 1) || '-' || split_part(v_hijiridate, '-', 2) || '-' || (v_startyear + v_freqinput) ;
+                                        --RAISE notice '% ,% v_startdate',v_startdate,v_enddate ;
+                                    END IF; 
+                        		ELSE IF ((v_levstartmonth - v_firstmonth)> 0) THEN
+                                        --v_startdate := split_part(v_firstleaveoccfstyrhiji, '-', 1) || '-' || split_part(v_firstleaveoccfstyrhiji, '-', 2) || '-' || v_startyear;
+                                        v_startdate := split_part(v_hijiridate, '-', 1) || '-' || split_part(v_hijiridate, '-', 2) || '-' || v_startyear;
+                                        v_enddate := split_part(v_hijiridate, '-', 1) || '-' || split_part(v_hijiridate, '-', 2) || '-' || (v_startyear + v_freqinput) ;
+                                --RAISE notice '% ,% v_startdate',v_startdate,v_enddate ;
+                               END IF;
+                                END IF;
+                                END IF;
+                        	ELSE 
+                                --RAISE notice '% else', v_firstmonth ;
+                                v_startdate := split_part(v_firstleaveoccfstyrhiji, '-', 1) || '-' || split_part(v_firstleaveoccfstyrhiji, '-', 2) || '-' || (v_startyear - v_diff);
+                                v_enddate := split_part(v_firstleaveoccfstyrhiji, '-', 1) || '-' || split_part(v_firstleaveoccfstyrhiji, '-', 2) || '-' || ((v_startyear - v_diff) + v_freqinput);
+                        	END IF;
+                            v_startdate := (SELECT to_char(eut_convertto_gregorian(v_startdate), 'yyyy-MM-dd') AS v_startdate FROM dual) ; 
+                            v_enddate := (SELECT to_char(eut_convertto_gregorian(v_enddate), 'yyyy-MM-dd') AS v_enddate FROM dual) ; 
+
+                        --RAISE notice '%,%v_startdate', v_startdate, v_enddate;
+                       END IF;
+ 					 END IF;
+                    END IF;
+                    END IF;
+                    END IF;
+                    END IF;
+                    END IF;
+                         --raise notice '%,%,%,% v_enddate ',v_startdate,v_enddate,v_resetdate,v_frequency;
+            IF (v_resetdate<>'HAD')THEN	
+               -- raise notice '%,%,%,% v_enddate ',v_startdate,v_enddate,v_resetdate,v_frequency;
+                SELECT to_char(gregorian_date, 'yyyy-MM-dd') into v_enddate FROM eut_hijri_dates
+                WHERE gregorian_date <  v_enddate  :: DATE
+                ORDER BY gregorian_date desc
+                LIMIT 1 ;
+                END IF;
+                p_yearstartdate:=v_startdate;
+                p_yearenddate:=v_enddate;
+                p_prevyearstartdate:=v_preyearfirstdatedate;
+                p_prevyearenddate:=v_preyearlastdate;
+                --raise notice '%,% v_enddate ',v_startdate,v_enddate;
+                return;
+END EHCM_GETACCRUALSTARTENDDATE
+]]></body>
+    </function>
+  </database>

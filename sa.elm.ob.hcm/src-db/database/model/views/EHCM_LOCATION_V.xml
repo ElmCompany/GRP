@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+  <database name="VIEW EHCM_LOCATION_V">
+    <view name="EHCM_LOCATION_V"><![CDATA[SELECT lo.escm_location_id AS ehcm_location_v_id, loc.ad_client_id, loc.ad_org_id, loc.isactive, loc.created, loc.createdby, loc.updated, loc.updatedby, ((((((((((COALESCE(lo.location_name, '') || ' - ') || (COALESCE(loc.address1, '') || ' - ')) || COALESCE(loc.address2, '')) || ' - ') || COALESCE(loc.postal, '')) || ' - ') || COALESCE(city.name, '')) || ' - ') || COALESCE(reg.name, '')) || ' - ') || COALESCE(con.name, '') AS location, loc.address1, loc.address2, loc.postal, city.name AS city, reg.name AS region, con.name AS country, reg.c_region_id, city.c_city_id, con.c_country_id FROM c_location loc JOIN escm_location lo ON lo.c_location_id = loc.c_location_id LEFT JOIN c_region reg ON lo.c_region_id = reg.c_region_id LEFT JOIN c_city city ON loc.c_city_id = city.c_city_id LEFT JOIN c_country con ON reg.c_country_id = con.c_country_id]]></view>
+  </database>

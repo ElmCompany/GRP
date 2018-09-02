@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?><ob:Openbravo xmlns:ob="http://www.openbravo.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ADSequence id="B7B9BB09FF004B37809CC7F0913973A0" identifier="DocumentNo_EHCM_Payroll_Process_Hdr">
+    <id>B7B9BB09FF004B37809CC7F0913973A0</id>
+    <active>true</active>
+    <creationDate transient="true">2018-08-02T12:02:40.94Z</creationDate>
+    <createdBy transient="true" id="BCF72D95E15446FCB95F1B9333602E88" entity-name="ADUser" identifier="omar"/>
+    <updated transient="true">2018-08-02T12:04:26.0Z</updated>
+    <updatedBy transient="true" id="BCF72D95E15446FCB95F1B9333602E88" entity-name="ADUser" identifier="omar"/>
+    <name>DocumentNo_EHCM_Payroll_Process_Hdr</name>
+    <description>DocumentNo/Value for Table EHCM_Payroll_Process_Hdr</description>
+    <valueFormat xsi:nil="true"/>
+    <autoNumbering>true</autoNumbering>
+    <incrementBy>1</incrementBy>
+    <startingNo>1000000</startingNo>
+    <nextAssignedNumber>1000000</nextAssignedNumber>
+    <currentNextSystem>100</currentNextSystem>
+    <usedForRecordID>false</usedForRecordID>
+    <prefix xsi:nil="true"/>
+    <suffix xsi:nil="true"/>
+    <restartSequenceEveryYear>false</restartSequenceEveryYear>
+    <efinIsgeneralseq>false</efinIsgeneralseq>
+    <efinIsacctpaymentseq>false</efinIsacctpaymentseq>
+    <efinIsacctnonpaymentseq>false</efinIsacctnonpaymentseq>
+  </ADSequence>
+</ob:Openbravo>

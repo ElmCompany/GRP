@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_PAYROLLLINE_DEL">
+    <trigger name="EHCM_PAYROLLLINE_DEL" table="EHCM_PAYROLL_PROCESS_LNE" fires="before" insert="false" update="false" delete="true" foreach="row">
+      <body><![CDATA[/*************************************************************************
+* All Rights Reserved. 
+* Trigger for delete payroll line and its dependents.
+* Contributor(s):  Gowtham.
+************************************************************************/
+v_EmpDeduct_ID VARCHAR2(32);
+v_Status VARCHAR2(32);
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+
+	-- Insert Operation
+	IF DELETING THEN
+    	select status into v_Status from ehcm_payroll_process_hdr where ehcm_payroll_process_hdr_id = :old.ehcm_payroll_process_hdr_id;
+    	IF (v_Status ='C' or v_Status='BS') THEN
+        		RAISE_APPLICATION_ERROR(-20501,'@Ehcm_Payroll_Line_Del@');
+        Else
+        	delete from ehcm_earn_deduct_elm where ehcm_earn_deduct_emp_id=:old.ehcm_earn_deduct_emp_id and ehcm_payroll_process_lne_id=:old.ehcm_payroll_process_lne_id;
+			update ehcm_discipline_action set payroll_processed='N', ehcm_payroll_process_lne_id=null where ad_client_id = :old.ad_client_id  and ehcm_payroll_process_lne_id = :old.ehcm_payroll_process_lne_id;
+        	update ehcm_emp_businessmission set processed='N', ehcm_payroll_process_lne_id=null where ad_client_id = :old.ad_client_id and ehcm_payroll_process_lne_id = :old.ehcm_payroll_process_lne_id;
+        	update ehcm_emp_overtime set ispayrollprocessed = 'N', ehcm_payroll_process_lne_id=null where ad_client_id = :old.ad_client_id and ehcm_payroll_process_lne_id = :old.ehcm_payroll_process_lne_id;
+       		update ehcm_emp_scholarship set processed = 'N', ehcm_payroll_process_lne_id=null where ad_client_id = :old.ad_client_id and ehcm_payroll_process_lne_id = :old.ehcm_payroll_process_lne_id;
+            delete from ehcm_loan_history where ehcm_payroll_process_lne_id = :old.ehcm_payroll_process_lne_id;
+       END IF;
+	END IF;	
+	
+END EHCM_PAYROLLLINE_DEL
+]]></body>
+    </trigger>
+  </database>

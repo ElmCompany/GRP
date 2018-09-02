@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_EMP_SUSP_TERMINATION_TRG">
+    <trigger name="EHCM_EMP_SUSP_TERMINATION_TRG" table="EHCM_EMP_SUSPENSION" fires="before" insert="false" update="true" delete="false" foreach="row">
+      <body><![CDATA[v_search_key varchar(10);
+BEGIN
+IF TG_OP='UPDATE'
+       THEN
+        SELECT value from Ehcm_Suspension_Reason into v_search_key WHERE Ehcm_Suspension_Reason_id=:new.suspension_end_reason;   
+	IF (v_search_key='T') or (v_search_key='TRD') 
+	then
+		:new.Isjoinworkreq :='N';
+		:new.join_date :=null;
+	end IF;	
+END IF;
+END EHCM_EMP_SUSP_TERMINATION_TRG
+]]></body>
+    </trigger>
+  </database>

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_USER_ISACTIVE_TRG">
+    <trigger name="EHCM_USER_ISACTIVE_TRG" table="AD_USER" fires="after" insert="false" update="true" delete="false" foreach="row">
+      <body><![CDATA[  v_isactive CHAR(1);
+BEGIN
+IF TG_OP='UPDATE' THEN
+	--Restrict to make the user as active if the associated business partner is inactive
+	IF(:new.c_bpartner_id !='') THEN
+		select isactive into v_isactive from c_bpartner where c_bpartner_id = :new.c_bpartner_id;
+		IF(v_isactive='N') and (:new.isactive='Y') THEN
+			RAISE_APPLICATION_ERROR(-20000,'@EHCM_user_isactive@') ;
+		END IF;
+	END IF;
+END IF;			
+IF DELETING THEN 
+	RETURN OLD; 
+  ELSE 
+	RETURN NEW; 
+END IF;
+END EHCM_USER_ISACTIVE_TRG
+]]></body>
+    </trigger>
+  </database>

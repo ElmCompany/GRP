@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?><ob:Openbravo xmlns:ob="http://www.openbravo.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" defaultValues="true">
+  <ADRole id="0D0B65D319144679B436AB1BD16BE0E8" identifier="HR Specialist">
+    <id>0D0B65D319144679B436AB1BD16BE0E8</id>
+    <active>true</active>
+    <name>HR Specialist</name>
+    <description xsi:nil="true"/>
+    <userLevel> CO</userLevel>
+    <clientList>9E0D7E6917E944009B495336FFAF4F72</clientList>
+    <organizationList>0</organizationList>
+    <currency id="317" entity-name="Currency" identifier="SAR"/>
+    <approvalAmount>0</approvalAmount>
+    <primaryTreeMenu xsi:nil="true"/>
+    <manual>false</manual>
+    <processNow>false</processNow>
+    <clientAdmin>false</clientAdmin>
+    <advanced>true</advanced>
+    <isrestrictbackend>false</isrestrictbackend>
+    <forPortalUsers>false</forPortalUsers>
+    <portalAdmin>false</portalAdmin>
+    <isWebServiceEnabled>false</isWebServiceEnabled>
+    <template>false</template>
+    <recalculatePermissions>false</recalculatePermissions>
+    <eutIncludeinrule>false</eutIncludeinrule>
+    <efinSecurityRules xsi:nil="true"/>
+    <efinDepartmenthead>false</efinDepartmenthead>
+    <escmWarehouseRole>false</escmWarehouseRole>
+    <escmIslinemanager>false</escmIslinemanager>
+    <escmIshrlinemanager>false</escmIshrlinemanager>
+    <efinOrgbcumanger xsi:nil="true"/>
+    <eutDocumenttype xsi:nil="true"/>
+    <escmIsspecializeddept>false</escmIsspecializeddept>
+    <escmIsprocurement>false</escmIsprocurement>
+    <escmIsagencymanager>false</escmIsagencymanager>
+    <efinRdvmanager>false</efinRdvmanager>
+    <ehcmValue>HRS</ehcmValue>
+  </ADRole>
+  <ADRole id="115AABC4547C482D914DB2FFF96A7D75" identifier="Payroll Manager ">
+    <id>115AABC4547C482D914DB2FFF96A7D75</id>
+    <active>true</active>
+    <name>Payroll Manager </name>
+    <description xsi:nil="true"/>
+    <userLevel> CO</userLevel>
+    <clientList>9E0D7E6917E944009B495336FFAF4F72</clientList>
+    <organizationList>0</organizationList>
+    <currency id="317" entity-name="Currency" identifier="SAR"/>
+    <approvalAmount>0</approvalAmount>
+    <primaryTreeMenu xsi:nil="true"/>
+    <manual>false</manual>
+    <processNow>false</processNow>
+    <clientAdmin>false</clientAdmin>
+    <advanced>true</advanced>
+    <isrestrictbackend>false</isrestrictbackend>
+    <forPortalUsers>false</forPortalUsers>
+    <portalAdmin>false</portalAdmin>
+    <isWebServiceEnabled>false</isWebServiceEnabled>
+    <template>false</template>
+    <recalculatePermissions>false</recalculatePermissions>
+    <eutIncludeinrule>false</eutIncludeinrule>
+    <efinSecurityRules xsi:nil="true"/>
+    <efinDepartmenthead>false</efinDepartmenthead>
+    <escmWarehouseRole>false</escmWarehouseRole>
+    <escmIslinemanager>false</escmIslinemanager>
+    <escmIshrlinemanager>false</escmIshrlinemanager>
+    <efinOrgbcumanger xsi:nil="true"/>
+    <eutDocumenttype xsi:nil="true"/>
+    <escmIsspecializeddept>false</escmIsspecializeddept>
+    <escmIsprocurement>false</escmIsprocurement>
+    <escmIsagencymanager>false</escmIsagencymanager>
+    <efinRdvmanager>false</efinRdvmanager>
+    <ehcmValue>PAYMGR</ehcmValue>
+  </ADRole>
+  <ADRole id="1DAB950ADCA84F65830365B9EC18EA5B" identifier="HR Manager">
+    <id>1DAB950ADCA84F65830365B9EC18EA5B</id>
+    <active>true</active>
+    <name>HR Manager</name>
+    <description xsi:nil="true"/>
+    <userLevel> CO</userLevel>
+    <clientList>9E0D7E6917E944009B495336FFAF4F72</clientList>
+    <organizationList>0</organizationList>
+    <currency id="317" entity-name="Currency" identifier="SAR"/>
+    <approvalAmount>0</approvalAmount>
+    <primaryTreeMenu xsi:nil="true"/>
+    <manual>false</manual>
+    <processNow>false</processNow>
+    <clientAdmin>false</clientAdmin>
+    <advanced>true</advanced>
+    <isrestrictbackend>false</isrestrictbackend>
+    <forPortalUsers>false</forPortalUsers>
+    <portalAdmin>false</portalAdmin>
+    <isWebServiceEnabled>false</isWebServiceEnabled>
+    <template>false</template>
+    <recalculatePermissions>false</recalculatePermissions>
+    <eutIncludeinrule>false</eutIncludeinrule>
+    <efinSecurityRules xsi:nil="true"/>
+    <efinDepartmenthead>false</efinDepartmenthead>
+    <escmWarehouseRole>false</escmWarehouseRole>
+    <escmIslinemanager>false</escmIslinemanager>
+    <escmIshrlinemanager>false</escmIshrlinemanager>
+    <efinOrgbcumanger xsi:nil="true"/>
+    <eutDocumenttype xsi:nil="true"/>
+    <escmIsspecializeddept>false</escmIsspecializeddept>
+    <escmIsprocurement>false</escmIsprocurement>
+    <escmIsagencymanager>false</escmIsagencymanager>
+    <efinRdvmanager>false</efinRdvmanager>
+    <ehcmValue>HRM</ehcmValue>
+  </ADRole>
+  <ADRole id="5EB397E3252E469B9244890E93FF4975" identifier="HR Admin">
+    <id>5EB397E3252E469B9244890E93FF4975</id>
+    <active>true</active>
+    <name>HR Admin</name>
+    <description xsi:nil="true"/>
+    <userLevel> CO</userLevel>
+    <clientList>9E0D7E6917E944009B495336FFAF4F72</clientList>
+    <organizationList>0</organizationList>
+    <currency id="317" entity-name="Currency" identifier="SAR"/>
+    <approvalAmount>0</approvalAmount>
+    <primaryTreeMenu xsi:nil="true"/>
+    <manual>false</manual>
+    <processNow>false</processNow>
+    <clientAdmin>false</clientAdmin>
+    <advanced>true</advanced>
+    <isrestrictbackend>false</isrestrictbackend>
+    <forPortalUsers>false</forPortalUsers>
+    <portalAdmin>false</portalAdmin>
+    <isWebServiceEnabled>false</isWebServiceEnabled>
+    <template>false</template>
+    <recalculatePermissions>false</recalculatePermissions>
+    <eutIncludeinrule>false</eutIncludeinrule>
+    <efinSecurityRules xsi:nil="true"/>
+    <efinDepartmenthead>false</efinDepartmenthead>
+    <escmWarehouseRole>false</escmWarehouseRole>
+    <escmIslinemanager>false</escmIslinemanager>
+    <escmIshrlinemanager>false</escmIshrlinemanager>
+    <efinOrgbcumanger xsi:nil="true"/>
+    <eutDocumenttype xsi:nil="true"/>
+    <escmIsspecializeddept>false</escmIsspecializeddept>
+    <escmIsprocurement>false</escmIsprocurement>
+    <escmIsagencymanager>false</escmIsagencymanager>
+    <efinRdvmanager>false</efinRdvmanager>
+    <ehcmValue>HRA</ehcmValue>
+  </ADRole>
+  <ADRole id="6ADAF60D11B649F689C83B84D31B8961" identifier="Employee Self Service">
+    <id>6ADAF60D11B649F689C83B84D31B8961</id>
+    <active>true</active>
+    <name>Employee Self Service</name>
+    <description xsi:nil="true"/>
+    <userLevel> CO</userLevel>
+    <clientList>9E0D7E6917E944009B495336FFAF4F72</clientList>
+    <organizationList>0</organizationList>
+    <currency id="317" entity-name="Currency" identifier="SAR"/>
+    <approvalAmount>0</approvalAmount>
+    <primaryTreeMenu xsi:nil="true"/>
+    <manual>false</manual>
+    <processNow>false</processNow>
+    <clientAdmin>false</clientAdmin>
+    <advanced>true</advanced>
+    <isrestrictbackend>false</isrestrictbackend>
+    <forPortalUsers>false</forPortalUsers>
+    <portalAdmin>false</portalAdmin>
+    <isWebServiceEnabled>false</isWebServiceEnabled>
+    <template>false</template>
+    <recalculatePermissions>false</recalculatePermissions>
+    <eutIncludeinrule>false</eutIncludeinrule>
+    <efinSecurityRules xsi:nil="true"/>
+    <efinDepartmenthead>false</efinDepartmenthead>
+    <escmWarehouseRole>false</escmWarehouseRole>
+    <escmIslinemanager>false</escmIslinemanager>
+    <escmIshrlinemanager>false</escmIshrlinemanager>
+    <efinOrgbcumanger xsi:nil="true"/>
+    <eutDocumenttype xsi:nil="true"/>
+    <escmIsspecializeddept>false</escmIsspecializeddept>
+    <escmIsprocurement>false</escmIsprocurement>
+    <escmIsagencymanager>false</escmIsagencymanager>
+    <efinRdvmanager>false</efinRdvmanager>
+    <ehcmValue>SSHREMP</ehcmValue>
+  </ADRole>
+  <ADRole id="6B70042BA7D1411794C0B6D5118C49EF" identifier="Specialist Self Service">
+    <id>6B70042BA7D1411794C0B6D5118C49EF</id>
+    <active>true</active>
+    <name>Specialist Self Service</name>
+    <description xsi:nil="true"/>
+    <userLevel> CO</userLevel>
+    <clientList>9E0D7E6917E944009B495336FFAF4F72</clientList>
+    <organizationList>0</organizationList>
+    <currency id="317" entity-name="Currency" identifier="SAR"/>
+    <approvalAmount>0</approvalAmount>
+    <primaryTreeMenu xsi:nil="true"/>
+    <manual>false</manual>
+    <processNow>false</processNow>
+    <clientAdmin>false</clientAdmin>
+    <advanced>true</advanced>
+    <isrestrictbackend>false</isrestrictbackend>
+    <forPortalUsers>false</forPortalUsers>
+    <portalAdmin>false</portalAdmin>
+    <isWebServiceEnabled>false</isWebServiceEnabled>
+    <template>false</template>
+    <recalculatePermissions>false</recalculatePermissions>
+    <eutIncludeinrule>false</eutIncludeinrule>
+    <efinSecurityRules xsi:nil="true"/>
+    <efinDepartmenthead>false</efinDepartmenthead>
+    <escmWarehouseRole>false</escmWarehouseRole>
+    <escmIslinemanager>false</escmIslinemanager>
+    <escmIshrlinemanager>false</escmIshrlinemanager>
+    <efinOrgbcumanger xsi:nil="true"/>
+    <eutDocumenttype xsi:nil="true"/>
+    <escmIsspecializeddept>false</escmIsspecializeddept>
+    <escmIsprocurement>false</escmIsprocurement>
+    <escmIsagencymanager>false</escmIsagencymanager>
+    <efinRdvmanager>false</efinRdvmanager>
+    <ehcmValue>SSHRSPC</ehcmValue>
+  </ADRole>
+  <ADRole id="6DD58C0D68E3477DA2FA3B40903943A9" identifier="Payroll Admin">
+    <id>6DD58C0D68E3477DA2FA3B40903943A9</id>
+    <active>true</active>
+    <name>Payroll Admin</name>
+    <description xsi:nil="true"/>
+    <userLevel> CO</userLevel>
+    <clientList>9E0D7E6917E944009B495336FFAF4F72</clientList>
+    <organizationList>0</organizationList>
+    <currency id="317" entity-name="Currency" identifier="SAR"/>
+    <approvalAmount>0</approvalAmount>
+    <primaryTreeMenu xsi:nil="true"/>
+    <manual>false</manual>
+    <processNow>false</processNow>
+    <clientAdmin>false</clientAdmin>
+    <advanced>true</advanced>
+    <isrestrictbackend>false</isrestrictbackend>
+    <forPortalUsers>false</forPortalUsers>
+    <portalAdmin>false</portalAdmin>
+    <isWebServiceEnabled>false</isWebServiceEnabled>
+    <template>false</template>
+    <recalculatePermissions>false</recalculatePermissions>
+    <eutIncludeinrule>false</eutIncludeinrule>
+    <efinSecurityRules xsi:nil="true"/>
+    <efinDepartmenthead>false</efinDepartmenthead>
+    <escmWarehouseRole>false</escmWarehouseRole>
+    <escmIslinemanager>false</escmIslinemanager>
+    <escmIshrlinemanager>false</escmIshrlinemanager>
+    <efinOrgbcumanger xsi:nil="true"/>
+    <eutDocumenttype xsi:nil="true"/>
+    <escmIsspecializeddept>false</escmIsspecializeddept>
+    <escmIsprocurement>false</escmIsprocurement>
+    <escmIsagencymanager>false</escmIsagencymanager>
+    <efinRdvmanager>false</efinRdvmanager>
+    <ehcmValue>PAYADM</ehcmValue>
+  </ADRole>
+  <ADRole id="86F9935498D44C88B651CC6161D70C13" identifier="HR User">
+    <id>86F9935498D44C88B651CC6161D70C13</id>
+    <active>true</active>
+    <name>HR User</name>
+    <description xsi:nil="true"/>
+    <userLevel> CO</userLevel>
+    <clientList>9E0D7E6917E944009B495336FFAF4F72</clientList>
+    <organizationList>0</organizationList>
+    <currency id="317" entity-name="Currency" identifier="SAR"/>
+    <approvalAmount>0</approvalAmount>
+    <primaryTreeMenu xsi:nil="true"/>
+    <manual>false</manual>
+    <processNow>false</processNow>
+    <clientAdmin>false</clientAdmin>
+    <advanced>true</advanced>
+    <isrestrictbackend>false</isrestrictbackend>
+    <forPortalUsers>false</forPortalUsers>
+    <portalAdmin>false</portalAdmin>
+    <isWebServiceEnabled>false</isWebServiceEnabled>
+    <template>false</template>
+    <recalculatePermissions>false</recalculatePermissions>
+    <eutIncludeinrule>false</eutIncludeinrule>
+    <efinSecurityRules xsi:nil="true"/>
+    <efinDepartmenthead>false</efinDepartmenthead>
+    <escmWarehouseRole>false</escmWarehouseRole>
+    <escmIslinemanager>false</escmIslinemanager>
+    <escmIshrlinemanager>false</escmIshrlinemanager>
+    <efinOrgbcumanger xsi:nil="true"/>
+    <eutDocumenttype xsi:nil="true"/>
+    <escmIsspecializeddept>false</escmIsspecializeddept>
+    <escmIsprocurement>false</escmIsprocurement>
+    <escmIsagencymanager>false</escmIsagencymanager>
+    <efinRdvmanager>false</efinRdvmanager>
+    <ehcmValue>HRU</ehcmValue>
+  </ADRole>
+  <ADRole id="B6FD19E677F64EE4B7784676361C2845" identifier="Manager Self Service ">
+    <id>B6FD19E677F64EE4B7784676361C2845</id>
+    <active>true</active>
+    <name>Manager Self Service </name>
+    <description xsi:nil="true"/>
+    <userLevel> CO</userLevel>
+    <clientList>9E0D7E6917E944009B495336FFAF4F72</clientList>
+    <organizationList>0</organizationList>
+    <currency id="317" entity-name="Currency" identifier="SAR"/>
+    <approvalAmount>0</approvalAmount>
+    <primaryTreeMenu xsi:nil="true"/>
+    <manual>false</manual>
+    <processNow>false</processNow>
+    <clientAdmin>false</clientAdmin>
+    <advanced>true</advanced>
+    <isrestrictbackend>false</isrestrictbackend>
+    <forPortalUsers>false</forPortalUsers>
+    <portalAdmin>false</portalAdmin>
+    <isWebServiceEnabled>false</isWebServiceEnabled>
+    <template>false</template>
+    <recalculatePermissions>false</recalculatePermissions>
+    <eutIncludeinrule>false</eutIncludeinrule>
+    <efinSecurityRules xsi:nil="true"/>
+    <efinDepartmenthead>false</efinDepartmenthead>
+    <escmWarehouseRole>false</escmWarehouseRole>
+    <escmIslinemanager>false</escmIslinemanager>
+    <escmIshrlinemanager>false</escmIshrlinemanager>
+    <efinOrgbcumanger xsi:nil="true"/>
+    <eutDocumenttype xsi:nil="true"/>
+    <escmIsspecializeddept>false</escmIsspecializeddept>
+    <escmIsprocurement>false</escmIsprocurement>
+    <escmIsagencymanager>false</escmIsagencymanager>
+    <efinRdvmanager>false</efinRdvmanager>
+    <ehcmValue>SSHRMGR</ehcmValue>
+  </ADRole>
+  <ADRole id="C032F854865740CC8B4EC7AE911C91F6" identifier="HR User Manager">
+    <id>C032F854865740CC8B4EC7AE911C91F6</id>
+    <active>true</active>
+    <name>HR User Manager</name>
+    <description xsi:nil="true"/>
+    <userLevel> CO</userLevel>
+    <clientList>9E0D7E6917E944009B495336FFAF4F72</clientList>
+    <organizationList>0</organizationList>
+    <currency id="317" entity-name="Currency" identifier="SAR"/>
+    <approvalAmount>0</approvalAmount>
+    <primaryTreeMenu xsi:nil="true"/>
+    <manual>false</manual>
+    <processNow>false</processNow>
+    <clientAdmin>false</clientAdmin>
+    <advanced>true</advanced>
+    <isrestrictbackend>false</isrestrictbackend>
+    <forPortalUsers>false</forPortalUsers>
+    <portalAdmin>false</portalAdmin>
+    <isWebServiceEnabled>false</isWebServiceEnabled>
+    <template>false</template>
+    <recalculatePermissions>false</recalculatePermissions>
+    <eutIncludeinrule>false</eutIncludeinrule>
+    <efinSecurityRules xsi:nil="true"/>
+    <efinDepartmenthead>false</efinDepartmenthead>
+    <escmWarehouseRole>false</escmWarehouseRole>
+    <escmIslinemanager>false</escmIslinemanager>
+    <escmIshrlinemanager>false</escmIshrlinemanager>
+    <efinOrgbcumanger xsi:nil="true"/>
+    <eutDocumenttype xsi:nil="true"/>
+    <escmIsspecializeddept>false</escmIsspecializeddept>
+    <escmIsprocurement>false</escmIsprocurement>
+    <escmIsagencymanager>false</escmIsagencymanager>
+    <efinRdvmanager>false</efinRdvmanager>
+    <ehcmValue>HRUM</ehcmValue>
+  </ADRole>
+  <ADRole id="F3B568B241DA444B99A0427DAD9D7668" identifier="Payroll Specialist">
+    <id>F3B568B241DA444B99A0427DAD9D7668</id>
+    <active>true</active>
+    <name>Payroll Specialist</name>
+    <description xsi:nil="true"/>
+    <userLevel> CO</userLevel>
+    <clientList>9E0D7E6917E944009B495336FFAF4F72</clientList>
+    <organizationList>0</organizationList>
+    <currency id="317" entity-name="Currency" identifier="SAR"/>
+    <approvalAmount>0</approvalAmount>
+    <primaryTreeMenu xsi:nil="true"/>
+    <manual>false</manual>
+    <processNow>false</processNow>
+    <clientAdmin>false</clientAdmin>
+    <advanced>true</advanced>
+    <isrestrictbackend>false</isrestrictbackend>
+    <forPortalUsers>false</forPortalUsers>
+    <portalAdmin>false</portalAdmin>
+    <isWebServiceEnabled>false</isWebServiceEnabled>
+    <template>false</template>
+    <recalculatePermissions>false</recalculatePermissions>
+    <eutIncludeinrule>false</eutIncludeinrule>
+    <efinSecurityRules xsi:nil="true"/>
+    <efinDepartmenthead>false</efinDepartmenthead>
+    <escmWarehouseRole>false</escmWarehouseRole>
+    <escmIslinemanager>false</escmIslinemanager>
+    <escmIshrlinemanager>false</escmIshrlinemanager>
+    <efinOrgbcumanger xsi:nil="true"/>
+    <eutDocumenttype xsi:nil="true"/>
+    <escmIsspecializeddept>false</escmIsspecializeddept>
+    <escmIsprocurement>false</escmIsprocurement>
+    <escmIsagencymanager>false</escmIsagencymanager>
+    <efinRdvmanager>false</efinRdvmanager>
+    <ehcmValue>PAYSPC</ehcmValue>
+  </ADRole>
+</ob:Openbravo>

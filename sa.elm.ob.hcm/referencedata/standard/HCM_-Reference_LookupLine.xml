@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?><ob:Openbravo xmlns:ob="http://www.openbravo.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <EHCM_Deflookups_TypeLn id="1C164D687B514337B1A61A8BCFDA9EF1" identifier="Dangerous Disease">
+    <id>1C164D687B514337B1A61A8BCFDA9EF1</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="26E0667D7E24465CB5C0B8A24324BE87" entity-name="EHCM_Deflookups_Type" identifier="AS"/>
+    <searchKey>DG</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>20</lineNo>
+    <name>Dangerous Disease</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="1C4172052DCD4B619C570AFFA49952C5" identifier="Identification for bank details">
+    <id>1C4172052DCD4B619C570AFFA49952C5</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="A16D91BF7CB14D93A5F4EAC1D828A846" entity-name="EHCM_Deflookups_Type" identifier="empcertype"/>
+    <searchKey>BD</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>40</lineNo>
+    <name>Identification for bank details</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="42166F984347416180FF6BE711CE1A68" identifier="Internal">
+    <id>42166F984347416180FF6BE711CE1A68</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="B1611F6A67204B84990496FFFFB9C7BD" entity-name="EHCM_Deflookups_Type" identifier="BMT"/>
+    <searchKey>INT</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>10</lineNo>
+    <name>Internal</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="541A16B64CE44638B5D77E7FD298F464" identifier="Identification for Traffic Office">
+    <id>541A16B64CE44638B5D77E7FD298F464</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="A16D91BF7CB14D93A5F4EAC1D828A846" entity-name="EHCM_Deflookups_Type" identifier="empcertype"/>
+    <searchKey>TO</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>30</lineNo>
+    <name>Identification for Traffic Office</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="5D30E809328045F2BF4BE1C6AA84C5E8" identifier="Identification for Embassy">
+    <id>5D30E809328045F2BF4BE1C6AA84C5E8</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="A16D91BF7CB14D93A5F4EAC1D828A846" entity-name="EHCM_Deflookups_Type" identifier="empcertype"/>
+    <searchKey>EM</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>10</lineNo>
+    <name>Identification for Embassy</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="8070504B187B46A39FD23012971FE7AB" identifier="First Class">
+    <id>8070504B187B46A39FD23012971FE7AB</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="20E98537A63E4DCE9BA2CE6F2F34EBB2" entity-name="EHCM_Deflookups_Type" identifier="TC"/>
+    <searchKey>FC</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>20</lineNo>
+    <name>First Class</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="85C76B6FF89F4125A949711F167F3BAE" identifier="Social Credit &amp; Saving Bank">
+    <id>85C76B6FF89F4125A949711F167F3BAE</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="554A3241FED44E719BE85EB4A46B982E" entity-name="EHCM_Deflookups_Type" identifier="LT"/>
+    <searchKey>SCSM</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>30</lineNo>
+    <name>Social Credit &amp; Saving Bank</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="8E7C661BF67D49FF922F45D30145CB9A" identifier="Agency of the Ministry of Civil Affairs">
+    <id>8E7C661BF67D49FF922F45D30145CB9A</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="A16D91BF7CB14D93A5F4EAC1D828A846" entity-name="EHCM_Deflookups_Type" identifier="empcertype"/>
+    <searchKey>MCA</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>20</lineNo>
+    <name>Agency of the Ministry of Civil Affairs</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="90359A72B8DE4C65B1900B4EC86AC15A" identifier="Tourist Class">
+    <id>90359A72B8DE4C65B1900B4EC86AC15A</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="20E98537A63E4DCE9BA2CE6F2F34EBB2" entity-name="EHCM_Deflookups_Type" identifier="TC"/>
+    <searchKey>TC</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>30</lineNo>
+    <name>Tourist Class</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="A23005A9D95C44A584F6E4FFD1C79CF3" identifier="Arabic">
+    <id>A23005A9D95C44A584F6E4FFD1C79CF3</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="4CEEECEBC9D646F1B74502125CAF354F" entity-name="EHCM_Deflookups_Type" identifier="empcerlan"/>
+    <searchKey>AR</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>10</lineNo>
+    <name>Arabic</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="A989FE33609F4CAA820697E6652F6125" identifier="Training">
+    <id>A989FE33609F4CAA820697E6652F6125</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="29AAB6201E9E4103AA0616E6F7788E80" entity-name="EHCM_Deflookups_Type" identifier="SC"/>
+    <searchKey>TR</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>20</lineNo>
+    <name>Training</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="AA3BE90F3EB74B39A4BADC8F15597A14" identifier="Normal Disease">
+    <id>AA3BE90F3EB74B39A4BADC8F15597A14</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="26E0667D7E24465CB5C0B8A24324BE87" entity-name="EHCM_Deflookups_Type" identifier="AS"/>
+    <searchKey>NR</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>10</lineNo>
+    <name>Normal Disease</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="AAE4EBBFAEFD4DDF98A5E2849B088C51" identifier="External">
+    <id>AAE4EBBFAEFD4DDF98A5E2849B088C51</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="B1611F6A67204B84990496FFFFB9C7BD" entity-name="EHCM_Deflookups_Type" identifier="BMT"/>
+    <searchKey>EXT</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>20</lineNo>
+    <name>External</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="B5191E7E15F94CCBBA92781ADBB00E45" identifier="Business Class">
+    <id>B5191E7E15F94CCBBA92781ADBB00E45</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="20E98537A63E4DCE9BA2CE6F2F34EBB2" entity-name="EHCM_Deflookups_Type" identifier="TC"/>
+    <searchKey>BC</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>10</lineNo>
+    <name>Business Class</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="C94EA8A784F543DB9CCF6075EA6993AE" identifier="Identification for Passport">
+    <id>C94EA8A784F543DB9CCF6075EA6993AE</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="A16D91BF7CB14D93A5F4EAC1D828A846" entity-name="EHCM_Deflookups_Type" identifier="empcertype"/>
+    <searchKey>PA</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>50</lineNo>
+    <name>Identification for Passport</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="CC6287CF63CD4F949E45AD27657B09A2" identifier="Agricultural Development Fund">
+    <id>CC6287CF63CD4F949E45AD27657B09A2</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="554A3241FED44E719BE85EB4A46B982E" entity-name="EHCM_Deflookups_Type" identifier="LT"/>
+    <searchKey>ADF</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>20</lineNo>
+    <name>Agricultural Development Fund</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="D2DA50DE25904A6D9CE9B366E3541C0D" identifier="Internal">
+    <id>D2DA50DE25904A6D9CE9B366E3541C0D</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="50FADC90E240460D9775E3447D6E66FF" entity-name="EHCM_Deflookups_Type" identifier="SCT"/>
+    <searchKey>INT</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>10</lineNo>
+    <name>Internal</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="D4C8A029DA114189AA84860AA918C80A" identifier="Others">
+    <id>D4C8A029DA114189AA84860AA918C80A</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="A16D91BF7CB14D93A5F4EAC1D828A846" entity-name="EHCM_Deflookups_Type" identifier="empcertype"/>
+    <searchKey>OT</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>60</lineNo>
+    <name>Others</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="D5DBCF44376D4885AD871DDCC3F35C9F" identifier="Real State Development Fund">
+    <id>D5DBCF44376D4885AD871DDCC3F35C9F</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="554A3241FED44E719BE85EB4A46B982E" entity-name="EHCM_Deflookups_Type" identifier="LT"/>
+    <searchKey>RSDF</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>10</lineNo>
+    <name>Real State Development Fund</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="EB8E633544A348BF87ADA6C113E54F83" identifier="Scholarship">
+    <id>EB8E633544A348BF87ADA6C113E54F83</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="29AAB6201E9E4103AA0616E6F7788E80" entity-name="EHCM_Deflookups_Type" identifier="SC"/>
+    <searchKey>SC</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>10</lineNo>
+    <name>Scholarship</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="EBF16474442040FD89C0FE50451778F3" identifier="Arabic English">
+    <id>EBF16474442040FD89C0FE50451778F3</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="4CEEECEBC9D646F1B74502125CAF354F" entity-name="EHCM_Deflookups_Type" identifier="empcerlan"/>
+    <searchKey>AREN</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>30</lineNo>
+    <name>Arabic English</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="F391252422F0443C8D1B2D81D424CF46" identifier="English">
+    <id>F391252422F0443C8D1B2D81D424CF46</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="4CEEECEBC9D646F1B74502125CAF354F" entity-name="EHCM_Deflookups_Type" identifier="empcerlan"/>
+    <searchKey>EN</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>20</lineNo>
+    <name>English</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+  <EHCM_Deflookups_TypeLn id="F504A19F4677416DB1A6A7CD27B8CE2D" identifier="External">
+    <id>F504A19F4677416DB1A6A7CD27B8CE2D</id>
+    <enabled>true</enabled>
+    <ehcmDeflookupsType id="50FADC90E240460D9775E3447D6E66FF" entity-name="EHCM_Deflookups_Type" identifier="SCT"/>
+    <searchKey>EXT</searchKey>
+    <description xsi:nil="true"/>
+    <lineNo>20</lineNo>
+    <name>External</name>
+    <maximum xsi:nil="true"/>
+    <min xsi:nil="true"/>
+  </EHCM_Deflookups_TypeLn>
+</ob:Openbravo>

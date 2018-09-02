@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+
+.highcharts-text-outline {
+    stroke-width: 0px !important;
+}
+
+</style>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/highcharts-more.js"></script>
+<script type="text/javascript"
+	src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<div id="container" style="min-width: 310px; height: 450px; max-width: 790px; margin: 0 auto"></div>
+</body>
+<script type="text/javascript">
+$(function () {
+Highcharts.setOptions({
+    lang: {
+        thousandsSep: ','
+    }
+});
+    var chart = new Highcharts.chart('container', {
+	colors: ['#bfbfbf','#0f97a6','#eb7f00'],
+        chart: {
+            type: 'bar'
+        },
+        title: {
+            text: 'Payslip Overview'
+        },
+        xAxis: {
+            categories: ['January 2017', 'December 2016', 'November 2016', 'October 2016']
+        },
+        yAxis: {
+            min: 0,
+			max: 20000,
+            title: {
+                text: 'Gross Pay'
+            }
+        },
+        legend: {
+            reversed: true
+        },
+		credits: {
+			enabled: false
+		},
+        plotOptions: {
+            series: {
+                stacking: 'normal',
+                dataLabels: {
+                    enabled: true,
+                    color: 'white',
+					style: {
+						color: 'black',
+						textShadow: '0',
+						textDecoration: 'none' ,
+						fontWeight: 'normal',
+					}
+
+					
+                }
+            }
+        },
+        series: [{
+            name: 'Deductions',
+            data: [988, 950, 1070, 950]
+        },
+		{
+            name: 'Take Home Pay',
+            data: [11077, 10550, 10430, 10550]
+        }]
+    });
+	
+	chart.renderer.label('<div style="">Next Salary is in <span style="font-weight: bold; color: #eb7f00">4</span> days!</div>', $("#container").width() - 240, 180)
+        .css({
+            color: '#4572A7',
+            fontSize: '18px'
+			
+        })
+        .add();
+});
+</script>
+</html>

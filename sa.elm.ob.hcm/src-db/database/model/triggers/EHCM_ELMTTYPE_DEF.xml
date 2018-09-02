@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_ELMTTYPE_DEF">
+    <trigger name="EHCM_ELMTTYPE_DEF" table="EHCM_ELMTTYPE_DEF" fires="before" insert="true" update="true" delete="true" foreach="row">
+      <body><![CDATA[
+BEGIN
+
+	IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+
+	IF  INSERTING OR UPDATING THEN
+		IF (:NEW.monthdays = 'GV' AND :NEW.ehcm_payroll_globalvalue_id IS NULL) THEN
+			RAISE_APPLICATION_ERROR(-20000, '@EHCM_GlobalValue_Required@');
+		END IF;		
+	END IF;
+
+	END EHCM_ELMTTYPE_DEF
+]]></body>
+    </trigger>
+  </database>

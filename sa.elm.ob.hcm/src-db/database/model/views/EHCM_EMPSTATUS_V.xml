@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+  <database name="VIEW EHCM_EMPSTATUS_V">
+    <view name="EHCM_EMPSTATUS_V"><![CDATA[SELECT bl.ehcm_empstatus_id AS ehcm_empstatus_v_id, bl.ad_client_id, bl.ad_org_id, bl.isactive, bl.created, bl.createdby, bl.updated, bl.updatedby, bl.ehcm_emp_perinfo_id, bl.decisionno, bl.startdate, bl.todate, bl.status FROM ehcm_empstatus bl JOIN ehcm_emp_perinfo bh ON bh.ehcm_emp_perinfo_id = bl.ehcm_emp_perinfo_id UNION SELECT tr.ehcm_emp_perinfo_id AS ehcm_empstatus_v_id, tr.ad_client_id, tr.ad_org_id, tr.isactive, tr.created, tr.createdby, tr.updated, tr.updatedby, tr.ehcm_emp_perinfo_id, tr.decisionno, tr.startdate, tr.enddate AS todate, tr.status FROM ehcm_emp_perinfo tr]]></view>
+  </database>

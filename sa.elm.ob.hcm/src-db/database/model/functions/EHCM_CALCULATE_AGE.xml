@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION EHCM_CALCULATE_AGE">
+    <function name="EHCM_CALCULATE_AGE" type="VARCHAR">
+      <parameter name="p_employee_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_client_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_startdate" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_enddate" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <body><![CDATA[v_age VARCHAR(32);
+v_dobdate VARCHAR2(32);
+v_nowdate VARCHAR(32);	--OBTG:VARCHAR2--
+
+v_dobhijiri VARCHAR2(32);
+v_nowhijiri VARCHAR2(32);
+
+v_dobyear NUMBER;
+v_dobmonth   NUMBER;
+v_dobday NUMBER;
+v_nowyear NUMBER;
+v_nowmonth  NUMBER;
+v_nowday NUMBER;
+v_year NUMBER;
+v_month NUMBER ;
+v_day NUMBER;
+v_nowmonthchar VARCHAR2(32);
+v_compare NUMBER;
+
+v_today NUMBER;
+v_total NUMBER;
+v_maximumcurrentdate NUMBER;
+BEGIN
+		--raise notice '%,%,%',p_startdate,p_enddate,v_dobday;
+
+/*
+-- get the dob for employee
+		IF(p_dob) THEN 
+		select dob into v_dobdate  from ehcm_emp_perinfo where     ehcm_emp_perinfo_id  =p_employee_id;
+		ELSE 
+		select hiredate into v_dobdate  from ehcm_emp_perinfo where     ehcm_emp_perinfo_id  =p_employee_id;
+		END IF;
+ -- get the dob hijiri date 
+		select eut_convert_to_hijri(v_dobdate) into v_dobhijiri from dual;
+		
+		v_dobyear:=split_part(v_dobhijiri,'-',3);
+		v_dobmonth:=split_part(v_dobhijiri,'-',2);
+		v_dobday:=split_part(v_dobhijiri,'-',1);
+		
+-- get current date 		
+		select TO_DATE(to_char(CURRENT_TIMESTAMP(),'yyyy-MM-dd'),'yyyy-MM-dd')::text  into v_nowdate from dual;
+ -- get the current hijiri date 
+ 		select eut_convert_to_hijri(v_nowdate) into v_nowhijiri from dual;
+ 		v_nowyear:=split_part(v_nowhijiri,'-',3);
+		v_nowmonth:=split_part(v_nowhijiri,'-',2);
+		v_nowday:=split_part(v_nowhijiri,'-',1);*/
+		
+        
+          SELECT CASE WHEN ( p_startdate < p_enddate) THEN 1 ELSE - 1 END INTO v_compare;
+          	IF(v_compare = 1) THEN
+        
+		-- get start date in hijiri format
+		select eut_convert_to_hijri(p_startdate) into v_dobhijiri from dual;
+		v_dobyear:=split_part(v_dobhijiri,'-',3);
+		v_dobmonth:=split_part(v_dobhijiri,'-',2);
+		v_dobday:=split_part(v_dobhijiri,'-',1);
+		--raise notice '%,%,%',v_dobyear,v_dobmonth,v_dobday;
+		
+		-- get end date in hijiri format
+		select eut_convert_to_hijri(p_enddate) into v_nowhijiri from dual;
+ 		v_nowyear:=split_part(v_nowhijiri,'-',3);
+		v_nowmonth:=split_part(v_nowhijiri,'-',2);
+		v_nowday:=split_part(v_nowhijiri,'-',1);
+        
+        
+		--raise notice '%,%,%',v_nowyear,v_nowmonth,v_nowday;
+
+		v_year:=v_nowyear-v_dobyear;
+		v_month:=v_nowmonth-v_dobmonth;
+		--raise notice '%', v_nowmonth;
+				--raise notice '%,% v_nowday',v_nowday,v_dobday;
+       
+		IF(v_month<0) THEN 
+			v_year:=v_year-1 ;
+			v_month:= (12 - v_dobmonth) + v_nowmonth;
+            if(v_nowday <  v_dobday)then
+            v_month:=v_month-1;
+            end if;
+            					
+		ELSE  IF(v_month=0 and v_nowday <  v_dobday) THEN
+			v_year:=v_year-1 ;
+			v_month:=11;
+        else if(v_month>1  and v_nowday <  v_dobday) then
+        v_month:=v_month-1;
+		END IF;
+		END IF;
+       end if;
+      
+		IF (v_nowday > v_dobday) THEN
+			v_day  := v_nowday - v_dobday;
+		ELSE IF (v_nowday < v_dobday) THEN
+		      v_today := v_nowday;
+             
+             if(v_nowmonth > 1) then 
+              v_nowmonth = v_nowmonth-1;
+              end if;
+		      IF(v_nowmonth < 9 ) THEN
+			v_nowmonthchar:='0'||v_nowmonth;
+            else
+            v_nowmonthchar:=v_nowmonth;
+            
+		      END IF;
+              
+               --raise notice '%,% v_nowmonthchar',v_nowyear,v_nowmonthchar;
+             select count(a.hijri_date)  into v_total from (
+		      select max(hijri_date) as hijri_date,gregorian_date from eut_hijri_dates  where
+		        hijri_date ilike '%'||v_nowyear||v_nowmonthchar||'%'  group by  gregorian_date ) a ;
+			  v_maximumcurrentdate:= v_total;
+                  --raise notice '%',v_maximumcurrentdate;
+			  v_day :=(v_maximumcurrentdate - v_dobday) + v_today;
+		ELSE 
+          
+		      v_day := 0;
+		      IF (v_month = 12) THEN
+			 v_year:=v_year+1 ;
+			 v_month:= 0;
+		      END IF;
+	       END IF;
+	       END IF;
+           if(v_year < 0) then
+             v_year:=0;
+           end if;
+           --raise notice '% v_month',v_month;
+	v_age:=v_year||'-'||v_month||'-'||v_day;
+    ELSE
+    	v_age:=0||'-'||0||'-'||0;
+
+    END IF;
+    
+    --raise notice '% v_ageEEEEEEE',v_age;
+return v_age;
+END EHCM_CALCULATE_AGE
+]]></body>
+    </function>
+  </database>

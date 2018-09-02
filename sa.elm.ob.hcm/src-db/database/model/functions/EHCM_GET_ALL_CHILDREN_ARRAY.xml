@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION EHCM_GET_ALL_CHILDREN_ARRAY">
+    <function name="EHCM_GET_ALL_CHILDREN_ARRAY" type="VARCHAR">
+      <parameter name="use_parent" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <body><![CDATA[process_parents character varying[] := ARRAY[ use_parent ];
+    children character varying[] := '{}';
+    new_children character varying[];
+BEGIN
+    WHILE ( array_upper( process_parents, 1 ) IS NOT NULL ) LOOP
+        new_children := ARRAY( SELECT ad_org_id FROM ad_org WHERE em_ehcm_ad_org_id  = ANY( process_parents ) AND ad_org_id <> ALL( children ) );
+        children := children || new_children;
+        process_parents := new_children;
+    END LOOP;
+    RETURN children;
+END EHCM_GET_ALL_CHILDREN_ARRAY
+]]></body>
+    </function>
+  </database>

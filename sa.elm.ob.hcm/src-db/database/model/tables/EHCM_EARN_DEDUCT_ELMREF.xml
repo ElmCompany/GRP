@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+  <database name="TABLE EHCM_EARN_DEDUCT_ELMREF">
+    <table name="EHCM_EARN_DEDUCT_ELMREF" primaryKey="EHCM_EARNDEDELMREF_KEY">
+      <column name="EHCM_EARN_DEDUCT_ELMREF_ID" primaryKey="true" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="AD_CLIENT_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="AD_ORG_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ISACTIVE" primaryKey="false" required="true" type="CHAR" size="1" autoIncrement="false">
+        <default><![CDATA[Y]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="CREATED" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default><![CDATA[SYSDATE]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="CREATEDBY" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="UPDATED" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default><![CDATA[SYSDATE]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="UPDATEDBY" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_EARN_DEDUCT_ELM_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="BASE_VALUE" primaryKey="false" required="true" type="DECIMAL" size="10,2" autoIncrement="false">
+        <default><![CDATA[0]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="VALUE" primaryKey="false" required="true" type="DECIMAL" size="10,2" autoIncrement="false">
+        <default><![CDATA[0]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="RETRO" primaryKey="false" required="true" type="CHAR" size="1" autoIncrement="false">
+        <default><![CDATA[N]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="ISDEDUCTION" primaryKey="false" required="true" type="CHAR" size="1" autoIncrement="false">
+        <default><![CDATA[N]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_EMP_BUSINESSMISSION_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_LOAN_TRANSACTION_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_DISCIPLINE_ACTION_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_EMP_OVERTIME_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_EMP_SCHOLARSHIP_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_BENEFIT_ALLOWANCE_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_ELMTTYPE_DEF_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_TICKETORDERTRANSACTION_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <foreign-key foreignTable="EHCM_DISCIPLINE_ACTION" name="EHCM_DICIPLINE_FKEY">
+        <reference local="EHCM_DISCIPLINE_ACTION_ID" foreign="EHCM_DISCIPLINE_ACTION_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_BENEFIT_ALLOWANCE" name="EHCM_EARNDEDELM_BENFIT">
+        <reference local="EHCM_BENEFIT_ALLOWANCE_ID" foreign="EHCM_BENEFIT_ALLOWANCE_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_EMP_BUSINESSMISSION" name="EHCM_EARNDEDELM_BUSMIS">
+        <reference local="EHCM_EMP_BUSINESSMISSION_ID" foreign="EHCM_EMP_BUSINESSMISSION_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="AD_CLIENT" name="EHCM_EARNDEDELM_CLI">
+        <reference local="AD_CLIENT_ID" foreign="AD_CLIENT_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="AD_ORG" name="EHCM_EARNDEDELM_ORG">
+        <reference local="AD_ORG_ID" foreign="AD_ORG_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_TICKETORDERTRANSACTION" name="EHCM_EARNDEDELM_TICKORD">
+        <reference local="EHCM_TICKETORDERTRANSACTION_ID" foreign="EHCM_TICKETORDERTRANSACTION_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_ELMTTYPE_DEF" name="EHCM_ELMTTYPE_DEF_FKEY">
+        <reference local="EHCM_ELMTTYPE_DEF_ID" foreign="EHCM_ELMTTYPE_DEF_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_LOAN_TRANSACTION" name="EHCM_LOANTXN_FKEY">
+        <reference local="EHCM_LOAN_TRANSACTION_ID" foreign="EHCM_LOAN_TRANSACTION_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_EMP_OVERTIME" name="EHCM_OVERTIME_FKEY">
+        <reference local="EHCM_EMP_OVERTIME_ID" foreign="EHCM_EMP_OVERTIME_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_EMP_SCHOLARSHIP" name="EHCM_SCHOLARSHIP_FKEY">
+        <reference local="EHCM_EMP_SCHOLARSHIP_ID" foreign="EHCM_EMP_SCHOLARSHIP_ID"/>
+      </foreign-key>
+    </table>
+  </database>

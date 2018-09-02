@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+  <database name="VIEW EHCM_TERMINATION_EMP_V">
+    <view name="EHCM_TERMINATION_EMP_V"><![CDATA[SELECT perinfo.ehcm_emp_perinfo_id AS ehcm_termination_emp_v_id, perinfo.ad_client_id, perinfo.ad_org_id, 'Y'::character AS isactive, perinfo.created, perinfo.createdby, perinfo.updated, perinfo.updatedby, perinfo.ehcm_emp_perinfo_id, concat(perinfo.value, '-', perinfo.arabicfullname) AS name FROM ehcm_emp_perinfo perinfo WHERE perinfo.status = 'I' AND (perinfo.employment_status = 'SD' OR perinfo.employment_status <> 'SE')]]></view>
+  </database>

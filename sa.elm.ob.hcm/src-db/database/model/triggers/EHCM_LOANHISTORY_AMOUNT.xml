@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_LOANHISTORY_AMOUNT">
+    <trigger name="EHCM_LOANHISTORY_AMOUNT" table="EHCM_LOAN_HISTORY" fires="after" insert="true" update="true" delete="true" foreach="row">
+      <body><![CDATA[/************************************************************************
+* All Rights Reserved.
+* Contributor(s): Gowtham V
+*************************************************************************/
+ 
+ BEGIN
+ 
+ 	IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+
+ 		IF INSERTING THEN
+        	update ehcm_loan_transaction set paidamount = paidamount + :new.amount, remamount = remamount-:new.amount where ehcm_loan_transaction_id=:new.ehcm_loan_transaction_id;
+        END IF; 
+        
+        IF UPDATING THEN
+        	IF(:new.amount <> :old.amount) THEN
+          		update ehcm_loan_transaction set paidamount = paidamount + (:new.amount-:old.amount), remamount = remamount-(:new.amount-:old.amount) where ehcm_loan_transaction_id=:new.ehcm_loan_transaction_id;
+        		update ehcm_loan_history set ischild='Y' where ehcm_loan_history_id = :new.ehcm_loan_history_id;
+            END IF;
+        END IF;
+        
+       	IF DELETING THEN
+			update ehcm_loan_transaction set paidamount = paidamount - :old.amount, remamount = remamount+:old.amount where ehcm_loan_transaction_id=:old.ehcm_loan_transaction_id;
+		END IF;
+        
+        
+        	 END EHCM_LOANHISTORY_AMOUNT
+]]></body>
+    </trigger>
+  </database>

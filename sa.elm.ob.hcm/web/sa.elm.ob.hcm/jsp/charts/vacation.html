@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+
+.highcharts-text-outline {
+    stroke-width: 0px !important;
+}
+
+</style>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script type="text/javascript"
+	src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<div id="container" style="min-width: 310px; height: 360px; max-width: 790px; margin: 0 auto"></div>
+</body>
+
+<script type="text/javascript">
+$(function () {
+	Highcharts.setOptions({
+		chart: {
+			style: {
+				//fontFamily: 'serif'
+			}
+		}
+	});
+    Highcharts.chart('container', {
+		colors: ['#0f97a6','#9a908f','#bfbfbf', '#eb7f00'],
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Vacations Overview'
+        },
+        xAxis: {
+            categories: ['Annual Leave', 'Emergency Leave', 'Sick Leave'],
+			labels: {
+                style: {
+                    fontSize:'14px'
+                }
+			}
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: 'Total Days'
+            },
+            stackLabels: {
+                enabled: true,
+                style: {
+                    fontWeight: 'bold',
+                    color: 'gray',
+					fontSize: '14px'
+                }
+            }
+        },
+        legend: {
+            align: 'right',
+            x: -30,
+            verticalAlign: 'top',
+            y: 25,
+            floating: true,
+            backgroundColor: 'white',
+            borderColor: '#CCC',
+            borderWidth: 1,
+            shadow: false
+        },
+        tooltip: {
+            headerFormat: '<b>{point.x}</b><br/>',
+            pointFormat: '{series.name}: {point.y}<br/>Total: {point.stackTotal}'
+        },
+        plotOptions: {
+            column: {
+                stacking: 'normal',
+                dataLabels: {
+                    enabled: true,
+                    color: 'white'
+                }
+            }
+        },
+		credits: {
+			enabled: false
+		},
+        series: [{
+            name: 'Approved',
+            data: [10, 2, 6]
+        }, {
+            name: 'Pending',
+            data: [5, 0, 0]
+        }, {
+            name: 'Balance',
+            data: [21, 3, 24]
+        }]
+    });
+});
+</script>
+</html>

@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_LOAN_AMOUNT">
+    <trigger name="EHCM_LOAN_AMOUNT" table="EHCM_LOAN_TRANSACTION" fires="after" insert="true" update="true" delete="false" foreach="row">
+      <body><![CDATA[ /************************************************************************
+* All Rights Reserved.
+* Contributor(s): Gowtham V
+*************************************************************************/
+ 
+ BEGIN
+ 
+ 	IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+
+ 		IF INSERTING THEN
+            	IF coalesce(:new.loan_initial_bal,0) > 0 THEN
+                	update ehcm_loan_transaction set remamount = :new.loan_initial_bal where ehcm_loan_transaction_id = :new.ehcm_loan_transaction_id;
+            	ELSE
+                	update ehcm_loan_transaction set remamount = :new.loan_original_amount where ehcm_loan_transaction_id = :new.ehcm_loan_transaction_id;
+            	END IF;
+        END IF; 
+        
+        IF UPDATING THEN
+        	IF ( ((:new.loan_original_amount <> :old.loan_original_amount) or (:new.loan_initial_bal <> :old.loan_initial_bal))) THEN
+            	IF coalesce(:new.loan_initial_bal,0) > 0 THEN
+                	update ehcm_loan_transaction set remamount = :new.loan_initial_bal where ehcm_loan_transaction_id = :new.ehcm_loan_transaction_id;
+            	ELSE
+                	update ehcm_loan_transaction set remamount = :new.loan_original_amount where ehcm_loan_transaction_id = :new.ehcm_loan_transaction_id;
+            	END IF;
+            END IF;
+        END IF;
+        
+        	 END EHCM_LOAN_AMOUNT
+]]></body>
+    </trigger>
+  </database>

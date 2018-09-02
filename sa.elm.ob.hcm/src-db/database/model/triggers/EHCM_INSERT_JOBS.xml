@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_INSERT_JOBS">
+    <trigger name="EHCM_INSERT_JOBS" table="EHCM_UPJOB_CLASSIFICATION" fires="after" insert="true" update="true" delete="false" foreach="row">
+      <body><![CDATA[
+cur_jobs RECORD;
+v_jobcode character varying(60);
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+
+	IF  INSERTING THEN
+       	select value into v_jobcode from ehcm_job_classification where ehcm_job_classification_id=:NEW.ehcm_job_classification_id;
+	--Different Job code insert lines as with manual flag='Y'
+	IF(v_jobcode<>:NEW.value) THEN
+	
+	FOR cur_jobs IN (
+	SELECT ehcm_jobs_id, ehcm_jobs.ad_client_id, ehcm_jobs.ad_org_id, ehcm_jobs.isactive, ehcm_jobs.created, ehcm_jobs.createdby, 
+	ehcm_jobs.updated, ehcm_jobs.updatedby, ehcm_jobs.value, ehcm_jobs.job_title, ehcm_jobs.startdate, ehcm_jobs.enddate, 
+	ehcm_jobs.ehcm_job_classification_id, 
+	ehcm_jobs.processed, ehcm_jobs.ehcm_grade_id, ehcm_jobs.ehcm_upjob_classification_id,grade.value as grade
+	FROM ehcm_jobs
+	join ehcm_grade grade on grade.ehcm_grade_id=ehcm_jobs.ehcm_grade_id
+	where ehcm_job_classification_id=:NEW.ehcm_job_classification_id and ehcm_jobs.isactive='Y'
+	)
+	LOOP
+	INSERT INTO ehcm_update_jobs(
+            ehcm_update_jobs_id, ad_client_id, ad_org_id, isactive, created, 
+            createdby, updated, updatedby, value, job_title, startdate,
+            ehcm_upjob_classification_id, processed, ehcm_grade_id, ismanual)
+	VALUES (get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id, :NEW.isactive, :NEW.created, 
+            :NEW.createdby, :NEW.updated, :NEW.updatedby, (:NEW.value ||cur_jobs.grade ), cur_jobs.job_title,
+	    :NEW.classification_date, 
+             :NEW.ehcm_upjob_classification_id,'N' ,cur_jobs.ehcm_grade_id, 'Y');
+	END LOOP;
+	--same Job code insert lines as with manual flag='N'
+	ELSE
+	
+	FOR cur_jobs IN (
+	SELECT ehcm_jobs_id, ehcm_jobs.ad_client_id, ehcm_jobs.ad_org_id, ehcm_jobs.isactive, ehcm_jobs.created, ehcm_jobs.createdby, 
+	ehcm_jobs.updated, ehcm_jobs.updatedby, ehcm_jobs.value, ehcm_jobs.job_title, ehcm_jobs.startdate, ehcm_jobs.enddate, 
+	ehcm_jobs.ehcm_job_classification_id, 
+	ehcm_jobs.processed, ehcm_jobs.ehcm_grade_id, ehcm_jobs.ehcm_upjob_classification_id,grade.value as grade
+	FROM ehcm_jobs
+	join ehcm_grade grade on grade.ehcm_grade_id=ehcm_jobs.ehcm_grade_id
+	where ehcm_job_classification_id=:NEW.ehcm_job_classification_id and ehcm_jobs.isactive='Y'
+	)
+	LOOP
+	INSERT INTO ehcm_update_jobs(
+            ehcm_update_jobs_id, ad_client_id, ad_org_id, isactive, created, 
+            createdby, updated, updatedby, value, job_title, startdate,
+            ehcm_upjob_classification_id, processed, ehcm_grade_id, ismanual,ehcm_jobs_id)
+	VALUES (get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id, :NEW.isactive, :NEW.created, 
+            :NEW.createdby, :NEW.updated, :NEW.updatedby, (:NEW.value ||cur_jobs.grade ), cur_jobs.job_title,
+            cur_jobs.startdate, 
+             :NEW.ehcm_upjob_classification_id,'N' ,cur_jobs.ehcm_grade_id, 'N',cur_jobs.ehcm_jobs_id);
+	END LOOP;
+	END IF;
+
+	
+	
+	END IF;
+	END EHCM_INSERT_JOBS
+]]></body>
+    </trigger>
+  </database>

@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+  <database name="VIEW EHCM_PAYSCALEPOINT_V">
+    <view name="EHCM_PAYSCALEPOINT_V"><![CDATA[SELECT line.ehcm_payscaleline_id AS ehcm_payscalepoint_v_id, line.ad_client_id, line.ad_org_id, c.isactive, line.created, line.createdby, line.updated, line.updatedby, line.ehcm_payscaleline_id, pt.point, pt.ehcm_progressionpt_id, line.amount, line.startdate, line.enddate FROM ehcm_payscaleline line JOIN ad_client c ON line.ad_client_id = c.ad_client_id LEFT JOIN ehcm_progressionpt pt ON pt.ehcm_progressionpt_id = line.ehcm_progressionpt_id]]></view>
+  </database>

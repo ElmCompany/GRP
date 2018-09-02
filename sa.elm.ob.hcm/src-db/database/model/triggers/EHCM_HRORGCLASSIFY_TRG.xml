@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_HRORGCLASSIFY_TRG">
+    <trigger name="EHCM_HRORGCLASSIFY_TRG" table="AD_ORG" fires="after" insert="true" update="false" delete="false" foreach="row">
+      <body><![CDATA[/*************************************************************************
+* All Rights Reserved.
+* Contributor(s): Gopalakrishnan
+************************************************************************/
+cur_classification RECORD;
+v_classification_id  character varying(60);
+v_active character(1);
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+v_active :='N';
+IF INSERTING THEN
+	FOR cur_classification in (
+	select ehcm_org_classfication_id,classification from ehcm_org_classfication where ad_client_id=:new.ad_client_id	
+	)
+	loop
+		IF(:new.em_ehcm_ishr='Y' and cur_classification.classification='HR' ) THEN
+		v_active :='Y';
+		ELSE 
+		v_active :='N';
+		END IF;
+		
+	INSERT INTO public.ehcm_hrorg_classfication(
+            ehcm_hrorg_classfication_id, ad_client_id, ad_org_id, isactive, 
+            created, createdby, updated, updatedby, ehcm_org_classfication_id)
+	VALUES (get_uuid(), :new.ad_client_id, :new.ad_org_id,v_active, 
+            :new.created, :new.createdby, :new.updated, :new.updatedby, cur_classification.ehcm_org_classfication_id );
+	end loop;
+	
+END IF;
+	
+	END EHCM_HRORGCLASSIFY_TRG
+]]></body>
+    </trigger>
+  </database>

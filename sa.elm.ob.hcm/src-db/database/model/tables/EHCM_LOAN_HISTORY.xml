@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+  <database name="TABLE EHCM_LOAN_HISTORY">
+    <table name="EHCM_LOAN_HISTORY" primaryKey="EHCM_LOAN_HISTORY_KEY">
+      <column name="EHCM_LOAN_HISTORY_ID" primaryKey="true" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="AD_CLIENT_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="AD_ORG_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ISACTIVE" primaryKey="false" required="true" type="CHAR" size="1" autoIncrement="false">
+        <default><![CDATA[Y]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="CREATED" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default><![CDATA[SYSDATE]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="CREATEDBY" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="UPDATED" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default><![CDATA[SYSDATE]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="UPDATEDBY" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_PAYROLL_PROCESS_LNE_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_PAYROLLDEF_PERIOD_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_LOAN_TRANSACTION_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="AMOUNT" primaryKey="false" required="false" type="DECIMAL" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ISCHILD" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default><![CDATA[Y]]></default>
+        <onCreateDefault/>
+      </column>
+      <foreign-key foreignTable="AD_CLIENT" name="EHCM_LOAN_HISTORY_CLI">
+        <reference local="AD_CLIENT_ID" foreign="AD_CLIENT_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="AD_ORG" name="EHCM_LOANHIS_ORG">
+        <reference local="AD_ORG_ID" foreign="AD_ORG_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_LOAN_TRANSACTION" name="EHCM_LOANTRANSACTION">
+        <reference local="EHCM_LOAN_TRANSACTION_ID" foreign="EHCM_LOAN_TRANSACTION_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_PAYROLL_PROCESS_LNE" name="EHCM_PAYROLL_LN">
+        <reference local="EHCM_PAYROLL_PROCESS_LNE_ID" foreign="EHCM_PAYROLL_PROCESS_LNE_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_PAYROLLDEF_PERIOD" name="EHCM_PAYROLL_PERIOD">
+        <reference local="EHCM_PAYROLLDEF_PERIOD_ID" foreign="EHCM_PAYROLLDEF_PERIOD_ID"/>
+      </foreign-key>
+    </table>
+  </database>

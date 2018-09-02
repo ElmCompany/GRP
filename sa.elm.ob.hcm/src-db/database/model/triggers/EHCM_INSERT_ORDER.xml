@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_INSERT_ORDER">
+    <trigger name="EHCM_INSERT_ORDER" table="EHCM_ADDRESS_STYLE" fires="after" insert="true" update="true" delete="false" foreach="row">
+      <body><![CDATA[v_sequence NUMBER:= 0;
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+	-- Insert Operation
+	
+	IF INSERTING THEN
+	--check negative funds availabe
+		if (:NEW.address1_ck='Y') then
+			v_sequence:=v_sequence+10;
+			insert into ehcm_order(ehcm_order_id,ad_client_id,ad_org_id,isactive,createdby,updatedby,fields,positions,ehcm_address_style_id) 
+			values(get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id,'Y',:NEW.createdby,:NEW.updatedby,'ad1',v_sequence,:NEW.ehcm_address_style_id);
+		end if;
+		if (:NEW.address2_ck='Y') then
+			v_sequence:=v_sequence+10;
+			insert into ehcm_order(ehcm_order_id,ad_client_id,ad_org_id,isactive,createdby,updatedby,fields,positions,ehcm_address_style_id) 
+			values(get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id,'Y',:NEW.createdby,:NEW.updatedby,'ad2',v_sequence,:NEW.ehcm_address_style_id);
+		end if;
+		if (:NEW.street_ck='Y') then
+			v_sequence:=v_sequence+10;
+			insert into ehcm_order(ehcm_order_id,ad_client_id,ad_org_id,isactive,createdby,updatedby,fields,positions,ehcm_address_style_id) 
+			values(get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id,'Y',:NEW.createdby,:NEW.updatedby,'st',v_sequence,:NEW.ehcm_address_style_id);
+		end if;
+		if (:NEW.district_ck='Y') then
+			v_sequence:=v_sequence+10;
+			insert into ehcm_order(ehcm_order_id,ad_client_id,ad_org_id,isactive,createdby,updatedby,fields,positions,ehcm_address_style_id) 
+			values(get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id,'Y',:NEW.createdby,:NEW.updatedby,'dt',v_sequence,:NEW.ehcm_address_style_id);
+		end if;
+		if (:NEW.postbox_ck='Y') then
+			v_sequence:=v_sequence+10;
+			insert into ehcm_order(ehcm_order_id,ad_client_id,ad_org_id,isactive,createdby,updatedby,fields,positions,ehcm_address_style_id) 
+			values(get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id,'Y',:NEW.createdby,:NEW.updatedby,'pb',v_sequence,:NEW.ehcm_address_style_id);
+		end if;
+		if (:NEW.city_ck='Y') then
+			v_sequence:=v_sequence+10;
+			insert into ehcm_order(ehcm_order_id,ad_client_id,ad_org_id,isactive,createdby,updatedby,fields,positions,ehcm_address_style_id) 
+			values(get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id,'Y',:NEW.createdby,:NEW.updatedby,'ct',v_sequence,:NEW.ehcm_address_style_id);
+		end if;
+		if (:NEW.postcode_ck='Y') then
+			v_sequence:=v_sequence+10;
+			insert into ehcm_order(ehcm_order_id,ad_client_id,ad_org_id,isactive,createdby,updatedby,fields,positions,ehcm_address_style_id) 
+			values(get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id,'Y',:NEW.createdby,:NEW.updatedby,'pc',v_sequence,:NEW.ehcm_address_style_id);
+		end if;
+		if (:NEW.country_ck='Y') then
+			v_sequence:=v_sequence+10;
+			insert into ehcm_order(ehcm_order_id,ad_client_id,ad_org_id,isactive,createdby,updatedby,fields,positions,ehcm_address_style_id) 
+			values(get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id,'Y',:NEW.createdby,:NEW.updatedby,'cy',v_sequence,:NEW.ehcm_address_style_id);
+		end if;
+
+	END IF;
+	
+	IF UPDATING THEN
+		if (:NEW.address1_ck<>:old.address1_ck) then
+			select max(positions) into v_sequence from ehcm_order where ehcm_address_style_id=:NEW.ehcm_address_style_id;
+			v_sequence:=v_sequence+10;
+			if(:NEW.address1_ck='Y') then
+				insert into ehcm_order(ehcm_order_id,ad_client_id,ad_org_id,isactive,createdby,updatedby,fields,positions,ehcm_address_style_id) 
+			values(get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id,'Y',:NEW.createdby,:NEW.updatedby,'ad1',v_sequence,:NEW.ehcm_address_style_id);
+			else
+				delete from ehcm_order where fields ilike 'ad1' and ehcm_address_style_id=:NEW.ehcm_address_style_id;
+			end if;
+		end if;
+		if (:NEW.address2_ck<>:old.address2_ck) then
+			select max(positions) into v_sequence from ehcm_order where ehcm_address_style_id=:NEW.ehcm_address_style_id;
+			v_sequence:=v_sequence+10;
+			if(:NEW.address2_ck='Y') then
+				insert into ehcm_order(ehcm_order_id,ad_client_id,ad_org_id,isactive,createdby,updatedby,fields,positions,ehcm_address_style_id) 
+			values(get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id,'Y',:NEW.createdby,:NEW.updatedby,'ad2',v_sequence,:NEW.ehcm_address_style_id);
+			else
+				delete from ehcm_order where fields ilike 'ad2' and ehcm_address_style_id=:NEW.ehcm_address_style_id;
+			end if;
+		end if;
+		if (:NEW.street_ck<>:old.street_ck) then
+			select max(positions) into v_sequence from ehcm_order where ehcm_address_style_id=:NEW.ehcm_address_style_id;
+			v_sequence:=v_sequence+10;
+			if(:NEW.street_ck='Y') then
+				insert into ehcm_order(ehcm_order_id,ad_client_id,ad_org_id,isactive,createdby,updatedby,fields,positions,ehcm_address_style_id) 
+			values(get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id,'Y',:NEW.createdby,:NEW.updatedby,'st',v_sequence,:NEW.ehcm_address_style_id);
+			else
+				delete from ehcm_order where fields ilike 'st' and ehcm_address_style_id=:NEW.ehcm_address_style_id;
+			end if;
+		end if;
+		if (:NEW.district_ck<>:old.district_ck) then
+			select max(positions) into v_sequence from ehcm_order where ehcm_address_style_id=:NEW.ehcm_address_style_id;
+			v_sequence:=v_sequence+10;
+			if(:NEW.district_ck='Y') then
+				insert into ehcm_order(ehcm_order_id,ad_client_id,ad_org_id,isactive,createdby,updatedby,fields,positions,ehcm_address_style_id) 
+			values(get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id,'Y',:NEW.createdby,:NEW.updatedby,'dt',v_sequence,:NEW.ehcm_address_style_id);
+			else
+				delete from ehcm_order where fields ilike 'dt' and ehcm_address_style_id=:NEW.ehcm_address_style_id;
+			end if;
+		end if;
+		if (:NEW.postbox_ck<>:old.postbox_ck) then
+			select max(positions) into v_sequence from ehcm_order where ehcm_address_style_id=:NEW.ehcm_address_style_id;
+			v_sequence:=v_sequence+10;
+			if(:NEW.postbox_ck='Y') then
+				insert into ehcm_order(ehcm_order_id,ad_client_id,ad_org_id,isactive,createdby,updatedby,fields,positions,ehcm_address_style_id) 
+			values(get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id,'Y',:NEW.createdby,:NEW.updatedby,'pb',v_sequence,:NEW.ehcm_address_style_id);
+			else
+				delete from ehcm_order where fields ilike 'pb' and ehcm_address_style_id=:NEW.ehcm_address_style_id;
+			end if;
+		end if;
+		if (:NEW.city_ck<>:old.city_ck) then
+			select max(positions) into v_sequence from ehcm_order where ehcm_address_style_id=:NEW.ehcm_address_style_id;
+			v_sequence:=v_sequence+10;
+			if(:NEW.city_ck='Y') then
+				insert into ehcm_order(ehcm_order_id,ad_client_id,ad_org_id,isactive,createdby,updatedby,fields,positions,ehcm_address_style_id) 
+			values(get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id,'Y',:NEW.createdby,:NEW.updatedby,'ct',v_sequence,:NEW.ehcm_address_style_id);
+			else
+				delete from ehcm_order where fields ilike 'ct' and ehcm_address_style_id=:NEW.ehcm_address_style_id;
+			end if;
+		end if;
+		if (:NEW.postcode_ck<>:old.postcode_ck) then
+			select max(positions) into v_sequence from ehcm_order where ehcm_address_style_id=:NEW.ehcm_address_style_id;
+			v_sequence:=v_sequence+10;
+			if(:NEW.postcode_ck='Y') then
+				insert into ehcm_order(ehcm_order_id,ad_client_id,ad_org_id,isactive,createdby,updatedby,fields,positions,ehcm_address_style_id) 
+			values(get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id,'Y',:NEW.createdby,:NEW.updatedby,'pc',v_sequence,:NEW.ehcm_address_style_id);
+			else
+				delete from ehcm_order where fields ilike 'pc' and ehcm_address_style_id=:NEW.ehcm_address_style_id;
+			end if;
+		end if;
+		if (:NEW.country_ck<>:old.country_ck) then
+			select max(positions) into v_sequence from ehcm_order where ehcm_address_style_id=:NEW.ehcm_address_style_id;
+			v_sequence:=v_sequence+10;
+			if(:NEW.country_ck='Y') then
+				insert into ehcm_order(ehcm_order_id,ad_client_id,ad_org_id,isactive,createdby,updatedby,fields,positions,ehcm_address_style_id) 
+			values(get_uuid(),:NEW.ad_client_id,:NEW.ad_org_id,'Y',:NEW.createdby,:NEW.updatedby,'cy',v_sequence,:NEW.ehcm_address_style_id);
+			else
+				delete from ehcm_order where fields ilike 'cy' and ehcm_address_style_id=:NEW.ehcm_address_style_id;
+			end if;
+		end if;
+		
+	END IF;
+
+	
+	
+	END EHCM_INSERT_ORDER
+]]></body>
+    </trigger>
+  </database>

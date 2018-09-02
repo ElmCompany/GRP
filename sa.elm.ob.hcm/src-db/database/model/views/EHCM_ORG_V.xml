@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+  <database name="VIEW EHCM_ORG_V">
+    <view name="EHCM_ORG_V"><![CDATA[SELECT ad_org.ad_org_id AS ehcm_org_v_id, (ad_org.value || '-') || ad_org.name AS name, ad_org.ad_client_id, to_char('0') AS ad_org_id, ad_org.isactive, ad_org.created, ad_org.createdby, ad_org.updated, ad_org.updatedby, ad_org.isready, ad_org.em_ehcm_orgtyp FROM ad_org]]></view>
+  </database>

@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+  <database name="VIEW EHCM_EMP_PERINFO_V">
+    <view name="EHCM_EMP_PERINFO_V"><![CDATA[SELECT (((((ehcm_emp_perinfo.value || '-') || ehcm_emp_perinfo.name) || '-') || ehcm_emp_perinfo.fathername) || '-') || ehcm_emp_perinfo.grandfathername AS name, ehcm_emp_perinfo.ehcm_emp_perinfo_id AS ehcm_emp_perinfo_v_id, ehcm_emp_perinfo.ad_client_id, ehcm_emp_perinfo.ad_org_id, ehcm_emp_perinfo.isactive, ehcm_emp_perinfo.created, ehcm_emp_perinfo.createdby, ehcm_emp_perinfo.updated, ehcm_emp_perinfo.updatedby, ehcm_emp_perinfo.value, (((ehcm_emp_perinfo.name || '-') || ehcm_emp_perinfo.fathername) || '-') || ehcm_emp_perinfo.grandfathername AS empname, ehcm_emp_perinfo.arabicfullname FROM ehcm_emp_perinfo]]></view>
+  </database>

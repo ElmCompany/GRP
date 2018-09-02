@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_UPDATELEVBLOCKHEADER">
+    <trigger name="EHCM_UPDATELEVBLOCKHEADER" table="EHCM_EMP_LEAVEBLOCKLN" fires="after" insert="true" update="true" delete="true" foreach="row">
+      <body><![CDATA[v_leavedays NUMBER;
+v_availeddays NUMBER;
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+
+	-- Insert Operation
+	IF  INSERTING THEN
+	update ehcm_emp_leaveblock set availeddays = coalesce(availeddays,0)+:NEW.leavedays 	where ehcm_emp_leaveblock_id =:NEW.ehcm_emp_leaveblock_id;
+	
+    ELSE IF UPDATING THEN 
+	v_leavedays:=:OLD.leavedays-:NEW.leavedays;
+	
+    IF(v_leavedays > 0) THEN	
+	update ehcm_emp_leaveblock set availeddays = coalesce(availeddays,0)-v_leavedays 	where ehcm_emp_leaveblock_id =:NEW.ehcm_emp_leaveblock_id;
+	ELSE IF(v_leavedays < 0) THEN
+	update ehcm_emp_leaveblock set availeddays = coalesce(availeddays,0)+abs(v_leavedays) where ehcm_emp_leaveblock_id =:NEW.ehcm_emp_leaveblock_id;
+	END IF;
+	END IF;
+	
+    ELSE IF DELETING THEN 
+	update ehcm_emp_leaveblock set availeddays = availeddays-:OLD.leavedays  where ehcm_emp_leaveblock_id =:OLD.ehcm_emp_leaveblock_id;
+    select  availeddays into v_availeddays from ehcm_emp_leaveblock where ehcm_emp_leaveblock_id =:OLD.ehcm_emp_leaveblock_id;
+    IF(v_availeddays=0) THEN
+    delete from ehcm_emp_leaveblock where ehcm_emp_leaveblock_id =:OLD.ehcm_emp_leaveblock_id;
+    END IF;
+	END IF;	
+    END IF;	
+	END IF;	
+	END EHCM_UPDATELEVBLOCKHEADER
+]]></body>
+    </trigger>
+  </database>

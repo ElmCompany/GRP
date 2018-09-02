@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_UPDATEABSENCEACCRUAL">
+    <trigger name="EHCM_UPDATEABSENCEACCRUAL" table="EHCM_ABSENCE_ACCRUALDETAILS" fires="after" insert="true" update="true" delete="true" foreach="row">
+      <body><![CDATA[v_absenceaccrualId VARCHAR2(32);
+v_totalentitlement NUMBER:=0;
+v_netentitlement NUMBER:=0;
+Cur_lines record;
+
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+
+	-- Insert Operation
+	IF  INSERTING OR UPDATING OR  DELETING THEN
+	IF  DELETING  THEN
+	v_absenceaccrualId:=:OLD.ehcm_absence_accrual_id;
+	ELSE
+	v_absenceaccrualId:=:NEW.ehcm_absence_accrual_id;
+	END IF;
+	For Cur_lines in ( select ehcm_absence_accrualdetails_id,entitilement,leaves from ehcm_absence_accrualdetails
+	   where  ehcm_absence_accrual_id  = v_absenceaccrualId )
+
+	LOOP
+		v_totalentitlement:=Cur_lines.entitilement-Cur_lines.leaves;
+		v_netentitlement:=v_netentitlement+v_totalentitlement;
+	END LOOP;
+		update ehcm_absence_accrual set net_entitilement =v_netentitlement    where  ehcm_absence_accrual_id  = v_absenceaccrualId;
+	END IF;	
+	
+	END EHCM_UPDATEABSENCEACCRUAL
+]]></body>
+    </trigger>
+  </database>

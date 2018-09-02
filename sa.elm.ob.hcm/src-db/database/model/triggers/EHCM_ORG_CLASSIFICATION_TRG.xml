@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_ORG_CLASSIFICATION_TRG">
+    <trigger name="EHCM_ORG_CLASSIFICATION_TRG" table="EHCM_ORG_CLASSFICATION" fires="after" insert="true" update="true" delete="false" foreach="row">
+      <body><![CDATA[/*************************************************************************
+* All Rights Reserved.
+* Contributor(s):  Gopalakrishnan
+************************************************************************/
+v_classfy_value character varying(60);
+v_location VARCHAR2(32); 
+v_loc_count NUMBER;
+v_check_as_fin NUMBER;
+v_count_used NUMBER;
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+
+	IF UPDATING AND :NEW.ISACTIVE='N' THEN
+		----Task no 6408 should not allow to de activate classification once it is used in organization
+		select count(ehcm_hrorg_classfication_id) into v_count_used 
+		from ehcm_hrorg_classfication where isactive='Y' and ad_org_id <>'0' and ehcm_org_classfication_id=:new.ehcm_org_classfication_id
+		and ad_client_id=:new.ad_client_id ;
+		IF(v_count_used >0) THEN 
+		RAISE_APPLICATION_ERROR(-20501,'@Ehcm_Org_Classfication_Linked@');
+		ELSE
+		update  ehcm_hrorg_classfication set isactive='N' where  ehcm_org_classfication_id=:new.ehcm_org_classfication_id
+		and ad_client_id=:new.ad_client_id ;
+		END IF;
+		--update  ehcm_hrorg_classfication set isactive='N' where  ehcm_org_classfication_id=new.ehcm_org_classfication_id
+		--and ad_client_id=new.ad_client_id ;
+	
+	
+	END IF;
+
+	IF INSERTING AND :NEW.ISACTIVE='Y' THEN
+		
+		INSERT INTO public.ehcm_hrorg_classfication(
+		    ehcm_hrorg_classfication_id, ad_client_id, ad_org_id, isactive, 
+		    created, createdby, updated, updatedby, ehcm_org_classfication_id)
+		VALUES (get_uuid(), :new.ad_client_id, '0','Y', 
+		    :new.created, :new.createdby, :new.updated, :new.updatedby, :new.ehcm_org_classfication_id );
+	END IF;
+	
+	END EHCM_ORG_CLASSIFICATION_TRG
+]]></body>
+    </trigger>
+  </database>

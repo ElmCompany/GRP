@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION EHCM_GETSUPERVISORLIST">
+    <function name="EHCM_GETSUPERVISORLIST" type="VARCHAR">
+      <parameter name="p_client_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_employee_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <body><![CDATA[vp VARCHAR2(32);
+vSupvisorList VARCHAR(32767);
+BEGIN
+
+
+    vp := p_employee_id;
+    vSupvisorList:='';
+    WHILE (vp is not null and vp <> '')
+    LOOP
+	vSupvisorList:= vSupvisorList ||''''||vp||'''';
+	SELECT sup.ehcm_emp_perinfo_id INTO vp FROM ehcm_employment_info info
+    join ehcm_emp_supervisor sup on sup.ehcm_emp_supervisor_id=info.ehcm_emp_supervisor_id WHERE  info.ehcm_emp_perinfo_id = vp ;
+    IF vp is not null THEN
+		vSupvisorList:= vSupvisorList ||',';
+	END IF;
+    End LOOP ;
+    RETURN  vSupvisorList;
+END EHCM_GETSUPERVISORLIST
+]]></body>
+    </function>
+  </database>

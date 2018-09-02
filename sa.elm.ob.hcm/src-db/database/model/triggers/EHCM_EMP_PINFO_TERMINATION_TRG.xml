@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_EMP_PINFO_TERMINATION_TRG">
+    <trigger name="EHCM_EMP_PINFO_TERMINATION_TRG" table="EHCM_EMP_PERINFO" fires="after" insert="false" update="true" delete="false" foreach="row">
+      <body><![CDATA[  v_bpartner_ID VARCHAR2(32);   
+BEGIN
+IF TG_OP='UPDATE' THEN
+	--Making the business partner and user inactive if the employee is terminated through cancel hire
+	select c_bpartner_id into v_bpartner_ID from c_bpartner where em_ehcm_emp_perinfo_id=:new.ehcm_emp_perinfo_id;
+	IF(:new.status ='TE') THEN
+		update c_bpartner set isactive='N' where em_ehcm_emp_perinfo_id=:new.ehcm_emp_perinfo_id;
+		update 	ad_user set isactive='N' where c_bpartner_id=v_bpartner_ID;
+	ELSIF(:old.status ='TE') and (:new.status !='TE') THEN
+		update c_bpartner set isactive='Y' where  em_ehcm_emp_perinfo_id=:new.ehcm_emp_perinfo_id;
+		update 	ad_user set isactive='Y' where c_bpartner_id=v_bpartner_ID;	
+	END IF;
+END IF;			
+IF DELETING THEN 
+	RETURN OLD; 
+  ELSE 
+	RETURN NEW; 
+END IF;
+END EHCM_EMP_PINFO_TERMINATION_TRG
+]]></body>
+    </trigger>
+  </database>

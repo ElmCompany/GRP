@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+  <database name="MODIFIED TABLE C_COUNTRY">
+    <table name="C_COUNTRY" primaryKey="C_COUNTRY_KEY">
+      <column name="EM_EHCM_NOOFDAYS_AFTER" primaryKey="false" required="false" type="DECIMAL" autoIncrement="false">
+        <default><![CDATA[1]]></default>
+        <onCreateDefault><![CDATA[1]]></onCreateDefault>
+      </column>
+      <column name="EM_EHCM_NOOFDAYS_BEFORE" primaryKey="false" required="false" type="DECIMAL" autoIncrement="false">
+        <default><![CDATA[1]]></default>
+        <onCreateDefault><![CDATA[1]]></onCreateDefault>
+      </column>
+      <column name="EM_EHCM_CATEGORY" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_SCHOLARSHIP_CTGY" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+    </table>
+  </database>

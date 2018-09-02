@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+  <database name="MODIFIED TABLE AD_CLIENT">
+    <table name="AD_CLIENT" primaryKey="AD_CLIENT_KEY">
+      <column name="EM_EHCM_MINEMPAGE" primaryKey="false" required="false" type="DECIMAL" size="10,0" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_MAXEMPAGE" primaryKey="false" required="false" type="DECIMAL" size="10,0" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_MAXEXTPERIOD" primaryKey="false" required="false" type="DECIMAL" size="2,0" autoIncrement="false">
+        <default><![CDATA[0]]></default>
+        <onCreateDefault><![CDATA[0]]></onCreateDefault>
+      </column>
+      <column name="EM_EHCM_EXTALLOWED" primaryKey="false" required="false" type="DECIMAL" size="2,0" autoIncrement="false">
+        <default><![CDATA[0]]></default>
+        <onCreateDefault><![CDATA[0]]></onCreateDefault>
+      </column>
+      <column name="EM_EHCM_EXTSCHOLRELIGIBLE" primaryKey="false" required="false" type="DECIMAL" size="2,0" autoIncrement="false">
+        <default><![CDATA[0]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_MINCONTRACTSERVICE" primaryKey="false" required="false" type="VARCHAR" size="15" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EM_EHCM_MAXCONTRACTSERVICE" primaryKey="false" required="false" type="VARCHAR" size="15" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+    </table>
+  </database>

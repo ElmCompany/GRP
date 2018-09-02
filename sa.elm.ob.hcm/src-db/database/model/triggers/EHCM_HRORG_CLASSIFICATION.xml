@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_HRORG_CLASSIFICATION">
+    <trigger name="EHCM_HRORG_CLASSIFICATION" table="EHCM_HRORG_CLASSFICATION" fires="after" insert="false" update="true" delete="false" foreach="row">
+      <body><![CDATA[/*************************************************************************
+* All Rights Reserved.
+* Contributor(s):  Gopalakrishnan
+************************************************************************/
+v_classfy_value character varying(60);
+v_location VARCHAR2(32); 
+v_loc_count NUMBER;
+v_check_as_fin NUMBER;
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+
+	IF UPDATING AND :NEW.ISACTIVE='Y' THEN
+	--get classification value
+	select classification into  v_classfy_value from ehcm_org_classfication   
+	where ehcm_org_classfication_id=:new.ehcm_org_classfication_id;
+	--get location
+	select ad_org.em_ehcm_escm_loc into  v_location from ad_org where  ad_org_id=:new.ad_org_id;
+	IF v_classfy_value='FIN' THEN
+		--validate to make sure only one fin org for location
+			select count(org.ad_org_id) into v_loc_count from ad_org org
+			join ehcm_hrorg_classfication oc on oc.ad_org_id=org.ad_org_id
+			join ehcm_org_classfication oc1 on oc1.ehcm_org_classfication_id=oc.ehcm_org_classfication_id
+			where org.em_ehcm_escm_loc =v_location and org.ad_client_id=:new.ad_client_id
+			and oc1.classification='FIN' and oc.isactive='Y' and org.ad_org_id <>:new.ad_org_id ;
+	
+			IF(v_loc_count >0) THEN
+			 RAISE_APPLICATION_ERROR(-20501,'@EFIN_Location_for_org_exists@');
+			END IF;
+
+		        --finance organization should not be as cost centre
+			select count(org.ad_org_id) into v_check_as_fin from ad_org org
+			where org.ad_org_id =:new.ad_org_id and org.ad_client_id=:new.ad_client_id
+			and org.em_efin_costcenter='Y';
+				IF(v_check_as_fin >0) THEN
+				    RAISE_APPLICATION_ERROR(-20501,'@EFIN_FINORG_NOT_COST_CENTER@');
+				END IF;
+	END IF;
+	
+	
+	END IF;
+	
+	END EHCM_HRORG_CLASSIFICATION
+]]></body>
+    </trigger>
+  </database>

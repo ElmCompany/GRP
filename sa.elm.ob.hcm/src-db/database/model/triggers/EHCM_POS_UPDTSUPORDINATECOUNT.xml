@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_POS_UPDTSUPORDINATECOUNT">
+    <trigger name="EHCM_POS_UPDTSUPORDINATECOUNT" table="EHCM_POSHIERARCHY_POSNODE" fires="after" insert="true" update="true" delete="true" foreach="row">
+      <body><![CDATA[
+v_status VARCHAR2(60);
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+	IF INSERTING THEN
+    update ehcm_poshierarchy_pos set  noofsubordinates=noofsubordinates+1 where ehcm_poshierarchy_pos_id= :new.ehcm_poshierarchy_pos_id;
+	
+    update ehcm_poshierarchy_posnode set  noofsubordinates=noofsubordinates+1 where Ehcm_Position_id=(
+    select Ehcm_Position_id from ehcm_poshierarchy_pos where ehcm_poshierarchy_pos_id=:new.ehcm_poshierarchy_pos_id);
+	END IF;
+    IF UPDATING THEN
+	
+	
+	END IF;
+    IF DELETING THEN
+	update ehcm_poshierarchy_pos set  noofsubordinates=noofsubordinates-1 where ehcm_poshierarchy_pos_id= :old.ehcm_poshierarchy_pos_id;
+	update ehcm_poshierarchy_posnode set  noofsubordinates=noofsubordinates-1 where Ehcm_Position_id=(
+    select Ehcm_Position_id from ehcm_poshierarchy_pos where ehcm_poshierarchy_pos_id=:old.ehcm_poshierarchy_pos_id);
+	END IF;
+	END EHCM_POS_UPDTSUPORDINATECOUNT
+]]></body>
+    </trigger>
+  </database>

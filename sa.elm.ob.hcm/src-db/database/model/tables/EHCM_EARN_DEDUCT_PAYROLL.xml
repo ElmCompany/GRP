@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+  <database name="TABLE EHCM_EARN_DEDUCT_PAYROLL">
+    <table name="EHCM_EARN_DEDUCT_PAYROLL" primaryKey="EHCM_EARNDEDPAY_KEY">
+      <column name="EHCM_EARN_DEDUCT_PAYROLL_ID" primaryKey="true" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="AD_CLIENT_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="AD_ORG_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="ISACTIVE" primaryKey="false" required="true" type="CHAR" size="1" autoIncrement="false">
+        <default><![CDATA[Y]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="CREATED" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default><![CDATA[SYSDATE]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="CREATEDBY" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="UPDATED" primaryKey="false" required="true" type="TIMESTAMP" size="7" autoIncrement="false">
+        <default><![CDATA[SYSDATE]]></default>
+        <onCreateDefault/>
+      </column>
+      <column name="UPDATEDBY" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_PAYROLLDEF_PERIOD_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_PAYROLL_DEFINITION_ID" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="EHCM_ELEMENT_GROUP_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <foreign-key foreignTable="AD_CLIENT" name="EHCM_EARNDEDPAY_CLI">
+        <reference local="AD_CLIENT_ID" foreign="AD_CLIENT_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_ELEMENT_GROUP" name="EHCM_EARNDEDPAY_ELMGRP">
+        <reference local="EHCM_ELEMENT_GROUP_ID" foreign="EHCM_ELEMENT_GROUP_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="AD_ORG" name="EHCM_EARNDEDPAY_ORG">
+        <reference local="AD_ORG_ID" foreign="AD_ORG_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_PAYROLL_DEFINITION" name="EHCM_EARNDEDPAY_PAYROLL">
+        <reference local="EHCM_PAYROLL_DEFINITION_ID" foreign="EHCM_PAYROLL_DEFINITION_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_PAYROLLDEF_PERIOD" name="EHCM_EARNDEDPAY_PERIOD">
+        <reference local="EHCM_PAYROLLDEF_PERIOD_ID" foreign="EHCM_PAYROLLDEF_PERIOD_ID"/>
+      </foreign-key>
+    </table>
+  </database>

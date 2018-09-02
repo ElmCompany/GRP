@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_ELIGIBILITYCRITERIA_TRG">
+    <trigger name="EHCM_ELIGIBILITYCRITERIA_TRG" table="EHCM_ELIGBLTY_CRITERIA" fires="before" insert="true" update="true" delete="false" foreach="row">
+      <body><![CDATA[BEGIN
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+IF  INSERTING  OR TG_OP='UPDATE' THEN
+	IF (:new.notcosted='Y') then
+		:new.c_elementvalue_id :=null;
+		:new.c_validcombination_id := null;
+	END IF;
+END IF;
+	END EHCM_ELIGIBILITYCRITERIA_TRG
+]]></body>
+    </trigger>
+  </database>

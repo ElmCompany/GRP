@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION EHCM_INSERTPOSEMPHIST">
+    <function name="EHCM_INSERTPOSEMPHIST" type="NULL">
+      <body><![CDATA[/*************************************************************************
+* All Rights Reserved.
+* Author(s): Divya
+************************************************************************/
+cur_emp RECORD;
+cur_del RECORD;
+
+BEGIN
+
+	--fetching all employee record with recent employ info  
+	FOR cur_emp IN ( select info.changereason, value,arabicfullname ,per.ehcm_emp_perinfo_id, per.status,per.ad_client_id,
+                    per.ad_org_id, info.createdby,info.updatedby ,info.startdate,
+                    case when info.changereason in ('SUE','T') then info.startdate  else 
+                     info.enddate  end 
+                    ,info.decision_no,
+                    case when info.ehcm_emp_secondment_id is not null then sec.decision_date else                  
+                    info.decision_date end ,info.ehcm_position_id,
+                    info.ehcm_emp_transfer_id,info.ehcm_emp_promotion_id,
+                    info.ehcm_emp_transfer_self_id, info.ehcm_emp_suspension_id,info.ehcm_emp_termination_id
+                    from ehcm_emp_perinfo per
+                    join ehcm_employment_info info on info.ehcm_emp_perinfo_id=per.ehcm_emp_perinfo_id
+                    left join ehcm_emp_secondment sec on sec.ehcm_emp_secondment_id=info.ehcm_emp_secondment_id
+                    where 
+                    per.status<>'UP'
+                   and info.created = ( select max(created) from ehcm_employment_info max where 
+                                        max.ehcm_emp_perinfo_id=  info.ehcm_emp_perinfo_id)
+                    
+                    and per.status<>'C' and per.isactive='Y' and (info.decision_date is not null or 
+                                            info.ehcm_emp_secondment_id is not null )
+                    and info.ehcm_position_id is not null
+                    order by per.value) 
+	LOOP
+    -- insert assign employee for old datum
+	INSERT INTO public.ehcm_posemp_history(
+	ehcm_posemp_history_id, ad_client_id, ad_org_id, isactive, created, createdby, updated, 
+        updatedby, ehcm_emp_perinfo_id, startdate, enddate, decision_no, decision_date, 
+        ehcm_emp_delegation_id, ehcm_position_id, isdelegated, ehcm_emp_transfer_id,
+        ehcm_emp_promotion_id, ehcm_emp_transfer_self_id, ehcm_emp_suspension_id,
+        ehcm_emp_termination_id)
+	VALUES (get_uuid(), cur_emp.ad_client_id, cur_emp.ad_org_id, 'Y', '2018-08-09 00:00:01',cur_emp.createdby ,  now()
+            , cur_emp.updatedby, cur_emp.ehcm_emp_perinfo_id, cur_emp.startdate,
+            cur_emp.enddate, cur_emp.decision_no, cur_emp.decision_date, null, cur_emp.ehcm_position_id,
+            'N', cur_emp.ehcm_emp_transfer_id,cur_emp.ehcm_emp_promotion_id,
+                    cur_emp.ehcm_emp_transfer_self_id, cur_emp.ehcm_emp_suspension_id,cur_emp.ehcm_emp_termination_id);
+	END LOOP;
+    
+    --fetching all delegation record with isactive 'yes'
+	FOR cur_del IN ( select del.ehcm_emp_perinfo_id, del.ad_client_id,
+                    del.ad_org_id, del.createdby,del.updatedby ,del.startdate, del.enddate 
+                    ,del.decision_no,del.decision_date,del.new_ehcm_position_id,
+                     del.ehcm_emp_delegation_id
+                    from ehcm_emp_delegation del
+                    join ehcm_emp_perinfo per on del.ehcm_emp_perinfo_id=per.ehcm_emp_perinfo_id
+                    where 
+                    del.decision_status='I' and del.decision_type <>'CA'
+                    and del.isactive='Y' and del.new_ehcm_position_id is not null
+                  )
+	LOOP
+    -- insert assign employee for old datum
+	INSERT INTO public.ehcm_posemp_history(
+	ehcm_posemp_history_id, ad_client_id, ad_org_id, isactive, created, createdby, updated, 
+        updatedby, ehcm_emp_perinfo_id, startdate, enddate, decision_no, decision_date, 
+        ehcm_emp_delegation_id, ehcm_position_id, isdelegated, ehcm_emp_transfer_id,
+        ehcm_emp_promotion_id, ehcm_emp_transfer_self_id, ehcm_emp_suspension_id,
+        ehcm_emp_termination_id)
+	VALUES (get_uuid(), cur_del.ad_client_id, cur_del.ad_org_id, 'Y', '2018-08-09 00:00:01',cur_del.createdby , now()
+            , cur_del.updatedby, cur_del.ehcm_emp_perinfo_id, cur_del.startdate,
+            cur_del.enddate, cur_del.decision_no, cur_del.decision_date, cur_del.ehcm_emp_delegation_id,
+            cur_del.new_ehcm_position_id,
+            'Y', null,null,null,null,null);
+	END LOOP;
+END EHCM_INSERTPOSEMPHIST
+]]></body>
+    </function>
+  </database>

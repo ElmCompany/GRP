@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?><ob:Openbravo xmlns:ob="http://www.openbravo.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ADPreference id="808426DCB539476C9F46C382436D8F2D" identifier="EHCM_IsHrOrg">
+    <id>808426DCB539476C9F46C382436D8F2D</id>
+    <active>true</active>
+    <creationDate transient="true">2017-05-31T00:00:45.609Z</creationDate>
+    <createdBy transient="true" id="100" entity-name="ADUser" identifier="Openbravo"/>
+    <updated transient="true">2017-05-31T14:02:36.533Z</updated>
+    <updatedBy transient="true" id="100" entity-name="ADUser" identifier="Openbravo"/>
+    <window id="110" entity-name="ADWindow" identifier="HR Organization"/>
+    <userContact xsi:nil="true"/>
+    <attribute xsi:nil="true"/>
+    <searchKey>Y</searchKey>
+    <property>EHCM_IsHrOrg</property>
+    <propertyList>true</propertyList>
+    <visibleAtClient xsi:nil="true"/>
+    <visibleAtOrganization xsi:nil="true"/>
+    <visibleAtRole xsi:nil="true"/>
+    <selected>false</selected>
+    <module id="61076388910A43ECA7DA588EC716E9D9" entity-name="ADModule" identifier="HR Module - 0.0.1 - English (USA)"/>
+    <inheritedFrom xsi:nil="true"/>
+  </ADPreference>
+</ob:Openbravo>

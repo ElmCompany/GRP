@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><ob:Openbravo xmlns:ob="http://www.openbravo.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <EHCM_Deflookups_Type id="20E98537A63E4DCE9BA2CE6F2F34EBB2" identifier="TC">
+    <id>20E98537A63E4DCE9BA2CE6F2F34EBB2</id>
+    <enabled>true</enabled>
+    <reference>TC</reference>
+    <description xsi:nil="true"/>
+    <datatype xsi:nil="true"/>
+    <isoverlappingallowed>false</isoverlappingallowed>
+  </EHCM_Deflookups_Type>
+  <EHCM_Deflookups_Type id="26E0667D7E24465CB5C0B8A24324BE87" identifier="AS">
+    <id>26E0667D7E24465CB5C0B8A24324BE87</id>
+    <enabled>true</enabled>
+    <reference>AS</reference>
+    <description xsi:nil="true"/>
+    <datatype xsi:nil="true"/>
+    <isoverlappingallowed>false</isoverlappingallowed>
+  </EHCM_Deflookups_Type>
+  <EHCM_Deflookups_Type id="29AAB6201E9E4103AA0616E6F7788E80" identifier="SC">
+    <id>29AAB6201E9E4103AA0616E6F7788E80</id>
+    <enabled>true</enabled>
+    <reference>SC</reference>
+    <description xsi:nil="true"/>
+    <datatype xsi:nil="true"/>
+    <isoverlappingallowed>false</isoverlappingallowed>
+  </EHCM_Deflookups_Type>
+  <EHCM_Deflookups_Type id="4CEEECEBC9D646F1B74502125CAF354F" identifier="empcerlan">
+    <id>4CEEECEBC9D646F1B74502125CAF354F</id>
+    <enabled>true</enabled>
+    <reference>empcerlan</reference>
+    <description xsi:nil="true"/>
+    <datatype xsi:nil="true"/>
+    <isoverlappingallowed>false</isoverlappingallowed>
+  </EHCM_Deflookups_Type>
+  <EHCM_Deflookups_Type id="50FADC90E240460D9775E3447D6E66FF" identifier="SCT">
+    <id>50FADC90E240460D9775E3447D6E66FF</id>
+    <enabled>true</enabled>
+    <reference>SCT</reference>
+    <description xsi:nil="true"/>
+    <datatype xsi:nil="true"/>
+    <isoverlappingallowed>false</isoverlappingallowed>
+  </EHCM_Deflookups_Type>
+  <EHCM_Deflookups_Type id="554A3241FED44E719BE85EB4A46B982E" identifier="LT">
+    <id>554A3241FED44E719BE85EB4A46B982E</id>
+    <enabled>true</enabled>
+    <reference>LT</reference>
+    <description xsi:nil="true"/>
+    <datatype xsi:nil="true"/>
+    <isoverlappingallowed>false</isoverlappingallowed>
+  </EHCM_Deflookups_Type>
+  <EHCM_Deflookups_Type id="A16D91BF7CB14D93A5F4EAC1D828A846" identifier="empcertype">
+    <id>A16D91BF7CB14D93A5F4EAC1D828A846</id>
+    <enabled>true</enabled>
+    <reference>empcertype</reference>
+    <description xsi:nil="true"/>
+    <datatype xsi:nil="true"/>
+    <isoverlappingallowed>false</isoverlappingallowed>
+  </EHCM_Deflookups_Type>
+  <EHCM_Deflookups_Type id="B1611F6A67204B84990496FFFFB9C7BD" identifier="BMT">
+    <id>B1611F6A67204B84990496FFFFB9C7BD</id>
+    <enabled>true</enabled>
+    <reference>BMT</reference>
+    <description xsi:nil="true"/>
+    <datatype xsi:nil="true"/>
+    <isoverlappingallowed>false</isoverlappingallowed>
+  </EHCM_Deflookups_Type>
+</ob:Openbravo>

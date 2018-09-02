@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_EMPSTATUS_TE_TRG">
+    <trigger name="EHCM_EMPSTATUS_TE_TRG" table="EHCM_EMPSTATUS" fires="after" insert="true" update="false" delete="true" foreach="row">
+      <body><![CDATA[  v_bpartner_ID VARCHAR2(32);   
+BEGIN
+--deactivate the business partner and user if the employee is terminated 
+IF TG_OP='INSERT' THEN
+	IF(:new.status ='TE') or (:new.status='C') THEN
+		select c_bpartner_id into v_bpartner_ID from c_bpartner where em_ehcm_emp_perinfo_id = :new.ehcm_emp_perinfo_id;
+		update c_bpartner set isactive='N' where em_ehcm_emp_perinfo_id=:new.ehcm_emp_perinfo_id;
+		update 	ad_user set isactive='N' where c_bpartner_id=v_bpartner_ID;
+	END IF;
+END IF;
+-- activate the business partner and user if the employee termination is cancelled
+IF TG_OP='DELETE' THEN
+	IF(:old.status = 'TE') or (:old.status='C')THEN
+		select c_bpartner_id into v_bpartner_ID from c_bpartner where em_ehcm_emp_perinfo_id=:old.ehcm_emp_perinfo_id;
+		update c_bpartner set isactive='Y' where em_ehcm_emp_perinfo_id=:old.ehcm_emp_perinfo_id;
+		update ad_user set isactive='Y' where c_bpartner_id=v_bpartner_ID;
+	END IF;
+END IF;			
+IF DELETING THEN 
+	RETURN OLD; 
+  ELSE 
+	RETURN NEW; 
+END IF;
+END EHCM_EMPSTATUS_TE_TRG
+]]></body>
+    </trigger>
+  </database>

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION EHCM_PAYROLL_BANK">
+    <function name="EHCM_PAYROLL_BANK" type="NULL">
+      <parameter name="p_pinstance_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <body><![CDATA[/*************************************************************************
+* All Rights Reserved.
+* Contributor(s): Gowtham.
+This payroll conform process will complete the payroll and not able to delete lines.
+************************************************************************/
+ v_Record_id VARCHAR2(32);
+ Cur_Parameter RECORD;
+ 
+ BEGIN
+  
+  SELECT Record_ID into v_Record_id FROM AD_PINSTANCE WHERE AD_PInstance_ID=p_PInstance_ID;
+  update ehcm_payroll_process_hdr set status = 'BS' where ehcm_payroll_process_hdr_id = v_Record_id;
+  AD_UPDATE_PINSTANCE(p_PInstance_ID, null, 'N', 1, null) ;
+END EHCM_PAYROLL_BANK
+]]></body>
+    </function>
+  </database>

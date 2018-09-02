@@ -1,0 +1,344 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION EHCM_LEVCALPROCESS">
+    <function name="EHCM_LEVCALPROCESS" type="VARCHAR">
+      <parameter name="p_employee_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_startdate" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_enddate" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_absencetpe_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_client_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_leaverequest" type="NUMERIC" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_leavetypaction" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_absenceattendid" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_subtype_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <body><![CDATA[v_allow NUMBER;
+v_isaccrual VARCHAR(1);
+v_isdeducted  VARCHAR(1);
+v_resetdate VARCHAR(60);
+v_gradeclassid VARCHAR2(32); 
+v_message VARCHAR2(2000);
+v_condition VARCHAR2(2000);
+v_SUM  NUMBER;
+v_svalue NUMBER;
+v_sumoflevcal NUMBER;
+v_input NUMBER;
+v_depentdentId VARCHAR2(32);
+v_absenceId VARCHAR2(32);
+v_abscode VARCHAR2(32);
+v_remabsid  VARCHAR2(32);
+v_dobdate VARCHAR2(32);
+v_hiredate VARCHAR2(32);
+v_nowdate VARCHAR2(32);
+v_remavailabledays VARCHAR2(32);
+--Constants
+EGC VARCHAR2(32);
+ETS NUMBER;
+ETLR NUMBER;
+ETLA NUMBER;
+EAGE NUMBER;
+ELTY  VARCHAR2(32);
+ELTA VARCHAR2(32);
+EEXC NUMBER;
+CERL NUMBER;
+CEDL NUMBER;
+v_output VARCHAR(2000);
+v_count  NUMBER;
+Cur_absenceRules RECORD;
+Cur_absformula RECORD;
+
+v_hijiridate VARCHAR2(32);
+v_fstGerDate VARCHAR2(32);
+v_nxtyrGerDate  VARCHAR2(32);
+v_hiremonth NUMBER;
+v_nowmonth NUMBER;
+v_levstartmonth NUMBER;
+v_hireday  DECIMAL;
+v_hiredategre VARCHAR(32);
+v_levstartday  NUMBER;
+v_hireanngredate  VARCHAR2(32);
+v_hireannnextgredate  VARCHAR2(32);
+v_preyearfirstdatedate VARCHAR2(32);
+v_preyearlastdate VARCHAR2(32);
+v_compare NUMBER;
+v_startdate VARCHAR2(32);
+v_enddate VARCHAR2(32);
+v_frequency VARCHAR2(32);
+
+BEGIN
+	BEGIN
+		EXECUTE IMMEDIATE 'CREATE TABLE ehcm_absencerule_formula (
+			id character varying(32),
+			code character varying(60),
+			value character varying(2000))';
+	END;
+	-- Declare the value for Constants
+	 -- Employee Grade
+	select value,ehcm_gradeclass_id into EGC,v_gradeclassid from ehcm_gradeclass where ehcm_gradeclass_id in (
+	select ehcm_gradeclass_id from ehcm_emp_perinfo   where  ehcm_emp_perinfo_id =p_employee_id);
+
+	--Leave Type
+    
+      --get absence id or dependent id 
+	select  dependent_id into v_depentdentId from ehcm_absencetype_action where   ehcm_absence_type_id =p_absencetpe_id;
+	IF(v_depentdentId is not null ) THEN
+		select   ehcm_absence_type_id into v_absenceId from ehcm_absence_type
+		 where   ehcm_absence_type_id =v_depentdentId;
+	ELSE
+	v_absenceId:=p_absencetpe_id;
+	END IF;
+	
+	select value ,isaccrual,accrual_reset_date,isdeducted,frequency into ELTY ,v_isaccrual,v_resetdate,v_isdeducted,v_frequency from ehcm_absence_type  where  ehcm_absence_type_id  =p_absencetpe_id;
+	insert into ehcm_absencerule_formula (id, code, value) values (6, 'ELTY', ELTY);
+	--RAISE notice ' ELTY => %',ELTY; --OBTG:-20501--
+	
+	select dob ,hiredate ,(select TO_DATE(to_char(CURRENT_TIMESTAMP,'yyyy-MM-dd'),'yyyy-MM-dd')::text  from dual ) into v_dobdate,v_hiredate,v_nowdate
+	  from ehcm_emp_perinfo where  ehcm_emp_perinfo_id  =p_employee_id;
+
+	insert into ehcm_absencerule_formula (id, code, value) values (1, 'EGC', (SELECT quote_nullable(EGC) from dual));
+
+	--RAISE notice ' EGC => %',EGC;  --OBTG:-20501--
+	--RAISE notice ' EGC => %,%',v_dobdate,v_nowdate;  --OBTG:-20501--
+	-- total service
+	select  split_part((ehcm_calculate_age(p_employee_id, p_client_id,v_hiredate,p_startdate)),'-',1) into ETS from dual   ;
+	insert into ehcm_absencerule_formula (id, code, value) values (2, 'ETS', ETS);
+	--RAISE notice ' ETS => %',ETS;   --OBTG:-20501--
+	-- Employee Age 
+	select  split_part((ehcm_calculate_age(p_employee_id, p_client_id,v_dobdate,p_startdate)),'-',1) into EAGE from dual   ;
+	insert into ehcm_absencerule_formula (id, code, value) values (3, 'EAGE', EAGE);
+	--RAISE notice ' EAGE => %',EAGE;  --OBTG:-20501--
+	
+	--Leave Request 
+	ETLR:=p_leaverequest;
+		insert into ehcm_absencerule_formula (id, code, value) values (4, 'ETLR', ETLR);
+	--RAISE notice ' ETLR => %',ETLR;  --OBTG:-20501--
+	
+	--Leave Action('Create'Extend',Update')
+	ELTA:=p_leavetypaction;
+	insert into ehcm_absencerule_formula (id, code, value) values (7, 'ELTA',(SELECT quote_nullable(p_leavetypaction)  FROM dual));
+	--RAISE notice ' ELTA => %',ELTA; --OBTG:-20501--
+
+	--Available leave taken
+	--select ehcm_checkavailableleave (p_employee_id , p_startdate, p_enddate, p_absencetpe_id, p_client_id, p_leaverequest,ELTA,p_absenceattendId,false,p_subtype_id) into ETLA from dual;
+   select p_availableleavedays into ETLA  from ehcm_getavailed_availablelev (p_employee_id , p_startdate, p_enddate, p_absencetpe_id, p_client_id, p_leaverequest,ELTA,p_absenceattendId,false,p_subtype_id);
+
+    insert into ehcm_absencerule_formula (id, code, value) values (5, 'ETLA', ETLA);
+	--RAISE notice ' ETLA => %',ETLA; --OBTG:-20501--	
+
+	--Employee  extend  count 
+    
+    select p_yearstartdate , (SELECT gregorian_date FROM eut_hijri_dates
+                           WHERE gregorian_date < p_yearenddate::TIMESTAMP
+          			ORDER BY gregorian_date desc
+          			LIMIT 1 )  into  v_startdate,v_enddate  from ehcm_getaccrualstartenddate(p_employee_id,p_startdate,v_resetdate,v_frequency,p_absencetpe_id,p_subtype_id);
+	--raise notice '%,% extend v_startdate', v_startdate,v_enddate;
+    
+    select count(ehcm_emp_leaveln_id) into EEXC from ehcm_emp_leaveln where leave_action ='EX' 
+	and ehcm_emp_leave_id in (select ehcm_emp_leave_id from ehcm_emp_leave where ehcm_emp_perinfo_id  =p_employee_id)
+    and ((TO_DATE(to_char(startdate,'dd-MM-yyyy'),'dd-MM-yyyy') >= TO_DATE(v_startdate,'yyyy-MM-dd') 
+        and TO_DATE(to_char(enddate,'dd-MM-yyyy'),'dd-MM-yyyy') < TO_DATE(v_enddate,'yyyy-MM-dd')
+        or (TO_DATE(to_char(enddate,'dd-MM-yyyy'),'dd-MM-yyyy') >= TO_DATE(v_startdate,'yyyy-MM-dd') 
+        and TO_DATE(to_char(startdate,'dd-MM-yyyy'),'dd-MM-yyyy')     < TO_DATE(v_enddate,'yyyy-MM-dd')))) ;	
+	insert into ehcm_absencerule_formula (id, code, value) values (8, 'EEXC', EEXC);
+
+	-- Employee Relief Participation Leave count
+	select count(leavedays) into v_count from ehcm_emp_leaveln where 
+	ehcm_emp_leave_id in (select ehcm_emp_leave_id from ehcm_emp_leave where ehcm_emp_perinfo_id  =p_employee_id 
+	and  ehcm_absence_type_id=v_absenceId)  and leave_type='AB';
+
+	--RAISE notice ' ELTY => %',ELTY; --OBTG:-20501--
+	IF(ELTY='REL') THEN
+		insert into ehcm_absencerule_formula (id, code, value) values (8, 'CERL', v_count);
+	ELSE IF (ELTY='DL') THEN
+	     insert into ehcm_absencerule_formula (id, code, value) values (9, 'CEDL', v_count);
+	END IF;
+	END IF;
+	
+	--check the condition 
+	-- employee total leave request will be less than or equal to employee available days 
+   --RAISE notice ' ELTY,ETLA => %,%',ETLR,ETLA; --OBTG:-20501--
+	IF((((ETLR <= ETLA)  OR (v_isaccrual='N' AND v_depentdentId is null ) OR v_isdeducted='Y') AND v_resetdate <> 'LO')
+       OR ( v_resetdate='LO' AND  ( ETLR <= ETLA  OR v_isaccrual='N')))THEN
+	--check  emp loyee grade is civilan
+	--IF(EGC='Civilian') THEN
+	FOR Cur_absenceRules IN(
+	select condition,rule_expression,code from ehcm_absencetype_rules where   ehcm_absence_type_id  =p_absencetpe_id 
+    and (ehcm_gradeclass_id in ( select ehcm_gradeclass_id from ehcm_emp_perinfo where  ehcm_emp_perinfo_id  =p_employee_id  )
+    or ehcm_gradeclass_id is null )
+	and  p_startdate ::timestamp between TO_DATE(to_char(startdate,'dd-MM-yyyy'),'dd-MM-yyyy') 
+	and TO_DATE(to_char(coalesce (enddate,TO_DATE('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') order by startdate asc)
+	LOOP
+		--RAISE notice 'Condition 12222 => %',Cur_absenceRules.condition; --OBTG:-20501--
+		v_allow := 1;
+		--  LEave
+		--IF(ELTY ='AL' OR ELTY='STL' OR ELTY ='AEL') THEN
+			v_condition:=Cur_absenceRules.condition;
+			--RAISE notice 'Condition condition => %',v_condition; --OBTG:-20501--
+			v_condition:= 'select case when '|| v_condition ||' then 1 else -1 end' ;
+			
+			--fetch constant value from temporary table of ehcm_absencerule_formula
+			FOR Cur_absformula in (select distinct code, value from ehcm_absencerule_formula )
+			LOOP
+			--RAISE notice 'Condition condition => %,%,%',v_condition,Cur_absformula.code,Cur_absformula.value; --OBTG:-20501--
+			-- replace the condition based on code 
+				select regexp_replace(v_condition,  Cur_absformula.code ,  Cur_absformula.value,'g' ) into v_condition from dual;
+				--RAISE notice 'Condition BEGIN 123 => %',v_condition; --OBTG:-20501--	
+			END LOOP;
+			-- execute the condition
+			--RAISE notice 'Condition BEGIN 44 => %',v_condition; --OBTG:-20501--
+			BEGIN
+			--RAISE notice 'Condition BEGIN => %',v_condition; --OBTG:-20501--
+		 
+				EXECUTE IMMEDIATE v_condition into v_svalue;
+				EXCEPTION 
+					WHEN division_by_zero THEN 
+					v_svalue := -1;
+				WHEN OTHERS THEN
+					v_svalue := -1;
+			END;	
+						--RAISE notice 'Condition v_svalue => %',v_svalue; --OBTG:-20501--
+			-- if condition success check with rules expression else continue with next condition
+			IF(v_svalue=1) THEN
+			
+			v_condition:=Cur_absenceRules.rule_expression;
+			--RAISE notice 'Condition rule_expression => %',v_condition; --OBTG:-20501--
+			
+			-- if leave less than 5 then replace the function with corresponding input value
+			IF(v_condition ilike '%EALT(%') THEN
+			 --find ETLR to find input, allows 1 to 99 as input for now
+			--strpos to find postion of ETLR, substr to display 2 character, replace to remove ')' if one character alone 
+			 --SELECT substring(ls.attribute_actions_text FROM  'EALT((.*?))')  into v_input
+			 --FROM  (VALUES  (v_condition))ls(attribute_actions_text); 
+			 
+            -- select substr(v_condition, instr(v_condition,'(') + 1, instr(v_condition,')') - instr(v_condition,'(') - 1) into v_input;
+				select replace(substr(v_condition,strpos(v_condition, 'EALT(')+5,2),')','') into v_input;
+              --  select replace(substr(v_condition ,strpos(v_condition, 'EALT(')+5,2),')','') into v_input;
+				--RAISE notice 'Condition v_input => %',v_input; --OBTG:-20501--EALT(7)+ETLR <= 5
+				-- based on output from the above function , get the sum of leave below the output transactioon
+				select ehcm_sumoflevtransaction(p_employee_id, v_absenceId ,p_startdate, v_input,v_startdate) from dual into v_sumoflevcal;
+
+				--replace the 'EALT(5) with sum of leave transaction
+				
+				select replace(v_condition,'EALT('||v_input||')' ,v_sumoflevcal::text) into v_condition;
+				v_condition:= 'select case when '|| v_condition ||' then 1 else -1 end' ;
+                
+				--RAISE notice 'Condition EALT => %',v_condition; --OBTG:-20501--
+				ELSE IF(v_condition ilike '%ATRL(%') THEN
+				WHILE (v_condition ilike '%ATRL(%')  LOOP
+				 
+                 select substr(v_condition, instr(v_condition,'(') + 1, instr(v_condition,')') - instr(v_condition,'(') - 1) into v_abscode;
+				
+                -- SELECT substring(ls.attribute_actions_text FROM  'ATRL((.*?))')   into v_abscode FROM  (VALUES  (v_condition)) ls(attribute_actions_text);			
+				--select replace(substr(v_condition ,strpos(v_condition, 'ATRL(')+5,3),')','') into v_abscode;
+				--RAISE notice 'Condition v_abscode => %',v_abscode; --OBTG:-20501--
+				
+                select ehcm_absence_type_id into v_remabsid  from ehcm_absence_type  where    value=v_abscode and ad_client_id=p_client_id;
+				--RAISE notice 'Condition v_remabsid => %',v_remabsid; --OBTG:-20501--
+				
+               -- select ehcm_checkavailableleave (p_employee_id , p_startdate, p_enddate, v_remabsid, p_client_id, p_leaverequest,ELTA,p_absenceattendId,false,p_subtype_id) into v_remavailabledays from dual;
+                 select p_availableleavedays  into v_remavailabledays   from ehcm_getavailed_availablelev (p_employee_id , p_startdate, p_enddate, v_remabsid, p_client_id, p_leaverequest,ELTA,p_absenceattendId,false,p_subtype_id);
+                select replace(v_condition,substr(v_condition,strpos(v_condition,'ATRL('),((strpos(v_condition,')'))
+				-(strpos(v_condition,'ATRL('))+1) ) ,v_remavailabledays::text) into v_condition;
+				--RAISE notice 'Condition ATRL => %',v_condition; --OBTG:-20501--
+				END LOOP;
+				v_condition:= 'select case when '|| v_condition ||' then 1 else -1 end' ;
+			ELSE IF(v_condition ilike '%ATADL(%') THEN
+				WHILE (v_condition ilike '%ATADL(%')  LOOP
+				 select substr(v_condition, instr(v_condition,'(') + 1, instr(v_condition,')') - instr(v_condition,'(') - 1) into v_abscode;
+				 --SELECT substring(ls.attribute_actions_text FROM  'ATADL((.*?))')   into v_abscode FROM  (VALUES  (v_condition)) ls(attribute_actions_text);			
+				--select replace(substr(v_condition ,strpos(v_condition, 'ATRL(')+5,3),')','') into v_abscode;
+				--RAISE notice 'Condition v_abscode => %',v_abscode; --OBTG:-20501--
+				select ehcm_absence_type_id into v_remabsid  from ehcm_absence_type  where    value=v_abscode and ad_client_id=p_client_id;
+				--RAISE notice 'Condition v_remabsid => %',v_remabsid; --OBTG:-20501--
+				--select from ehcm_checkavailableleave (p_employee_id , p_startdate, p_enddate, v_remabsid, p_client_id, p_leaverequest,ELTA,p_absenceattendId,true,p_subtype_id) into v_remavailabledays from dual;
+                select p_availedleavedays into v_remavailabledays  from ehcm_getavailed_availablelev (p_employee_id , p_startdate, p_enddate, v_remabsid, p_client_id, p_leaverequest,ELTA,p_absenceattendId,true,p_subtype_id) ;
+                select replace(v_condition,substr(v_condition,strpos(v_condition,'ATADL('),((strpos(v_condition,')'))
+				-(strpos(v_condition,'ATADL('))+1) ) ,v_remavailabledays::text) into v_condition;
+				--RAISE notice 'Condition ATRL => %',v_condition; --OBTG:-20501--
+				END LOOP;	
+				v_condition:= 'select case when '|| v_condition ||' then 1 else -1 end' ;	
+			ELSE 
+				v_condition:= 'select case when '|| v_condition ||' then 1 else -1 end' ;
+			END IF	;
+			END IF	;
+			END IF	;
+			FOR Cur_absformula in (select distinct code, value from ehcm_absencerule_formula )
+			LOOP
+			--RAISE notice 'Condition Execution => %,%,%', Cur_absformula.code,Cur_absformula.value ,v_condition; --OBTG:-20501--
+				select regexp_replace(v_condition,  Cur_absformula.code ,  Cur_absformula.value,'g') into v_condition from dual;	
+				--RAISE notice 'Condition Execution allow=> %',v_condition; --OBTG:-20501--
+			END LOOP;
+
+			BEGIN
+						 
+				EXECUTE IMMEDIATE v_condition into v_allow;
+				EXCEPTION 
+					WHEN division_by_zero THEN 
+					v_allow := -1;
+				WHEN OTHERS THEN
+					v_allow := -1;
+			END;
+							--RAISE notice 'Condition EALT v_allow=> %',v_allow; --OBTG:-20501--
+			
+			END IF	;
+														
+		--END IF;
+			--RAISE notice 'Condition EALT v_allow => %',v_allow; --OBTG:-20501--
+		--If v_allow is one then continue the loop else return the rules condition code 
+		IF v_allow = '1' THEN
+			continue;
+		ELSE 		
+		v_message:='EHCM_'||Cur_absenceRules.code;
+		--v_message:='@'||Cur_absenceRules.code||'@';
+		--RAISE notice 'Condition EALT v_allow => %',v_allow; --OBTG:-20501--
+		EXIT;
+		END IF;		
+	END LOOP;
+    --RAISE notice 'FINAL %,%,%',v_message,ETLA,ETLR; --OBTG:-20501--
+	--If all condition success return success msg;
+	IF v_message IS NULL THEN
+		v_message:='EHCM_LeaveAvailableSuccess'; --OBTG:-20000--
+	END IF;
+	--END IF;	
+	/*ELSE IF(v_resetdate='LO') THEN
+		IF (ETLR <= ETLA OR v_isaccrual='N') THEN
+			v_message:='EHCM_LeaveAvailableSuccess'; --OBTG:-20000--
+		ELSE
+			--RAISE notice 'Condition Execution v_message=> %',v_message;  --OBTG:-20501--
+			IF(ETLA <= 0) THEN
+				ETLA :=0;
+			END IF;
+			v_message:='EHCM_LevNotAvailable'||'-'||ETLA;
+		END IF;	*/
+	ELSE
+		IF(ETLA <= 0) THEN
+			ETLA :=0;
+		END IF;
+			--RAISE notice 'Condition Execution v_message=> %',v_message;  --OBTG:-20501--
+		v_message:='EHCM_LevNotAvailable'||'-'||ETLA;
+	
+    --END IF;	 
+	END IF;
+
+	EXECUTE IMMEDIATE 'drop TABLE ehcm_absencerule_formula;';
+	return v_message;
+END EHCM_LEVCALPROCESS
+]]></body>
+    </function>
+  </database>

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_MULTIGRADERATE_VERIFY">
+    <trigger name="EHCM_MULTIGRADERATE_VERIFY" table="EHCM_ELEMENTFORMULA_LNE" fires="after" insert="true" update="true" delete="false" foreach="row">
+      <body><![CDATA[v_elementtype_id VARCHAR2(32);
+v_elementsrc VARCHAR2(32);
+
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+	select ehcm_elmttype_def_id into v_elementtype_id from ehcm_elementformula_hdr where ehcm_elementformula_hdr_id = :NEW.ehcm_elementformula_hdr_id; 
+
+	select element_src into v_elementsrc from ehcm_elmttype_def where ehcm_elmttype_def_id= v_elementtype_id;
+	
+	IF INSERTING OR UPDATING THEN
+		IF (v_elementsrc IS NOT NULL AND v_elementsrc = 'MGR' AND :NEW.ehcm_graderates_id IS NULL) THEN
+			RAISE_APPLICATION_ERROR(-20000, '@EHCM_MultiGradeRateNotDefined@');
+		END IF;
+	END IF;
+	
+	END EHCM_MULTIGRADERATE_VERIFY
+]]></body>
+    </trigger>
+  </database>

@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION EHCM_GETPOSITIONLIST">
+    <function name="EHCM_GETPOSITIONLIST" type="VARCHAR">
+      <parameter name="p_client_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_position_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <body><![CDATA[vp VARCHAR2(32);
+vPositionList VARCHAR(32767);
+BEGIN
+
+
+    vp := p_position_id;
+    vPositionList:='';
+    WHILE (vp is not null and vp <> '')
+    LOOP
+	vPositionList:= vPositionList ||''''||vp||'''';
+	select pos.Ehcm_Position_id into vp from ehcm_poshierarchy_posnode node
+	join ehcm_poshierarchy_pos pos on pos.ehcm_poshierarchy_pos_id= node.ehcm_poshierarchy_pos_id
+	 where node.Ehcm_Position_id=vp;
+    IF vp is not null THEN
+       -- raise notice '%',vPositionList;
+
+		vPositionList:= vPositionList ||',';
+	END IF;
+    End LOOP ;
+    --raise exception '%',vPositionList;
+    RETURN  vPositionList;
+END EHCM_GETPOSITIONLIST
+]]></body>
+    </function>
+  </database>

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_HRORG_ISACTIVE_TRG">
+    <trigger name="EHCM_HRORG_ISACTIVE_TRG" table="AD_ORG" fires="before" insert="false" update="true" delete="false" foreach="row">
+      <body><![CDATA[  v_count integer;
+BEGIN
+IF TG_OP='UPDATE' THEN
+	--Restrict to deactivate the organization while it is used in position
+	IF(:new.isactive='N') THEN
+		select count(ad_org_id) into v_count from ehcm_position where ad_org_id = :new.ad_org_id;
+		IF(v_count >0)THEN
+			RAISE_APPLICATION_ERROR(-20000,'@EHCM_hrorg_active@');
+		END IF;
+	END IF;
+END IF;			
+IF DELETING THEN 
+	RETURN OLD; 
+  ELSE 
+	RETURN NEW; 
+END IF;
+END EHCM_HRORG_ISACTIVE_TRG
+]]></body>
+    </trigger>
+  </database>

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_BENEFITALLOWANCE_VALUE">
+    <trigger name="EHCM_BENEFITALLOWANCE_VALUE" table="EHCM_BENEFIT_ALLOWANCE" fires="before" insert="true" update="true" delete="true" foreach="row">
+      <body><![CDATA[
+v_baseprocess VARCHAR2(32);
+
+BEGIN
+
+	IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+
+	IF  INSERTING OR UPDATING THEN
+			
+		IF (:NEW.decision_type = 'CR' OR :NEW.decision_type = 'UP') THEN
+		
+			select baseprocess into v_baseprocess from ehcm_elmttype_def where ehcm_elmttype_def_id=:NEW.ehcm_elmttype_def_id;
+
+			IF (v_baseprocess = 'AD') THEN
+				IF (:NEW.valuetype IS NULL) THEN				
+					RAISE_APPLICATION_ERROR(-20000, '@EHCM_ValueType_Mandatory@');
+				ELSIF (:NEW.valuetype = 'FA') THEN					
+					IF :NEW.fixedamount IS NULL THEN
+						RAISE_APPLICATION_ERROR(-20000, '@EHCM_FixedAmt_Mandatory@');
+					END IF;
+				ELSIF (:NEW.valuetype = 'P') THEN				
+					IF :NEW.percentage IS NULL OR :NEW.percentcategory IS NULL THEN
+						RAISE_APPLICATION_ERROR(-20000, '@EHCM_PercentCategory_Mandatory@');
+					END IF;
+				END IF;
+			END IF;
+		END IF;
+
+		IF (:NEW.decision_type = 'CA') THEN			
+			IF (:NEW.canceldate IS NULL) THEN
+				RAISE_APPLICATION_ERROR(-20000, '@EHCM_BenefitsAllowance_CancelDate@');
+			END IF;
+		END IF;
+
+		IF (:NEW.decision_type = 'HO') THEN			
+			IF (:NEW.hold_date IS NULL OR :NEW.hold_duration IS NULL OR :NEW.hold_duration_type IS NULL) THEN
+				RAISE_APPLICATION_ERROR(-20000, '@EHCM_BenefitsAllowance_HoldFields@');
+			END IF;
+		END IF;
+		
+	END IF;
+
+	END EHCM_BENEFITALLOWANCE_VALUE
+]]></body>
+    </trigger>
+  </database>

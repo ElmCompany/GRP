@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_BENEFIT_ALLOWANCE">
+    <trigger name="EHCM_BENEFIT_ALLOWANCE" table="EHCM_BENEFIT_ALLOWANCE" fires="before" insert="true" update="true" delete="true" foreach="row">
+      <body><![CDATA[v_dec_type varchar(32);
+BEGIN
+
+	IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+	IF(INSERTING OR UPDATING) THEN
+		IF (:new.decision_type = 'CR' AND :new.original_Decision_No <> '') THEN
+			:new.original_decision_no := null;
+		END IF;
+        END IF;
+	IF UPDATING THEN
+		IF(:OLD.decision_status = 'I') THEN
+			RAISE_APPLICATION_ERROR(-20000, '@EHCM_BenefitsAllowance_Issued@');
+		END IF;
+	END IF;
+
+	IF DELETING THEN
+		IF(:OLD.decision_status = 'I') THEN
+			RAISE_APPLICATION_ERROR(-20000, '@EHCM_BenefitsAllowance_Issued@');
+		END IF;
+	END IF;
+
+	END EHCM_BENEFIT_ALLOWANCE
+]]></body>
+    </trigger>
+  </database>

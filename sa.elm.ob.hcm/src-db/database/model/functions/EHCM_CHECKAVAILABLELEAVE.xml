@@ -1,0 +1,596 @@
+<?xml version="1.0"?>
+  <database name="FUNCTION EHCM_CHECKAVAILABLELEAVE">
+    <function name="EHCM_CHECKAVAILABLELEAVE" type="NUMERIC">
+      <parameter name="p_employee_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_startdate" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_enddate" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_absencetpe_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_client_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_leaverequest" type="NUMERIC" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_leavetypeaction" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_absenceattendid" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_availeddays" type="boolean" mode="in">
+        <default/>
+      </parameter>
+      <parameter name="p_subtype_id" type="VARCHAR" mode="in">
+        <default/>
+      </parameter>
+      <body><![CDATA[v_depentdentId VARCHAR2(32);
+v_abstypCode VARCHAR2(32);
+v_absenceId VARCHAR2(32);
+
+v_totaldays NUMBER;
+v_totalmonths VARCHAR2(32);
+v_totalyears VARCHAR2(32) := '1';
+v_hireday DECIMAL;
+v_hiredategre VARCHAR(32);
+v_levstartday NUMBER;
+v_stdatehijiri VARCHAR2(32);
+v_hijiridate VARCHAR2(32);
+v_todayhijiridate VARCHAR2(32);
+v_fstGerDate VARCHAR2(32);
+v_nxtyrGerDate VARCHAR2(32);
+v_resetdate VARCHAR2(32);
+v_totlyeardays NUMBER;
+v_hiredate VARCHAR2(32);
+v_crediton VARCHAR2(32);
+v_startdate VARCHAR2(32);
+v_enddate VARCHAR2(32);
+v_preyearfirstdatedate VARCHAR2(32);
+v_preyearlastdate VARCHAR2(32);
+v_perdayval NUMBER;
+v_granteddays NUMBER;
+v_pooleddays NUMBER;
+v_availabledays NUMBER DEFAULT 0;
+v_availableleave NUMBER;
+v_accrualdays NUMBER;
+v_availeddays NUMBER;
+v_preyearaccrual NUMBER;
+v_hiremonth NUMBER;
+v_nowmonth NUMBER;
+v_levstartmonth NUMBER;
+v_compare NUMBER;
+v_empleaveId VARCHAR(32);
+Cur_ExcepLeave RECORD;
+v_firstleaveocc VARCHAR2(32);
+v_firstleaveoccfstyrgreg VARCHAR2(32);
+v_firstleaveoccfstyrhiji VARCHAR2(32);
+v_firstleaveoccfivthyr VARCHAR2(32);
+v_firstyear NUMBER;
+v_diff NUMBER;
+v_startyear NUMBER;
+v_endyear NUMBER;
+v_totalcount NUMBER;
+v_frequency VARCHAR2(32);
+v_freqinput NUMBER;
+v_excabstypeId VARCHAR2(32);
+v_firstmonth NUMBER;
+v_firstday NUMBER;
+v_countofaccrual NUMBER;
+ELTY VARCHAR2(32);
+v_hireanngredate VARCHAR2(32);
+v_hireannnextgredate VARCHAR2(32);
+v_hireannprevyear VARCHAR2(32);
+v_sumaccrualdays NUMBER;
+v_accuralId VARCHAR2(32);
+v_accrualstartdate VARCHAR2(32);
+v_inbetweenyearaccrual NUMBER;
+v_accraulcreatedate VARCHAR2(32);
+v_preaccrualenddate VARCHAR2(32);
+
+v_recentlevstartdate VARCHAR2(32);
+
+BEGIN
+
+      ELTY := p_leavetypeaction;
+      
+    --get absence id or dependent id 
+          SELECT dependent_id INTO v_depentdentId FROM ehcm_absencetype_action WHERE ehcm_absence_type_id = p_absencetpe_id;
+          	IF(v_depentdentId IS NOT NULL ) THEN
+            	v_absenceId := v_depentdentId; 
+         	 ELSE
+            	v_absenceId := p_absencetpe_id; 
+         	 END IF;
+         
+          SELECT VALUE , ehcm_absence_type_id, accrual_reset_date, frequency INTO v_abstypCode, v_absenceId , v_resetdate, v_frequency FROM ehcm_absence_type
+          WHERE ehcm_absence_type_id = v_absenceId;
+
+	   -- check recent leave date for each employee
+         IF(v_resetdate <> 'LO') THEN
+      select startdate into v_recentlevstartdate from ehcm_emp_leaveln where ehcm_emp_leave_id in (
+          select ehcm_emp_leave_id from ehcm_emp_leave where 
+          ehcm_absence_type_id = v_absenceId and ehcm_emp_perinfo_id=p_employee_id)
+      order by startdate desc;
+      
+      --RAISE notice '% ', v_recentlevstartdate;
+       
+      --if recent leave startdate greater than current leave start date then change the p_startdate as recent leave startdate
+        SELECT CASE WHEN v_recentlevstartdate > p_startdate THEN 1 ELSE - 1 END INTO v_compare;
+          	IF(v_compare = 1) THEN
+          		p_startdate := v_recentlevstartdate;
+          	END IF;
+        END IF;
+    -- get employee hire date in hijiri format	
+          SELECT eut_convert_to_hijri(to_char(hiredate, 'yyyy-MM-dd')), hiredate INTO v_hiredate, v_hiredategre FROM ehcm_emp_perinfo WHERE ehcm_emp_perinfo_id = p_employee_id;
+          --RAISE notice '%,%,% v_hiredate ', v_hiredate, v_hiredategre, v_absenceId;
+
+    -- get leave start date in hijiri format
+          SELECT eut_convert_to_hijri(p_startdate) INTO v_hijiridate FROM dual ; 
+          --RAISE notice '% v_hijiridate ', v_hijiridate;
+
+    -- get year first date by passing hijirdate
+          SELECT eut_convertto_gregorian('01-01-' || (split_part(v_hijiridate, '-', 3))) INTO v_fstGerDate FROM dual ; 
+          --RAISE notice '% v_fstGerDate ', v_fstGerDate;
+
+     -- take next year first date passing hijirdate
+          SELECT eut_convertto_gregorian('01-01-' || (split_part(v_hijiridate, '-', 3):: INT + 1 )::text ) INTO v_nxtyrGerDate FROM dual ; 
+          --RAISE notice '% v_nxtyrGerDate ', v_nxtyrGerDate;
+
+    -- If accrual reset date other than leave occurance	       
+          IF(v_resetdate <> 'LO') THEN
+
+               select p_yearstartdate , p_yearenddate,p_prevyearstartdate,p_prevyearenddate
+               into  v_startdate,v_enddate, v_preyearfirstdatedate,v_preyearlastdate from ehcm_getaccrualstartenddate(p_employee_id,p_startdate,v_resetdate,v_frequency,p_absencetpe_id,p_subtype_id);
+
+            --RAISE notice '%,%,% v_preyearfirstdatedate ', v_preyearfirstdatedate, v_preyearlastdate, v_absenceId;
+
+            --based on accural reset date need to calculate previous year balance
+          SELECT COALESCE(( SELECT leavedays INTO v_preyearaccrual FROM ehcm_emp_leaveln 
+              WHERE ehcm_emp_leave_id IN ( SELECT ehcm_emp_leave_id FROM ehcm_emp_leave 
+              WHERE ehcm_emp_perinfo_id = p_employee_id AND ehcm_absence_type_id = v_absenceId 
+                and  case when p_subtype_id <>'' then subtype=p_subtype_id else 1=1 end ) AND leave_type = 'AC' 
+              AND ((TO_DATE(to_char(startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') >= TO_DATE(v_startdate, 'yyyy-MM-dd') --v_preyearfirstdatedate
+              AND TO_DATE(to_char(enddate, 'dd-MM-yyyy'), 'dd-MM-yyyy') <= TO_DATE(v_enddate, 'yyyy-MM-dd')--v_preyearlastdate
+              OR (TO_DATE(to_char(enddate, 'dd-MM-yyyy'), 'dd-MM-yyyy') >= TO_DATE(v_startdate, 'yyyy-MM-dd') --v_preyearfirstdatedate
+              AND TO_DATE(to_char(startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') <= TO_DATE(v_enddate, 'yyyy-MM-dd')))) --v_preyearlastdate
+              ), 0 :: NUMBER ) FROM dual ; 
+            --RAISE notice '% ,%v_resetdate ', v_resetdate, v_preyearaccrual;
+
+          --RAISE notice '% ,%,%,% v_startdate ', v_startdate, v_enddate, p_startdate, v_hiredategre;
+          SELECT CASE WHEN v_startdate <= v_hiredategre THEN 1 ELSE - 1 END INTO v_compare;
+          	IF(v_compare = 1) THEN
+          		v_startdate := v_hiredategre;
+          	END IF;
+          --RAISE notice '% ,% v_startdate ', v_startdate, p_startdate;
+
+          -- get year days
+          		SELECT COUNT(a.hijri_date) INTO v_totlyeardays FROM(
+          			SELECT MAX(hijri_date) AS hijri_date , gregorian_date AS gregorian_date FROM eut_hijri_dates 
+          			WHERE gregorian_date >= v_startdate::TIMESTAMP
+          			and  gregorian_date <= v_enddate ::TIMESTAMP  GROUP BY gregorian_date) a ;
+          		--RAISE notice '%,% ,% v_totlyeardays ', v_totlyeardays, v_startdate, v_enddate; 
+                --AND (CASE WHEN v_resetdate = 'HAD' THEN gregorian_date <= v_enddate ::TIMESTAMP 
+
+		-- get total days from hiredate to absence startdate for credit on  Daily
+          		SELECT COUNT (a.hijri_date)INTO v_totaldays FROM 
+                    (SELECT MAX(hijri_date) AS hijri_date , gregorian_date AS gregorian_date FROM eut_hijri_dates 
+                    WHERE gregorian_date >= v_startdate :: DATE
+                    AND gregorian_date <= p_startdate :: DATE GROUP BY gregorian_date) a ;
+                    --RAISE notice '% v_totaldays', v_totaldays;
+
+          		-- get total months from hiredate to absence startdate for credit on monthly
+                    SELECT ehcm_calculate_age(p_employee_id, p_client_id, v_startdate, p_startdate) INTO v_totalmonths FROM dual ;
+                    --RAISE notice '% v_totalmonths', v_totalmonths;
+                    v_totalmonths := (split_part((v_totalmonths), '-', 1):: NUMBER * 12) :: NUMBER + split_part((v_totalmonths), '-', 2) :: NUMBER;
+                    --RAISE notice '% v_totalmonths ', v_totalmonths;
+                    
+          -- get availeddays 		
+          		/*select coalesce(sum(leavedays),0) into v_availeddays from ehcm_emp_leaveln  where   ehcm_emp_leave_id in (
+                  select ehcm_emp_leave_id from  ehcm_emp_leave  where     ehcm_emp_perinfo_id  =p_employee_id  and ehcm_absence_type_id=v_absenceId )
+                  and ((TO_DATE(to_char(startdate,'dd-MM-yyyy'),'dd-MM-yyyy') >= v_startdate :: timestamp
+                  and TO_DATE(to_char(enddate,'dd-MM-yyyy'),'dd-MM-yyyy') <= p_startdate  :: timestamp)
+                  or (TO_DATE(to_char(enddate,'dd-MM-yyyy'),'dd-MM-yyyy') >= v_startdate :: timestamp
+                  and TO_DATE(to_char(startdate,'dd-MM-yyyy'),'dd-MM-yyyy')     <= p_startdate :: timestamp)) ;*/
+
+          /*leave details for calculate the availeddays*/
+          --RAISE notice '%ELTY', ELTY;
+          		IF((ELTY = 'CR') OR (ELTY = 'EX')) THEN
+                
+                SELECT sum(COALESCE(leavedays, 0)) into  v_availeddays 
+                      FROM ehcm_emp_leaveln lvln
+                      left join ehcm_emp_leave lv on lv.ehcm_emp_leave_id= lvln.ehcm_emp_leave_id
+                      WHERE lv.ehcm_emp_perinfo_id = p_employee_id 
+                      AND lv.ehcm_absence_type_id = v_absenceId
+                       and  case when p_subtype_id<>''  then lv.subtype=p_subtype_id else 1=1 end 
+                      AND ((TO_DATE(to_char(lvln.startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') >= v_startdate :: DATE
+                      AND TO_DATE(to_char(lvln.enddate, 'dd-MM-yyyy'), 'dd-MM-yyyy') <= p_startdate :: TIMESTAMP)
+                      OR (TO_DATE(to_char(lvln.enddate, 'dd-MM-yyyy'), 'dd-MM-yyyy') >= v_startdate :: DATE
+                      AND TO_DATE(to_char(lvln.startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') <= p_startdate :: TIMESTAMP)) ;
+                      
+                  /*SELECT COALESCE(pooleddays, 0) , COALESCE(availabledays, 0) , COALESCE(availeddays, 0) INTO v_pooleddays , v_availabledays, v_availeddays 
+                      FROM ehcm_emp_leave WHERE ehcm_emp_perinfo_id = p_employee_id AND ehcm_absence_type_id = v_absenceId
+                      AND ehcm_emp_leave_id IN ( SELECT ehcm_emp_leave_id FROM ehcm_emp_leaveln
+                                                WHERE ((TO_DATE(to_char(startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') >= v_startdate :: DATE
+                      AND TO_DATE(to_char(enddate, 'dd-MM-yyyy'), 'dd-MM-yyyy') <= p_startdate :: TIMESTAMP)
+                      OR (TO_DATE(to_char(enddate, 'dd-MM-yyyy'), 'dd-MM-yyyy') >= v_startdate :: DATE
+                      AND TO_DATE(to_char(startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') <= p_startdate :: TIMESTAMP)) );*/
+          		ELSE 
+                  
+                  
+                  SELECT sum(COALESCE(lvln.leavedays, 0))-COALESCE(levln.lvdays, 0) into v_availeddays 
+                 FROM ehcm_emp_leaveln lvln
+                      left join ehcm_emp_leave lv on lv.ehcm_emp_leave_id= lvln.ehcm_emp_leave_id
+                      left JOIN (SELECT leavedays AS lvdays , ehcm_emp_leave_id FROM ehcm_emp_leaveln ln WHERE 
+                      ehcm_absence_attendance_id IN ( SELECT ehcm_absence_attendance_id FROM ehcm_absence_attendance 
+                      WHERE decision_status = 'I' AND ehcm_emp_perinfo_id = p_employee_id
+                      AND ehcm_absence_type_id = p_absencetpe_id 
+                       AND isactive = 'Y' ORDER BY created DESC LIMIT 1 ))
+                      levln ON lv.ehcm_emp_leave_id = levln.ehcm_emp_leave_id
+                      WHERE lv.ehcm_emp_perinfo_id = p_employee_id
+                      AND lv.ehcm_absence_type_id = p_absencetpe_id
+                      and  case when p_subtype_id<>'' then lv.subtype=p_subtype_id else 1=1 end 
+                      AND ((TO_DATE(to_char(lvln.startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') >= v_startdate :: DATE
+                      AND TO_DATE(to_char(lvln.enddate, 'dd-MM-yyyy'), 'dd-MM-yyyy') <= p_startdate :: TIMESTAMP)
+                      OR (TO_DATE(to_char(lvln.enddate, 'dd-MM-yyyy'), 'dd-MM-yyyy') >= v_startdate :: DATE
+                      AND TO_DATE(to_char(lvln.startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') <= p_startdate :: TIMESTAMP)) 
+                      group by levln.lvdays;
+                      
+                 /* SELECT COALESCE(pooleddays, 0) , COALESCE(availabledays, 0) , (COALESCE(availeddays, 0) - COALESCE(lvdays, 0)) AS availeddays 
+                      INTO v_pooleddays , v_availabledays, v_availeddays 
+                  FROM ehcm_emp_leave lv
+                      left JOIN (SELECT leavedays AS lvdays , ehcm_emp_leave_id FROM ehcm_emp_leaveln ln WHERE 
+                      ehcm_absence_attendance_id IN ( SELECT ehcm_absence_attendance_id FROM ehcm_absence_attendance 
+                      WHERE decision_status = 'I' AND ehcm_emp_perinfo_id = p_employee_id 
+                      AND ehcm_absence_type_id = p_absencetpe_id AND isactive = 'Y' ORDER BY created DESC LIMIT 1 ) )
+                      levln ON lv.ehcm_emp_leave_id = levln.ehcm_emp_leave_id
+                      WHERE ehcm_emp_perinfo_id = p_employee_id AND ehcm_absence_type_id = v_absenceId
+                      AND lv.ehcm_emp_leave_id IN ( SELECT ehcm_emp_leave_id FROM ehcm_emp_leaveln WHERE ((TO_DATE(to_char(startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') >= v_startdate :: DATE
+                      AND TO_DATE(to_char(enddate, 'dd-MM-yyyy'), 'dd-MM-yyyy') <= p_startdate :: TIMESTAMP)
+                      OR (TO_DATE(to_char(enddate, 'dd-MM-yyyy'), 'dd-MM-yyyy') >= v_startdate :: DATE
+                      AND TO_DATE(to_char(startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') <= p_startdate :: TIMESTAMP)) );*/
+          		END IF;
+
+          		--RAISE notice '% v_availeddays ', v_availeddays;
+          		--RAISE notice '% ,%,%,%v_availeddays ', v_absenceId, v_startdate, p_startdate, v_availeddays; 
+
+          		-- get accural days 
+          		SELECT COUNT(*) INTO v_countofaccrual FROM ehcm_absencetype_accruals WHERE ehcm_absence_type_id = v_absenceId
+                    AND ehcm_gradeclass_id IN ( SELECT ehcm_gradeclass_id FROM ehcm_emp_perinfo 
+                    WHERE ehcm_emp_perinfo_id = p_employee_id)
+                    AND p_startdate ::TIMESTAMP BETWEEN TO_DATE(to_char(startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') 
+                    AND TO_DATE(to_char(COALESCE (enddate, TO_DATE('21-06-2058', 'dd-MM-yyyy')), 'dd-MM-yyyy'), 'dd-MM-yyyy');
+                   --RAISE notice '% ,%,%,%,%v_countofaccrual ', v_countofaccrual, v_absenceId, p_employee_id, p_startdate, v_enddate; 
+
+                IF (v_countofaccrual=0) THEN		
+                    select days,credit_on  into v_accrualdays,v_crediton  from ehcm_absencetype_accruals   where ehcm_absence_type_id  =v_absenceId
+                    and ehcm_gradeclass_id is null and  p_startdate ::timestamp  between TO_DATE(to_char(startdate,'dd-MM-yyyy'),'dd-MM-yyyy') 
+                    and TO_DATE(to_char(coalesce (enddate,TO_DATE('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy');
+                
+
+                ELSE 
+                    select days,credit_on  into v_accrualdays,v_crediton  from ehcm_absencetype_accruals   where ehcm_absence_type_id  =v_absenceId
+                    and ehcm_gradeclass_id in ( select ehcm_gradeclass_id from ehcm_emp_perinfo 
+                    where ehcm_emp_perinfo_id=p_employee_id)
+                    and  p_startdate ::timestamp  between TO_DATE(to_char(startdate,'dd-MM-yyyy'),'dd-MM-yyyy') 
+                and TO_DATE(to_char(coalesce (enddate,TO_DATE('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy');
+                END IF;	
+				--raise notice '% v_accrualdays ',v_accrualdays;
+              /*  SELECT days, credit_on , ehcm_absencetype_accruals_id, startdate ,
+                    ( SELECT COUNT (a.hijri_date)AS v_totaldays FROM 
+                    (SELECT MAX(hijri_date) AS hijri_date , gregorian_date AS gregorian_date FROM eut_hijri_dates 
+                    WHERE gregorian_date >= (CASE WHEN
+                    ehcm_absencetype_accruals.startdate < v_startdate :: DATE 
+                    THEN v_startdate :: DATE 
+                    ELSE ehcm_absencetype_accruals.startdate :: DATE END)
+                    AND (CASE WHEN ehcm_absencetype_accruals.enddate IS NOT NULL THEN gregorian_date <= 
+                    ehcm_absencetype_accruals.enddate :: DATE 
+                    ELSE gregorian_date < v_enddate :: DATE END)
+                    GROUP BY gregorian_date) a ), created
+                    INTO v_accrualdays, v_crediton, v_accuralId, v_accrualstartdate, v_totlyeardays, v_accraulcreatedate
+                FROM ehcm_absencetype_accruals 
+                    WHERE ehcm_absence_type_id = v_absenceId
+                    AND ( CASE WHEN v_countofaccrual>0 THEN ehcm_gradeclass_id IN ( SELECT ehcm_gradeclass_id FROM ehcm_emp_perinfo 
+                    WHERE ehcm_emp_perinfo_id = p_employee_id) ELSE ehcm_gradeclass_id IS NULL END )
+                    AND p_startdate ::TIMESTAMP BETWEEN TO_DATE(to_char(startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') 
+                    AND TO_DATE(to_char(COALESCE (enddate, TO_DATE('21-06-2058', 'dd-MM-yyyy')), 'dd-MM-yyyy'), 'dd-MM-yyyy');
+                --RAISE notice '%,% ,%,% v_accrualstartdate', v_accrualstartdate, v_totlyeardays, p_startdate, v_accraulcreatedate;
+
+          		SELECT CASE WHEN v_startdate < v_accrualstartdate THEN 1 ELSE - 1 END INTO v_compare;
+                    IF(v_compare = 1) THEN
+                        v_startdate := v_accrualstartdate;
+                    END IF;
+                    --RAISE notice '% ,% v_startdate ', v_startdate, p_startdate;
+
+          		-- get total days from hiredate to absence startdate for credit on  Daily
+          		SELECT COUNT (a.hijri_date)INTO v_totaldays FROM 
+                    (SELECT MAX(hijri_date) AS hijri_date , gregorian_date AS gregorian_date FROM eut_hijri_dates 
+                    WHERE gregorian_date >= v_startdate :: DATE
+                    AND gregorian_date <= p_startdate :: DATE GROUP BY gregorian_date) a ;
+                    --RAISE notice '% v_totaldays', v_totaldays;
+
+          		-- get total months from hiredate to absence startdate for credit on monthly
+                    SELECT ehcm_calculate_age(p_employee_id, p_client_id, v_startdate, p_startdate) INTO v_totalmonths FROM dual ;
+                    --RAISE notice '% v_totalmonths', v_totalmonths;
+                    v_totalmonths := (split_part((v_totalmonths), '-', 1):: NUMBER * 12) :: NUMBER + split_part((v_totalmonths), '-', 2) :: NUMBER;
+                    --RAISE notice '% v_totalmonths ', v_totalmonths;
+
+          			v_preaccrualenddate := v_startdate;
+          	IF (v_countofaccrual = 0) THEN 
+
+          		-- chk employee grade accruals record present before null grade creation
+          			SELECT (SELECT gregorian_date FROM eut_hijri_dates WHERE gregorian_date > ehcm_absencetype_accruals.enddate ::TIMESTAMP
+          			ORDER BY gregorian_date ASC
+          			LIMIT 1 ), COALESCE(days, 0) INTO v_preaccrualenddate , v_inbetweenyearaccrual FROM ehcm_absencetype_accruals WHERE ehcm_absence_type_id = v_absenceId
+          			AND ehcm_gradeclass_id IN ( SELECT ehcm_gradeclass_id FROM ehcm_emp_perinfo 
+          			WHERE ehcm_emp_perinfo_id = p_employee_id)
+          			AND created < v_accraulcreatedate ::TIMESTAMP 
+          			AND v_startdate ::TIMESTAMP BETWEEN TO_DATE(to_char(startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') 
+          			AND TO_DATE(to_char(COALESCE (enddate, TO_DATE('21-06-2058', 'dd-MM-yyyy')), 'dd-MM-yyyy'), 'dd-MM-yyyy');
+
+          		--RAISE notice '%,%,%12', v_inbetweenyearaccrual, v_preaccrualenddate, p_startdate;
+          		
+          		IF(v_preaccrualenddate IS NOT NULL) THEN
+                    SELECT COUNT (a.hijri_date)INTO v_totaldays FROM 
+                    (SELECT MAX(hijri_date) AS hijri_date , gregorian_date AS gregorian_date FROM eut_hijri_dates 
+                    WHERE gregorian_date >= v_preaccrualenddate :: DATE
+                    AND gregorian_date <= p_startdate :: DATE GROUP BY gregorian_date) a ;
+
+          		--RAISE notice '%v_totaldays11', v_totaldays;
+
+          		-- get total months from hiredate to absence startdate for credit on monthly
+                SELECT ehcm_calculate_age(p_employee_id, p_client_id, v_preaccrualenddate, p_startdate) INTO v_totalmonths FROM dual ;
+                --RAISE notice '% v_totalmonths', v_totalmonths;
+                v_totalmonths := (split_part((v_totalmonths), '-', 1):: NUMBER * 12) :: NUMBER + split_part((v_totalmonths), '-', 2) :: NUMBER;
+                --RAISE notice '% v_totalmonths ', v_totalmonths;
+
+          		END IF;
+
+          	ELSE 
+          			-- chk inbetween year any accrual persented or not
+          			SELECT COALESCE(SUM(days), 0) INTO v_inbetweenyearaccrual FROM ehcm_absencetype_accruals 
+                        WHERE ehcm_absence_type_id = v_absenceId
+                        AND (CASE WHEN v_countofaccrual = 0 THEN ehcm_gradeclass_id IS NULL 
+                        ELSE ehcm_gradeclass_id IN ( SELECT ehcm_gradeclass_id FROM ehcm_emp_perinfo 
+                        WHERE ehcm_emp_perinfo_id = p_employee_id) END )
+                        AND ((TO_DATE(to_char(startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') > v_preyearlastdate :: DATE
+                        AND TO_DATE(to_char(enddate, 'dd-MM-yyyy'), 'dd-MM-yyyy') < v_accrualstartdate :: TIMESTAMP)
+                        OR (TO_DATE(to_char(enddate, 'dd-MM-yyyy'), 'dd-MM-yyyy') > v_preyearlastdate :: DATE
+                        AND TO_DATE(to_char(startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') < v_accrualstartdate :: TIMESTAMP))
+                        AND ehcm_absencetype_accruals_id NOT IN(v_accuralId);
+
+          		IF(v_inbetweenyearaccrual <> 0) THEN 
+                    SELECT COUNT (a.hijri_date)INTO v_totaldays FROM 
+                    (SELECT MAX(hijri_date) AS hijri_date , gregorian_date AS gregorian_date FROM eut_hijri_dates 
+                    WHERE gregorian_date >= v_accrualstartdate :: DATE
+                    AND gregorian_date <= p_startdate :: DATE GROUP BY gregorian_date) a ;
+                    --RAISE notice '% v_totaldays', v_totaldays;
+                    --RAISE notice '%,%,%,%,%v_inbetweenyearaccrual', v_inbetweenyearaccrual, v_preyearlastdate, v_accrualstartdate, p_startdate, v_totlyeardays;
+
+                    -- get total months from hiredate to absence startdate for credit on monthly
+                    SELECT ehcm_calculate_age(p_employee_id, p_client_id, v_accrualstartdate, p_startdate) INTO v_totalmonths FROM dual ;
+                    --RAISE notice '% v_totalmonths', v_totalmonths;
+                    v_totalmonths := (split_part((v_totalmonths), '-', 1):: NUMBER * 12) :: NUMBER + split_part((v_totalmonths), '-', 2) :: NUMBER;
+                    --RAISE notice '% v_totalmonths ', v_totalmonths;
+          		END IF;
+          	END IF;*/
+            --RAISE notice '% v_accrualdays ', v_accrualdays;
+
+          	IF(v_availeddays IS NULL ) THEN
+          		v_availeddays := 0;
+          	END IF;
+          	--RAISE notice '%v_totaldays12', v_totaldays;
+            -- calculate the granted days      
+          	IF (v_crediton = 'D') THEN
+          		--IF(v_totaldays = v_totlyeardays) THEN
+          			--v_granteddays := ((v_accrualdays + v_preyearaccrual + COALESCE(v_inbetweenyearaccrual, 0)) - v_availeddays);
+          		--ELSE
+          	        SELECT ROUND((CAST(v_accrualdays AS FLOAT) / CAST(v_totlyeardays AS FLOAT))::NUMERIC , 4) INTO v_perdayval FROM dual;
+          			--v_granteddays := ROUND(((v_perdayval * v_totaldays:: NUMERIC) + v_preyearaccrual + COALESCE(v_inbetweenyearaccrual, 0)) - v_availeddays, 2);
+                     v_granteddays := ROUND(((v_perdayval * v_totaldays:: NUMBER) + v_preyearaccrual) - v_availeddays, 2);
+          			--RAISE notice '%,%,%,% v_preyearaccrual ', v_preyearaccrual, v_inbetweenyearaccrual, v_availeddays, v_totlyeardays;
+          			--RAISE notice '% ,%,%,%,%,% aaaaaa', v_perdayval, v_accrualdays, v_totaldays, v_totlyeardays, v_granteddays, v_inbetweenyearaccrual; 
+          		--END IF;
+          	ELSE IF (v_crediton = 'M') THEN
+          			SELECT ROUND((CAST(v_accrualdays AS FLOAT) / CAST(12 AS FLOAT))::NUMERIC , 4) INTO v_perdayval FROM dual; 
+					--v_granteddays := ROUND(((v_perdayval * v_totalmonths:: NUMERIC) + v_preyearaccrual + COALESCE(v_inbetweenyearaccrual, 0)) - v_availeddays, 2);
+                    v_granteddays := ROUND(((v_perdayval * v_totalmonths:: NUMBER) + v_preyearaccrual) - v_availeddays, 2);
+          	ELSE IF (v_crediton = 'OT') THEN
+          			--v_granteddays := ROUND((v_accrualdays + v_preyearaccrual + COALESCE(v_inbetweenyearaccrual, 0)) - v_availeddays, 2);
+                    v_granteddays := ROUND((v_accrualdays + v_preyearaccrual) - v_availeddays, 2);
+          	END IF;
+          	END IF;
+          	END IF; 
+
+          	--RAISE notice '%,%,%,%,%,%', v_preyearaccrual, v_granteddays, v_perdayval, v_perdayval * v_totaldays, v_totaldays, v_availeddays;
+          	IF(v_granteddays IS NULL ) THEN
+          		v_availableleave := 0;
+          	ELSE
+          		-- added with already available granted days
+          		v_availableleave := v_granteddays;
+          	END IF;
+          		--RAISE notice '%v_availableleave', v_availableleave;
+
+          --Exceptional Leave 
+          ELSE IF(v_resetdate = 'LO') THEN 
+          	-- get exceptional leave id and frequency (5 years)
+          		SELECT frequency, ehcm_absence_type_id INTO v_frequency , v_excabstypeId
+                FROM ehcm_absence_type WHERE accrual_reset_date = 'LO' AND isactive = 'Y' and ehcm_absence_type_id=v_absenceId;
+          		
+                
+                SELECT ehcm_emp_leave_id INTO v_empleaveId FROM ehcm_emp_leave WHERE ehcm_emp_perinfo_id = p_employee_id 
+                AND ehcm_absence_type_id 
+          		IN (v_excabstypeId);
+                
+          	-- set frequency input based on exception frequency 
+          		--RAISE notice '%v_frequency', v_frequency;
+          		v_freqinput := v_frequency;
+                /*IF(v_frequency='FY') THEN
+                    v_freqinput:=5;
+                END IF;*/
+          	-- get exceptional accruals 	
+          		--SELECT days INTO v_accrualdays FROM ehcm_absencetype_accruals WHERE ehcm_absence_type_id = v_excabstypeId;
+
+          		SELECT COUNT(*) INTO v_countofaccrual FROM ehcm_absencetype_accruals WHERE ehcm_absence_type_id = v_excabstypeId
+                    AND ehcm_gradeclass_id IN ( SELECT ehcm_gradeclass_id FROM ehcm_emp_perinfo 
+                    WHERE ehcm_emp_perinfo_id = p_employee_id)
+                    AND p_startdate ::TIMESTAMP BETWEEN TO_DATE(to_char(startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') 
+                    AND TO_DATE(to_char(COALESCE (enddate, TO_DATE('21-06-2058', 'dd-MM-yyyy')), 'dd-MM-yyyy'), 'dd-MM-yyyy');
+                    --RAISE notice '% ,%,%,%,%v_countofaccrual ', v_countofaccrual, v_absenceId, p_employee_id, p_startdate, v_enddate; 
+
+                select days,credit_on  into v_accrualdays,v_crediton  from ehcm_absencetype_accruals  
+                    where ehcm_absence_type_id  =v_excabstypeId
+                    and (case when v_countofaccrual > 0 then 
+                    ehcm_gradeclass_id IN ( SELECT ehcm_gradeclass_id FROM ehcm_emp_perinfo 
+                    WHERE ehcm_emp_perinfo_id = p_employee_id) else
+                    ehcm_gradeclass_id is null end )and  p_startdate ::timestamp  between TO_DATE(to_char(startdate,'dd-MM-yyyy'),'dd-MM-yyyy') 
+                    and TO_DATE(to_char(coalesce (enddate,TO_DATE('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy');
+
+  				 select p_yearstartdate , p_yearenddate
+               into  v_startdate,v_enddate, v_preyearfirstdatedate,v_preyearlastdate from ehcm_getaccrualstartenddate(p_employee_id,p_startdate,v_resetdate,v_frequency,v_excabstypeId,p_subtype_id);
+
+          		/*SELECT startdate INTO v_firstleaveoccfstyrgreg FROM ehcm_emp_leaveln 
+          		WHERE ehcm_emp_leave_id = v_empleaveId 
+          		ORDER BY created ASC LIMIT 1;*/
+                
+               /* SELECT startdate INTO v_firstleaveoccfstyrgreg from ehcm_emp_leaveblockln
+                        where   ehcm_emp_leaveblock_id in (  select ehcm_emp_leaveblock_id from ehcm_emp_leaveblock 
+                        where ehcm_absence_type_id =p_absencetype_id and ehcm_emp_perinfo_id = p_employee_id
+                        and p_startdate ::timestamp  between TO_DATE(to_char(startdate,'dd-MM-yyyy'),'dd-MM-yyyy') 
+                        and TO_DATE(to_char(coalesce (enddate,TO_DATE('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy'))
+                        ORDER BY created ASC LIMIT 1;
+                        
+          		--RAISE notice '% v_firstleaveoccfstyrgreg', v_firstleaveoccfstyrgreg;
+
+          		SELECT eut_convert_to_hijri(v_firstleaveoccfstyrgreg) INTO v_firstleaveoccfstyrhiji FROM dual ; 
+
+          		--RAISE notice '% v_firstleaveoccfstyrhiji', v_firstleaveoccfstyrhiji;
+          		v_firstyear := split_part(v_firstleaveoccfstyrhiji, '-', 3);
+          		--RAISE notice '% v_firstyear', v_firstyear;
+          		v_startyear := split_part(v_hijiridate, '-', 3);
+          		--RAISE notice '% v_startyear', v_startyear;
+          		v_diff := v_startyear - v_firstyear;
+          		--RAISE notice '% v_diff1', v_diff;
+          		v_diff := v_diff%v_freqinput; 
+          		--RAISE notice '% v_diff', v_diff;
+
+          	-- check two dates are greater than or lesser than if vminus is zero;
+          		  IF(v_diff = 0) THEN
+                                v_firstmonth := (split_part(v_firstleaveoccfstyrhiji, '-', 2));
+                                v_levstartmonth := (split_part(v_hijiridate, '-', 2));
+                                v_firstday := (split_part(v_firstleaveoccfstyrhiji, '-', 1));
+                                v_levstartday := (split_part(v_hijiridate, '-', 1));
+                                --RAISE notice '% v_levstartday', v_firstmonth || '-' || v_levstartmonth || '-' || v_firstday || '-' || v_levstartday;
+                                IF((v_levstartmonth - v_firstmonth) < 0) THEN--finished
+                                    v_startdate := v_firstleaveoccfstyrhiji;
+                                    v_enddate := split_part(v_firstleaveoccfstyrhiji, '-', 1) || '-' || split_part(v_firstleaveoccfstyrhiji, '-', 2) || '-' || (split_part(v_hijiridate, '-', 3));--v_hijiridate;
+                                ELSE IF ((v_levstartmonth - v_firstmonth) = 0) THEN 
+                        			IF((v_levstartday - v_firstday) < 0) THEN--finished
+                                        v_startdate := split_part(v_firstleaveoccfstyrhiji, '-', 1) || '-' || split_part(v_firstleaveoccfstyrhiji, '-', 2) || '-' || (v_startyear - v_freqinput) ;
+                                        v_enddate := split_part(v_firstleaveoccfstyrhiji, '-', 1) || '-' || split_part(v_firstleaveoccfstyrhiji, '-', 2) || '-' || (split_part(v_hijiridate, '-', 3));
+                                        -- minus one days
+                        			ELSE
+                                        v_startdate := split_part(v_hijiridate, '-', 1) || '-' || split_part(v_hijiridate, '-', 2) || '-' || v_startyear;
+                                        v_enddate := split_part(v_hijiridate, '-', 1) || '-' || split_part(v_hijiridate, '-', 2) || '-' || (v_startyear + v_freqinput) ;
+                                        --RAISE notice '% ,% v_startdate',v_startdate,v_enddate ;
+                                    END IF; 
+                        		ELSE IF ((v_levstartmonth - v_firstmonth)> 0) THEN
+                                        --v_startdate := split_part(v_firstleaveoccfstyrhiji, '-', 1) || '-' || split_part(v_firstleaveoccfstyrhiji, '-', 2) || '-' || v_startyear;
+                                        v_startdate := split_part(v_hijiridate, '-', 1) || '-' || split_part(v_hijiridate, '-', 2) || '-' || v_startyear;
+                                        v_enddate := split_part(v_hijiridate, '-', 1) || '-' || split_part(v_hijiridate, '-', 2) || '-' || (v_startyear + v_freqinput) ;
+                                END IF;
+                                END IF;
+                                END IF;
+                        	ELSE 
+                                --RAISE notice '% else', v_firstmonth ;
+                                v_startdate := split_part(v_firstleaveoccfstyrhiji, '-', 1) || '-' || split_part(v_firstleaveoccfstyrhiji, '-', 2) || '-' || (v_startyear - v_diff);
+                                v_enddate := split_part(v_firstleaveoccfstyrhiji, '-', 1) || '-' || split_part(v_firstleaveoccfstyrhiji, '-', 2) || '-' || ((v_startyear - v_diff) + v_freqinput);
+                        	END IF;
+          		
+                --RAISE NOTICE '%,%v_startdate', v_startdate, v_enddate;
+          		v_startdate := (SELECT to_char(eut_convertto_gregorian(v_startdate), 'dd-MM-yyyy') AS v_startdate FROM dual) ; 
+          		--v_enddate := (SELECT to_char(eut_convertto_gregorian(v_enddate), 'dd-MM-yyyy') AS v_enddate FROM dual) ; 
+          		
+                
+                SELECT to_char(gregorian_date, 'dd-MM-yyyy') into v_enddate FROM eut_hijri_dates
+                WHERE gregorian_date < 
+                (SELECT eut_convertto_gregorian(v_enddate) AS v_enddate FROM dual)  :: DATE
+                ORDER BY gregorian_date desc
+                LIMIT 1 ;*/
+				--RAISE notice '%,%,% v_startdate', v_startdate, v_enddate, v_empleaveId;
+          		IF((ELTY = 'CR') OR (ELTY = 'EX')) THEN
+          				/*select coalesce(sum(leavedays),0) into v_availeddays from ehcm_emp_leaveln  where   ehcm_emp_leave_id  = v_empleaveId 
+          					and ((TO_DATE(to_char(startdate,'dd-MM-yyyy'),'dd-MM-yyyy') >= TO_DATE(v_startdate,'dd-MM-yyyy') 
+          					and TO_DATE(to_char(enddate,'dd-MM-yyyy'),'dd-MM-yyyy') <= TO_DATE(v_enddate,'dd-MM-yyyy') )
+          					or (TO_DATE(to_char(enddate,'dd-MM-yyyy'),'dd-MM-yyyy') >= TO_DATE(v_startdate,'dd-MM-yyyy') 
+          					and TO_DATE(to_char(startdate,'dd-MM-yyyy'),'dd-MM-yyyy')     <= TO_DATE(v_enddate,'dd-MM-yyyy'))) ;*/
+
+          				SELECT COALESCE(SUM(ln.leavedays), 0) INTO v_availeddays FROM ehcm_emp_leaveblock blk
+          					left JOIN ehcm_emp_leaveblockln ln ON ln.ehcm_emp_leaveblock_id = blk.ehcm_emp_leaveblock_id AND ln.isactive = 'Y'
+          					WHERE blk.ehcm_emp_perinfo_id = p_employee_id
+                            and blk.ehcm_absence_type_id=v_excabstypeId
+                            and  case when p_subtype_id<>'' then blk.subtype=p_subtype_id else 1=1 end 
+          					AND ((TO_DATE(to_char(blk.startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') >= TO_DATE(v_startdate,  'yyyy-MM-dd') 
+          					AND TO_DATE(to_char(blk.enddate, 'dd-MM-yyyy'), 'dd-MM-yyyy') <= TO_DATE(v_enddate,  'yyyy-MM-dd') )
+          					OR (TO_DATE(to_char(blk.enddate, 'dd-MM-yyyy'), 'dd-MM-yyyy') >= TO_DATE(v_startdate,  'yyyy-MM-dd') 
+          					AND TO_DATE(to_char(blk.startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') <= TO_DATE(v_enddate,  'yyyy-MM-dd')))
+          					AND blk.isactive = 'Y'; 
+
+          		ELSE 
+          				/*  select coalesce(sum(ln.leavedays),0)- coalesce(levln.lvdays,0) into v_availeddays from ehcm_emp_leaveln ln
+                                left join (select leavedays  as lvdays ,ehcm_emp_leave_id from ehcm_emp_leaveln ln where 
+                                ehcm_absence_attendance_id in ( select ehcm_absence_attendance_id from ehcm_absence_attendance         
+                                where decision_status='I'  and  ehcm_emp_perinfo_id=p_employee_id
+                                and ehcm_absence_type_id=v_excabstypeId and isactive='Y' order by created desc limit 1  ) )
+                                levln  on ln.ehcm_emp_leave_id= levln.ehcm_emp_leave_id
+                                where   ln.ehcm_emp_leave_id  = v_empleaveId 
+                                and ((TO_DATE(to_char(ln.startdate,'dd-MM-yyyy'),'dd-MM-yyyy') >= TO_DATE(v_startdate,'dd-MM-yyyy') 
+                                and TO_DATE(to_char(ln.enddate,'dd-MM-yyyy'),'dd-MM-yyyy') <= TO_DATE(v_enddate,'dd-MM-yyyy') )
+                                or (TO_DATE(to_char(ln.enddate,'dd-MM-yyyy'),'dd-MM-yyyy') >= TO_DATE(v_startdate,'dd-MM-yyyy') 
+                                and TO_DATE(to_char(ln.startdate,'dd-MM-yyyy'),'dd-MM-yyyy')     <= TO_DATE(v_enddate,'dd-MM-yyyy')))
+                                GROUP BY levln.lvdays;*/
+
+          					SELECT COALESCE(SUM(ln.leavedays), 0) INTO v_availeddays FROM ehcm_emp_leaveblock blk
+          						left JOIN ehcm_emp_leaveblockln ln ON ln.ehcm_emp_leaveblock_id = blk.ehcm_emp_leaveblock_id AND ln.isactive = 'Y'
+          						WHERE blk.ehcm_emp_perinfo_id = p_employee_id
+                                and  case when p_subtype_id<>'' then blk.subtype=p_subtype_id else 1=1 end 
+          						AND ((TO_DATE(to_char(blk.startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') >= TO_DATE(v_startdate, 'yyyy-MM-dd') 
+          						AND TO_DATE(to_char(blk.enddate, 'dd-MM-yyyy'), 'dd-MM-yyyy') <= TO_DATE(v_enddate, 'yyyy-MM-dd') )
+          						OR (TO_DATE(to_char(blk.enddate, 'dd-MM-yyyy'), 'dd-MM-yyyy') >= TO_DATE(v_startdate, 'yyyy-MM-dd')
+          						AND TO_DATE(to_char(blk.startdate, 'dd-MM-yyyy'), 'dd-MM-yyyy') <= TO_DATE(v_enddate, 'yyyy-MM-dd')))
+          						AND blk.isactive = 'Y' 
+          						AND ln.ehcm_absence_attendance_id NOT IN ( SELECT ehcm_absence_attendance_id FROM ehcm_absence_attendance 
+          						WHERE decision_status = 'I' AND ehcm_emp_perinfo_id = p_employee_id
+          						AND ehcm_absence_type_id = v_excabstypeId AND isactive = 'Y' ORDER BY created DESC LIMIT 1 );
+
+          		END IF;
+          			--RAISE notice '% v_totalcount,%,%,%,%', v_availeddays, v_accrualdays, ELTY, v_startdate, v_enddate;
+
+          		IF(v_availeddays IS NULL ) THEN
+          			v_availeddays := 0;
+          		END IF;
+          		--RAISE notice '%,%,% v_accrualdays', v_accrualdays, v_sumaccrualdays, v_availeddays;
+          		
+                v_availableleave := v_accrualdays - v_availeddays;
+                
+                	IF(v_availableleave IS NULL ) THEN
+          				v_availableleave := 0;
+          			END IF;
+            
+          		--RAISE notice '% v_availableleave', v_availableleave;
+          	END IF;
+          END IF;
+          IF(p_availeddays) THEN
+          	RETURN v_availeddays;
+          ELSE 
+          	RETURN v_availableleave;
+          END IF;
+END EHCM_CHECKAVAILABLELEAVE
+]]></body>
+    </function>
+  </database>

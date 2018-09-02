@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_MISCATEMPDAYSNEG_TRG">
+    <trigger name="EHCM_MISCATEMPDAYSNEG_TRG" table="EHCM_MISCAT_EMPLOYEE" fires="before" insert="true" update="true" delete="false" foreach="row">
+      <body><![CDATA[BEGIN
+
+	IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+	
+	IF UPDATING or INSERTING THEN
+        IF :new.useddays < 0 THEN
+		--Throw error negative value not allow
+			  raise exception '%','@EHCM_MisCatUsedDayNotNeg@' ;	
+		END IF;
+	END IF;
+	
+	END EHCM_MISCATEMPDAYSNEG_TRG
+]]></body>
+    </trigger>
+  </database>

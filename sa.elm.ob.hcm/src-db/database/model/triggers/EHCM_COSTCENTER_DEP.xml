@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_COSTCENTER_DEP">
+    <trigger name="EHCM_COSTCENTER_DEP" table="AD_ORG" fires="after" insert="true" update="true" delete="true" foreach="row">
+      <body><![CDATA[cur_jobs RECORD;
+v_lineNo NUMBER:= 0;
+v_code character varying(60);
+v_org_id  character varying(60);
+v_name character varying(60);
+v_desc  character varying(60);
+v_costcenter character varying(60);
+v_seqId VARCHAR2(32);
+v_client_id VARCHAR2(32);
+v_finorg_id VARCHAR2(32);
+cur_parent record;
+v_count NUMBER;
+v_loc_count NUMBER;
+v_check_as_fin NUMBER;
+BEGIN
+
+IF AD_isTriggerEnabled()='N' THEN RETURN;END IF;
+IF INSERTING THEN
+		v_org_id = :new.ad_org_id;
+		
+	END IF;
+	IF INSERTING THEN
+		 select max(org.ad_org_id) into v_finorg_id from ad_org org
+		join ehcm_hrorg_classfication oc on oc.ad_org_id=org.ad_org_id
+		join ehcm_org_classfication oc1 on oc1.ehcm_org_classfication_id=oc.ehcm_org_classfication_id
+		where org.em_ehcm_escm_loc =:new.em_ehcm_escm_loc and org.ad_client_id=:new.ad_client_id
+		and oc1.classification='FIN' and oc.isactive='Y';
+		
+	       --check finance organization exists for same location
+		if(v_finorg_id is null AND :new.em_ehcm_escm_loc is not null AND :new.em_efin_costcenter = 'Y' ) then
+		 RAISE_APPLICATION_ERROR(-20501,'@Ehcm_NofinancialOrg_For_Location@');
+		end if;
+	END IF;
+	IF UPDATING THEN
+	--validate to make sure only one fin org for location
+      select count(org.ad_org_id) into v_loc_count from ad_org org
+	join ehcm_hrorg_classfication oc on oc.ad_org_id=org.ad_org_id
+	join ehcm_org_classfication oc1 on oc1.ehcm_org_classfication_id=oc.ehcm_org_classfication_id
+	where org.em_ehcm_escm_loc =:new.em_ehcm_escm_loc and org.ad_client_id=:new.ad_client_id
+	and oc1.classification='FIN' and oc.isactive='Y' and org.ad_org_id <>:new.ad_org_id 
+	and :new.ad_org_id  in  (
+	      select org.ad_org_id from ad_org org
+	join ehcm_hrorg_classfication oc on oc.ad_org_id=org.ad_org_id
+	join ehcm_org_classfication oc1 on oc1.ehcm_org_classfication_id=oc.ehcm_org_classfication_id
+	where org.ad_client_id=:new.ad_client_id and org.ad_org_id=:new.ad_org_id
+	and oc1.classification='FIN' and oc.isactive='Y'
+	);
+	IF(v_loc_count >0) THEN
+	 RAISE_APPLICATION_ERROR(-20501,'@EFIN_Location_for_org_exists@');
+	END IF;
+	--get Finance Organization for same location (only one fin organization for same location)
+	select max(org.ad_org_id) into v_finorg_id from ad_org org
+	join ehcm_hrorg_classfication oc on oc.ad_org_id=org.ad_org_id
+	join ehcm_org_classfication oc1 on oc1.ehcm_org_classfication_id=oc.ehcm_org_classfication_id
+	where org.em_ehcm_escm_loc =:new.em_ehcm_escm_loc and org.ad_client_id=:new.ad_client_id
+	and oc1.classification='FIN' and oc.isactive='Y';
+	
+       --check finance organization exists for same location
+	if(v_finorg_id is null AND :new.em_ehcm_escm_loc is not null AND :new.em_efin_costcenter = 'Y' ) then
+	 RAISE_APPLICATION_ERROR(-20501,'@Ehcm_NofinancialOrg_For_Location@');
+	end if;
+	
+	select ad_org_id,value,name,description,em_efin_costcenter,ad_client_id
+	 into v_org_id,v_code,v_name,v_desc,v_costcenter,v_client_id
+	from ad_org where ad_org_id = :new.ad_org_id;
+	
+		if(:new.em_efin_costcenter <> :old.em_efin_costcenter) then
+		if(:new.em_efin_costcenter = 'Y') then
+		 --finance organization should not be as cost centre
+			select count(org.ad_org_id) into v_check_as_fin from ad_org org
+			join ehcm_hrorg_classfication oc on oc.ad_org_id=org.ad_org_id
+			join ehcm_org_classfication oc1 on oc1.ehcm_org_classfication_id=oc.ehcm_org_classfication_id
+			where oc.ad_org_id =:new.ad_org_id and org.ad_client_id=:new.ad_client_id
+			and oc1.classification='FIN' and oc.isactive='Y';
+				IF(v_check_as_fin >0) THEN
+				    RAISE_APPLICATION_ERROR(-20501,'@EFIN_FINORG_NOT_COST_CENTER@');
+				END IF;
+	
+		v_lineNo := v_lineNo + 10;
+		select get_uuid() into v_seqId from dual;
+             
+		INSERT INTO c_salesregion(
+            c_salesregion_id, ad_client_id, ad_org_id, isactive, created, 
+            createdby, updated, updatedby, value, name, description,em_efin_costorg)
+	   VALUES (v_seqId, :NEW.ad_client_id,v_finorg_id, :NEW.isactive, :NEW.created, 
+            :NEW.createdby, :NEW.updated, :NEW.updatedby,v_code ,v_name, v_desc,v_org_id);
+
+		end if;
+		
+	   end if;
+	        if(:new.em_efin_costcenter <> :old.em_efin_costcenter) then
+		if(:new.em_efin_costcenter = 'N') then
+
+		 select count(ad_org_id) into v_count  from c_validcombination where ad_org_id in 
+			(select  replace(unnest(string_to_array
+			(public.eut_getparentorglist(v_client_id,v_org_id),',')::
+			character varying []),'''','')) and c_validcombination.ad_client_id = v_client_id and 
+			c_validcombination.em_efin_uniquecode is not null and c_validcombination.em_efin_uniquecode not ilike '%-null%';
+		
+		
+		IF(v_count > 0) then
+		 RAISE_APPLICATION_ERROR(-20501,'@Ehcm_CostCenterDisable@');
+		else
+		delete from c_salesregion where em_efin_costorg = v_org_id and ad_client_id = v_client_id;
+		end if;
+         
+         
+		end if;
+		end if;
+	END IF;
+	
+	END EHCM_COSTCENTER_DEP
+]]></body>
+    </trigger>
+  </database>

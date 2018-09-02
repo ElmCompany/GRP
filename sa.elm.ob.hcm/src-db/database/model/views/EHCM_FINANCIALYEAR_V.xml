@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+  <database name="VIEW EHCM_FINANCIALYEAR_V">
+    <view name="EHCM_FINANCIALYEAR_V"><![CDATA[SELECT yr.c_year_id AS ehcm_financialyear_v_id, yr.ad_client_id, yr.ad_org_id, yr.isactive, yr.created, yr.createdby, yr.updated, yr.updatedby, COALESCE(yr.description, yr.year) AS name FROM c_year yr]]></view>
+  </database>
