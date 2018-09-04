@@ -136,6 +136,7 @@ public class Asset extends HttpSecureAppServlet {
           asset.setLetterDate(null);
         asset.setLetterNo(request.getParameter("inpLetterNo").toString());
         asset.setDecisionNo(request.getParameter("inpDecisionNo").toString());
+        asset.setDocumentNo(request.getParameter("inpdocumentNo").toString());
         asset.setEhcmEmpPerinfo(
             OBDal.getInstance().get(EhcmEmpPerInfo.class, request.getParameter("inpEmployeeId")));
         asset.setDescription(request.getParameter("inpdescription").toString());
@@ -189,6 +190,7 @@ public class Asset extends HttpSecureAppServlet {
           vo = dao.getAssetEditList(assetid);
           request.setAttribute("inpAssetId", assetid);
           request.setAttribute("inpEmployeeId", request.getParameter("inpEmployeeId"));
+          request.setAttribute("inpdocumentNo", vo.getDocumentno());
           request.setAttribute("inpAsset", vo.getAssetname());
           request.setAttribute("inpStartDate", vo.getStartdate());
           request.setAttribute("inpEndDate", vo.getEnddate());
@@ -219,6 +221,13 @@ public class Asset extends HttpSecureAppServlet {
           else
             request.setAttribute("inpAddressId", dao1.getEmployeeAddressId(employeeId));
 
+          if (request.getParameter("inpEmployeeStatus") != null) {
+            request.setAttribute("inpEmployeeStatus",
+                request.getParameter("inpEmployeeStatus").toString());
+          }
+          if (request.getParameter("inpEmpStatus") != null) {
+            request.setAttribute("inpEmpStatus", request.getParameter("inpEmpStatus").toString());
+          }
           dispatch = request.getRequestDispatcher("../web/sa.elm.ob.hcm/jsp/asset/asset.jsp");
 
         }
@@ -230,6 +239,7 @@ public class Asset extends HttpSecureAppServlet {
           date = dateYearFormat.format(df.parse(date));
           date = UtilityDAO.convertTohijriDate(date);
           request.setAttribute("inpEmployeeId", request.getParameter("inpEmployeeId"));
+          request.setAttribute("inpdocumentNo", null);
           request.setAttribute("inpAsset", null);
           request.setAttribute("inpStartDate", date);
           request.setAttribute("inpEndDate", null);
@@ -259,11 +269,16 @@ public class Asset extends HttpSecureAppServlet {
           else
             request.setAttribute("inpAddressId", dao1.getEmployeeAddressId(employeeId));
 
+          if (request.getParameter("inpEmployeeStatus") != null) {
+            request.setAttribute("inpEmployeeStatus",
+                request.getParameter("inpEmployeeStatus").toString());
+          }
+          if (request.getParameter("inpEmpStatus") != null) {
+            request.setAttribute("inpEmpStatus", request.getParameter("inpEmpStatus").toString());
+          }
           dispatch = request.getRequestDispatcher("../web/sa.elm.ob.hcm/jsp/asset/asset.jsp");
 
         }
-        request.setAttribute("CancelHiring",
-            dao1.checkEmploymentStatusCancel(vars.getClient(), employeeId));
       }
 
       else if (action.equals("") || action.equals("GridView")) {
@@ -292,6 +307,10 @@ public class Asset extends HttpSecureAppServlet {
         request.setAttribute("inpEmpNo", objEmployee.getSearchKey());
         request.setAttribute("inpEmployeeId", employeeId);
         request.setAttribute("inpName1", objEmployee.getArabicfullname());
+        request.setAttribute("inpName2",
+            objEmployee.getName().concat(" ").concat(objEmployee.getFathername()).concat(" ")
+                .concat(objEmployee.getGrandfathername()));
+
         if (employeeId.equals("") || employeeId.equals("null") || employeeId.equals(""))
           request.setAttribute("inpAddressId", null);
         else

@@ -54,7 +54,7 @@ public class LeaveManagementDAOimpl implements LeaveManagementDAO {
 
   @Override
   public EHCMAbsenceType findAbsenceType(String absenceType) {
-    // TODO Auto-generated method stub
+
     EHCMAbsenceType objAbsenceType = null;
     OBQuery<EHCMAbsenceType> objAbsenceQry = null;
     List<EHCMAbsenceType> objAbsenceTypeList = new ArrayList<EHCMAbsenceType>();
@@ -93,7 +93,7 @@ public class LeaveManagementDAOimpl implements LeaveManagementDAO {
     ConnectionProvider conn = new DalConnectionProvider();
     // find user
     User userOB = employeeProfileDAO.getUserDetailsByUserName(employeeOB.getSearchKey());
-    // TODO Auto-generated method stub
+
     EHCMAbsenceAttendance originalAttendance = null;
     // find employment info by employee id
     EmploymentInfo employmentInfoOB = findEmploymentInfo(employeeOB.getId());
@@ -203,8 +203,7 @@ public class LeaveManagementDAOimpl implements LeaveManagementDAO {
 
   @Override
   public EHCMAbsenceReason findAbsenceReason(String absenceReason) {
-    // TODO Auto-generated method stub
-    // TODO Auto-generated method stub
+
     EHCMAbsenceReason objAbsenceReason = null;
     OBQuery<EHCMAbsenceReason> objAbsenceReasonQry = null;
     List<EHCMAbsenceReason> objAbsenceReasonList = new ArrayList<EHCMAbsenceReason>();
@@ -233,7 +232,7 @@ public class LeaveManagementDAOimpl implements LeaveManagementDAO {
   @Override
   public EHCMAbsenceTypeAccruals getAccural(EHCMAbsenceAttendance absenceAttendance)
       throws BusinessException, Exception {
-    // TODO Auto-generated method stub
+
     EHCMAbsenceTypeAccruals definedAccrual = null;
     final String userLang = SecurityUtils.getUserLanguage();
 
@@ -275,7 +274,7 @@ public class LeaveManagementDAOimpl implements LeaveManagementDAO {
   @Override
   public void createLeave(EHCMAbsenceAttendance absenceAttendanceOB, EHCMAbsenceType absenceTypeOB,
       EHCMAbsenceTypeAccruals absenceAccuralOB) throws BusinessException {
-    // TODO Auto-generated method stub
+
     Connection conn = OBDal.getInstance().getConnection();
     String message = "";
 
@@ -383,7 +382,7 @@ public class LeaveManagementDAOimpl implements LeaveManagementDAO {
 
   @Override
   public List<String> getAllOriginalDecisionNoByUserName(String username) {
-    // TODO Auto-generated method stub
+
     List<String> decisionNumberList = new ArrayList<String>();
     EhcmEmpPerInfo employeeOB = employeeProfileDAO.getEmployeeProfileByUser(username);
     for (EHCMAbsenceAttendance absenceAttedance : employeeOB.getEHCMAbsenceAttendanceList()) {
@@ -395,7 +394,6 @@ public class LeaveManagementDAOimpl implements LeaveManagementDAO {
   @Override
   public List<EHCMAbsenceAttendance> getLeaveRequestByDecisionNoOrByUsername(String orginalDecNo,
       String userName) {
-    // TODO Auto-generated method stub
 
     List<EHCMAbsenceAttendance> objAbsenceDecisionList = new ArrayList<EHCMAbsenceAttendance>();
     OBQuery<EHCMAbsenceAttendance> objAbsenceListQry = null;
@@ -433,7 +431,7 @@ public class LeaveManagementDAOimpl implements LeaveManagementDAO {
 
   @Override
   public EHCMAbsenceAttendance getAbsenceAttendanceById(String attendanceId) {
-    // TODO Auto-generated method stub
+
     EHCMAbsenceAttendance objAbsenceAttendance = null;
     try {
       OBContext.setAdminMode(true);
@@ -450,7 +448,7 @@ public class LeaveManagementDAOimpl implements LeaveManagementDAO {
   @Override
   public String getLeaveRequestDaysValidation(EHCMAbsenceAttendance absenceAttendance,
       String approvalMessage) {
-    // TODO Auto-generated method stub
+
     String localapprovalMessage = "";
     try {
       OBContext.setAdminMode();

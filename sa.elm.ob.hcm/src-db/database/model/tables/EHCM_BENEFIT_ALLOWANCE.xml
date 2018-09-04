@@ -162,7 +162,7 @@
         <onCreateDefault/>
       </column>
       <column name="VALUETYPE" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
-        <default/>
+        <default><![CDATA[NULL]]></default>
         <onCreateDefault/>
       </column>
       <column name="FIXEDAMOUNT" primaryKey="false" required="false" type="DECIMAL" size="10,2" autoIncrement="false">
@@ -175,6 +175,10 @@
       </column>
       <column name="PERCENTCATEGORY" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
         <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="REACTIVATE" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default><![CDATA[N]]></default>
         <onCreateDefault/>
       </column>
       <foreign-key foreignTable="AD_CLIENT" name="EHCM_BENEFIT_ALLOW_CLI">

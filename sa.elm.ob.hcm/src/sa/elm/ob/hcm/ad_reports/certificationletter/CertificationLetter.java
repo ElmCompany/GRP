@@ -51,17 +51,18 @@ public class CertificationLetter extends GenerateJasperPrint {
 
       if (inpCertificateLetterRpt.equals("CLWTOUTSL")) {
         strReportName = reportDir + "certificationletter/CertificationLetterWithoutSalary.jrxml";
-        strFileName = "CertificationLetter" + " " + cert.getId() + " " + hijriDate;
+        strFileName = "CertificationLetter(ArabicWithoutSalary)" + " " + hijriDate;
       } else if (inpCertificateLetterRpt.equals("CLWTDTSL")) {
         strReportName = reportDir + "certificationletter/CertificationLetterWithSalary.jrxml";
-        strFileName = "CertificationLetter" + " " + cert.getId() + " " + hijriDate;
+        strFileName = "CertificateLetterArabicwithDetailedSalary" + " " + hijriDate;
       } else if (inpCertificateLetterRpt.equals("CLWTTOTSL")) {
         strReportName = reportDir
             + "certificationletter/CertificationLetterArabicWithTotalSalary.jrxml";
         strFileName = "CertificationLetterArabicWithTotalSalary" + " " + hijriDate;
       } else if (inpCertificateLetterRpt.equals("CLWTTOTSL_AE")) {
         strReportName = reportDir + "certificationletter/CertificationLetterWithTotalSalary.jrxml";
-        strFileName = "CertificationLetterWithTotalSalary" + " " + hijriDate;
+        strFileName = "ReferenceLetterwithTotalSalary(Arabic/English) CurrentDate" + " "
+            + hijriDate;
       }
 
       request.setAttribute("pageType", paramObject.getString("pageType"));

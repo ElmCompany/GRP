@@ -164,7 +164,7 @@ public class EmpSecondmentCallout extends SimpleCallout {
               EHCMEmpSecondment secondment = objEmpQuery.list().get(0);
               log4j.debug("getDecisionNo():" + secondment.getId());
               info.addResult("inporiginalDecisionsNo", secondment.getId());
-              info.addResult("inppaymentType", secondment.getPaymentType());
+              info.addResult("inppaymentType", secondment.getPaymentType().getId());
 
             }
           }
@@ -202,7 +202,7 @@ public class EmpSecondmentCallout extends SimpleCallout {
           }
         } else {
           info.addResult("inporiginalDecisionsNo", null);
-          info.addResult("inppaymentType", "BASIC");
+          // info.addResult("inppaymentType", "BASIC");
           /*
            * info.addResult("JSEXECUTE",
            * "form.getFieldFromColumnName('Original_Decisions_No').setValue('')");

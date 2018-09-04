@@ -2,7 +2,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="CertificationLetter" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="1b43357b-4a3a-406d-9610-34e4402f8f72">
 	<property name="ireport.zoom" value="1.0"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="48"/>
+	<property name="ireport.y" value="20"/>
 	<parameter name="inpClientId" class="java.lang.String"/>
 	<parameter name="inpCertificateId" class="java.lang.String"/>
 	<parameter name="inprequestDate" class="java.lang.String"/>
@@ -10,7 +10,7 @@
 		<![CDATA[select cer.emp_name,coalesce(a.netsalary,0),cer.department_id,dept.name as depname, grd.name as grade, jobtit.job_title as eposition, dept.name as assigned_dept,
 eut_convert_to_hijri(to_char(cer.hire_date,'YYYY-MM-dd')) as hire_date ,bs.amount as basicsal
  from ehcm_employment_certificate cer
-left join ehcm_grade grd on grd.ehcm_grade_id=cer.ehcm_grade_id
+left join ehcm_grade grd on grd.ehcm_grade_id=cer.employmentgrade
 left join ehcm_position pos on pos.ehcm_position_id=cer.ehcm_position_id
 left join ehcm_jobs jobtit on jobtit.ehcm_jobs_id=pos.job_name
 left join ad_org dept on dept.ad_org_id=cer.department_id

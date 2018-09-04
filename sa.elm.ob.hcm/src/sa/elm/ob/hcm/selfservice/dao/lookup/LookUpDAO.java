@@ -50,4 +50,10 @@ public interface LookUpDAO {
    */
   List<EUTDeflookupsTypeLn> getLookupList(String lookupCode);
 
+  /**
+   * @param code
+   * @return
+   */
+  EUTDeflookupsTypeLn findSubLookupByCode(String code);
+
 }

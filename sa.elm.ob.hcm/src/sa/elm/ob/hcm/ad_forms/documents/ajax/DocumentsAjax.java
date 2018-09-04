@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -18,10 +19,12 @@ import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONObject;
 import org.openbravo.base.secureApp.HttpSecureAppServlet;
 import org.openbravo.base.secureApp.VariablesSecureApp;
+import org.openbravo.dal.core.OBContext;
 
 import sa.elm.ob.hcm.ad_forms.documents.dao.DocumentsDAO;
 import sa.elm.ob.hcm.ad_forms.documents.vo.DocumentsVO;
 import sa.elm.ob.utility.util.Utility;
+import sa.elm.ob.utility.util.UtilityDAO;
 
 public class DocumentsAjax extends HttpSecureAppServlet {
   /**
@@ -42,6 +45,7 @@ public class DocumentsAjax extends HttpSecureAppServlet {
     String action = request.getParameter("inpAction");
     log4j.debug("Action" + action);
     try {
+      OBContext.setAdminMode();
       con = getConnection();
       docdao = new DocumentsDAO(con);
       if (action.equals("Download") || action.equals("DownloadGrid")) {
@@ -226,6 +230,22 @@ public class DocumentsAjax extends HttpSecureAppServlet {
         response.getWriter().write(jsob.toString());
 
       }
+      log4j.debug(action);
+      if (action.equals("CheckValidData")) {
+        JSONObject jsob = new JSONObject();
+        String isExist = "N";
+        boolean doc = false;
+        String docTypeId = request.getParameter("inpDocType");
+        Date issuedDate = UtilityDAO.convertToGregorianDate(request.getParameter("inpIssuedDate"));
+        Date validDate = UtilityDAO.convertToGregorianDate(request.getParameter("inpValidDate"));
+        doc = docdao.checkValidData(docTypeId, issuedDate, validDate);
+        if (doc) {
+          isExist = "Y";
+        }
+        jsob.put("isExists", isExist);
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(jsob.toString());
+      }
 
       if (action.equals("getUsersList")) {
         DocumentsVO searchVO = new DocumentsVO();
@@ -299,7 +319,7 @@ public class DocumentsAjax extends HttpSecureAppServlet {
       } catch (final SQLException e) {
         log4j.error("Error in DocumentAjax : ", e);
       }
-
+      OBContext.restorePreviousMode();
     }
   }
 }

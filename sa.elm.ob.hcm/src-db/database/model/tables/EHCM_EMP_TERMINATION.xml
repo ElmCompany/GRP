@@ -161,6 +161,10 @@
         <default/>
         <onCreateDefault/>
       </column>
+      <column name="EHCM_REACTIVATE" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
       <foreign-key foreignTable="EHCM_PAYSCALELINE" name="EHCM_EMP_TERM_PAYSCL">
         <reference local="EHCM_PAYSCALELINE_ID" foreign="EHCM_PAYSCALELINE_ID"/>
       </foreign-key>

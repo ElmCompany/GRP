@@ -2,7 +2,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="CertificationLetterWithTotalSalary" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="2633efc5-fbe2-44ec-9309-a6731e6d5409">
 	<property name="ireport.zoom" value="1.0"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="0"/>
+	<property name="ireport.y" value="192"/>
 	<parameter name="inpCertificateId" class="java.lang.String"/>
 	<parameter name="inpClientId" class="java.lang.String"/>
 	<parameter name="inprequestDate" class="java.lang.String"/>
@@ -39,21 +39,21 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 	<title>
 		<band height="221" splitType="Stretch">
 			<staticText>
-				<reportElement x="187" y="12" width="179" height="25" uuid="aca0b3cc-4436-4553-8821-9d10b69f05ed"/>
+				<reportElement x="187" y="1" width="179" height="25" uuid="aca0b3cc-4436-4553-8821-9d10b69f05ed"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Traditional Arabic Bold" size="16"/>
 				</textElement>
 				<text><![CDATA[شهادة تريف]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="187" y="43" width="179" height="25" uuid="8ab98225-7410-466a-8384-400c950a5f77"/>
+				<reportElement x="187" y="32" width="179" height="25" uuid="8ab98225-7410-466a-8384-400c950a5f77"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Monotype Corsiva" size="16"/>
 				</textElement>
 				<text><![CDATA[Reference Letter]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="19" y="85" width="105" height="30" uuid="d9064cf4-fa3d-40f9-884e-f61ff9de200a"/>
+				<reportElement x="19" y="63" width="105" height="68" uuid="d9064cf4-fa3d-40f9-884e-f61ff9de200a"/>
 				<box>
 					<topPen lineWidth="0.5"/>
 					<leftPen lineWidth="0.5"/>
@@ -66,7 +66,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[Name : ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="19" y="115" width="105" height="30" uuid="43403a60-f787-4668-af0a-ed40df25a083"/>
+				<reportElement x="19" y="131" width="105" height="30" uuid="43403a60-f787-4668-af0a-ed40df25a083"/>
 				<box>
 					<leftPen lineWidth="0.5"/>
 					<bottomPen lineWidth="0.5"/>
@@ -78,7 +78,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[Nationality :]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="19" y="145" width="105" height="30" uuid="ebd89e25-833e-4f82-b09c-efa293803146"/>
+				<reportElement x="19" y="161" width="105" height="30" uuid="ebd89e25-833e-4f82-b09c-efa293803146"/>
 				<box>
 					<leftPen lineWidth="0.5"/>
 					<bottomPen lineWidth="0.5"/>
@@ -90,7 +90,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[ID number :]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="19" y="175" width="105" height="30" uuid="7cd85295-4d61-4af3-8d02-6769d4b43d7f"/>
+				<reportElement x="19" y="191" width="105" height="30" uuid="7cd85295-4d61-4af3-8d02-6769d4b43d7f"/>
 				<box>
 					<leftPen lineWidth="0.5"/>
 					<bottomPen lineWidth="0.5"/>
@@ -102,19 +102,19 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[Position :]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="124" y="85" width="155" height="30" uuid="73691a07-5ee0-4667-a56e-12b67cc442ac"/>
+				<reportElement x="124" y="63" width="155" height="68" uuid="73691a07-5ee0-4667-a56e-12b67cc442ac"/>
 				<box leftPadding="5">
 					<topPen lineWidth="0.5"/>
 					<bottomPen lineWidth="0.5"/>
 					<rightPen lineWidth="0.5"/>
 				</box>
-				<textElement verticalAlignment="Middle">
+				<textElement verticalAlignment="Top">
 					<font fontName="Traditional Arabic" size="14"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{emp_name}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="124" y="115" width="155" height="30" uuid="905c6801-4b7a-47de-aa2e-25b511679d81"/>
+				<reportElement x="124" y="131" width="155" height="30" uuid="905c6801-4b7a-47de-aa2e-25b511679d81"/>
 				<box leftPadding="5">
 					<bottomPen lineWidth="0.5"/>
 					<rightPen lineWidth="0.5"/>
@@ -125,7 +125,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<textFieldExpression><![CDATA[$F{natname}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="124" y="145" width="155" height="30" uuid="659fae37-4683-423f-9788-e7075d236d44"/>
+				<reportElement x="124" y="161" width="155" height="30" uuid="659fae37-4683-423f-9788-e7075d236d44"/>
 				<box leftPadding="5">
 					<bottomPen lineWidth="0.5"/>
 					<rightPen lineWidth="0.5"/>
@@ -136,7 +136,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{natid})]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="124" y="175" width="155" height="30" uuid="f2cf5637-8eb8-42cb-b0d2-f055c8dfc1a5"/>
+				<reportElement x="124" y="191" width="155" height="30" uuid="f2cf5637-8eb8-42cb-b0d2-f055c8dfc1a5"/>
 				<box leftPadding="5">
 					<bottomPen lineWidth="0.5"/>
 					<rightPen lineWidth="0.5"/>
@@ -147,19 +147,19 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<textFieldExpression><![CDATA[$F{eposition}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="279" y="85" width="155" height="30" uuid="e90a3806-0c6a-430d-a016-e2b2f1d4c0a5"/>
+				<reportElement x="279" y="63" width="155" height="68" uuid="e90a3806-0c6a-430d-a016-e2b2f1d4c0a5"/>
 				<box rightPadding="5">
 					<topPen lineWidth="0.5"/>
 					<bottomPen lineWidth="0.5"/>
 					<rightPen lineWidth="0.5"/>
 				</box>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
+				<textElement textAlignment="Right" verticalAlignment="Top">
 					<font fontName="Traditional Arabic" size="14"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{emp_name}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="279" y="115" width="155" height="30" uuid="cea58c72-ecb8-4e43-8eec-1b5b52ec6705"/>
+				<reportElement x="279" y="131" width="155" height="30" uuid="cea58c72-ecb8-4e43-8eec-1b5b52ec6705"/>
 				<box rightPadding="5">
 					<bottomPen lineWidth="0.5"/>
 					<rightPen lineWidth="0.5"/>
@@ -170,7 +170,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<textFieldExpression><![CDATA[$F{natname}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="279" y="145" width="155" height="30" uuid="202d0d57-8494-4939-8be6-e0fa34de918d"/>
+				<reportElement x="279" y="161" width="155" height="30" uuid="202d0d57-8494-4939-8be6-e0fa34de918d"/>
 				<box rightPadding="5">
 					<bottomPen lineWidth="0.5"/>
 					<rightPen lineWidth="0.5"/>
@@ -181,7 +181,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{natid})]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="279" y="175" width="155" height="30" uuid="2f590e7e-4553-44bd-bf85-89061ee09091"/>
+				<reportElement x="279" y="191" width="155" height="30" uuid="2f590e7e-4553-44bd-bf85-89061ee09091"/>
 				<box rightPadding="5">
 					<bottomPen lineWidth="0.5"/>
 					<rightPen lineWidth="0.5"/>
@@ -192,7 +192,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<textFieldExpression><![CDATA[$F{eposition}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="434" y="85" width="105" height="30" uuid="334de304-8476-442e-aecb-536cf158d33c"/>
+				<reportElement x="434" y="63" width="120" height="68" uuid="334de304-8476-442e-aecb-536cf158d33c"/>
 				<box>
 					<topPen lineWidth="0.5"/>
 					<bottomPen lineWidth="0.5"/>
@@ -204,7 +204,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[الاسم]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="434" y="115" width="105" height="30" uuid="810acbeb-1eb4-4ca7-8fe1-715f482a357e"/>
+				<reportElement x="434" y="131" width="120" height="30" uuid="810acbeb-1eb4-4ca7-8fe1-715f482a357e"/>
 				<box>
 					<bottomPen lineWidth="0.5"/>
 					<rightPen lineWidth="0.5"/>
@@ -215,7 +215,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[الجنسية: ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="434" y="145" width="105" height="30" uuid="e98a8aac-8870-45c5-b5ae-0ebae88a8ffd"/>
+				<reportElement x="434" y="161" width="120" height="30" uuid="e98a8aac-8870-45c5-b5ae-0ebae88a8ffd"/>
 				<box>
 					<bottomPen lineWidth="0.5"/>
 					<rightPen lineWidth="0.5"/>
@@ -226,7 +226,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[رقم بطاقة الأحوال:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="434" y="175" width="105" height="30" uuid="81d6c0fd-788d-4eff-be5c-22757edecfec"/>
+				<reportElement x="434" y="191" width="120" height="30" uuid="81d6c0fd-788d-4eff-be5c-22757edecfec"/>
 				<box>
 					<bottomPen lineWidth="0.5"/>
 					<rightPen lineWidth="0.5"/>
@@ -241,15 +241,16 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 	<detail>
 		<band height="459" splitType="Stretch">
 			<staticText>
-				<reportElement x="19" y="348" width="260" height="45" uuid="7cd380d3-87fb-4f52-8bda-b1199f71f597"/>
+				<reportElement positionType="FixRelativeToBottom" x="19" y="348" width="260" height="45" uuid="7cd380d3-87fb-4f52-8bda-b1199f71f597"/>
 				<box leftPadding="3"/>
-				<textElement>
+				<textElement markup="styled">
 					<font fontName="Traditional Arabic" size="14"/>
 				</textElement>
-				<text><![CDATA[Any abrasion or change in this letter will render it nil and void.]]></text>
+				<text><![CDATA[<li>Any abrasion or change in this letter will render it nil and void.
+</li>]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="19" y="183" width="260" height="64" uuid="f47fe995-17b9-4a50-9679-b2afec8eeec8"/>
+				<reportElement x="19" y="152" width="260" height="64" uuid="f47fe995-17b9-4a50-9679-b2afec8eeec8"/>
 				<box leftPadding="3"/>
 				<textElement>
 					<font fontName="Monotype Corsiva" size="14"/>
@@ -257,7 +258,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[This letter has been issued upon his request without any legal obligations upon the Commission.]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="279" y="183" width="260" height="24" uuid="1b3dde0e-f59c-4a1b-b0ce-6ecd11e53131"/>
+				<reportElement positionType="FixRelativeToBottom" x="294" y="121" width="260" height="24" uuid="1b3dde0e-f59c-4a1b-b0ce-6ecd11e53131"/>
 				<box rightPadding="3"/>
 				<textElement textAlignment="Right">
 					<font fontName="Traditional Arabic" size="14"/>
@@ -265,21 +266,21 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[وقــد أعطي هــذه الشـــــــهــادة بنــا على طلبــه دون أدى]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="187" y="261" width="201" height="22" uuid="7874d428-0ba1-4d11-8aa3-d6512f9310d7"/>
+				<reportElement positionType="FixRelativeToBottom" x="187" y="261" width="201" height="22" uuid="7874d428-0ba1-4d11-8aa3-d6512f9310d7"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Traditional Arabic Bold" size="14"/>
 				</textElement>
 				<text><![CDATA[مدير إدارة شؤون الموظفين]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="187" y="299" width="201" height="22" uuid="96b7519d-5883-4af9-ae0a-13994a2d3b2e"/>
+				<reportElement positionType="FixRelativeToBottom" x="187" y="299" width="201" height="22" uuid="96b7519d-5883-4af9-ae0a-13994a2d3b2e"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Traditional Arabic Bold" size="14"/>
 				</textElement>
 				<text><![CDATA[الختم]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="19" y="323" width="260" height="25" uuid="03efe5c3-4595-472a-8378-d29de13ebf03"/>
+				<reportElement positionType="FixRelativeToBottom" x="19" y="323" width="260" height="25" uuid="03efe5c3-4595-472a-8378-d29de13ebf03"/>
 				<box leftPadding="3"/>
 				<textElement>
 					<font fontName="Traditional Arabic" size="14"/>
@@ -287,7 +288,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[Note:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="279" y="323" width="260" height="25" uuid="2f6a9134-3461-4fe7-bca9-900f4acd79ac"/>
+				<reportElement positionType="FixRelativeToBottom" x="279" y="323" width="260" height="25" uuid="2f6a9134-3461-4fe7-bca9-900f4acd79ac"/>
 				<box rightPadding="3"/>
 				<textElement textAlignment="Right">
 					<font fontName="Traditional Arabic" size="14"/>
@@ -295,15 +296,16 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[ملاحظة]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="19" y="393" width="260" height="45" uuid="a48e8588-9a99-42cb-aade-1eab0facb14c"/>
+				<reportElement positionType="FixRelativeToBottom" x="19" y="393" width="260" height="45" uuid="a48e8588-9a99-42cb-aade-1eab0facb14c"/>
 				<box leftPadding="3"/>
-				<textElement>
+				<textElement markup="styled">
 					<font fontName="Traditional Arabic" size="14"/>
 				</textElement>
-				<text><![CDATA[This letter is valid for one month.]]></text>
+				<text><![CDATA[<li>This letter is valid for one month.
+</li>]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="279" y="348" width="260" height="45" uuid="d71882e3-5bf2-4ba7-b817-848205f92398"/>
+				<reportElement positionType="FixRelativeToBottom" x="279" y="348" width="260" height="45" uuid="d71882e3-5bf2-4ba7-b817-848205f92398"/>
 				<box rightPadding="3"/>
 				<textElement textAlignment="Right">
 					<font fontName="Traditional Arabic" size="14"/>
@@ -311,7 +313,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[*أي كشط أو تعديل في هذا التعريف يلغيه.]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="279" y="393" width="260" height="45" uuid="068990c5-0b1a-4667-8958-3804d082aeb7"/>
+				<reportElement positionType="FixRelativeToBottom" x="279" y="393" width="260" height="45" uuid="068990c5-0b1a-4667-8958-3804d082aeb7"/>
 				<box rightPadding="3"/>
 				<textElement textAlignment="Right">
 					<font fontName="Traditional Arabic" size="14"/>
@@ -370,9 +372,9 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[salary]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="19" y="112" width="123" height="22" uuid="4bffc0dc-3d3e-4a37-a5ed-9355ce55b925"/>
+				<reportElement x="63" y="112" width="75" height="22" uuid="4bffc0dc-3d3e-4a37-a5ed-9355ce55b925"/>
 				<box leftPadding="3"/>
-				<textElement textAlignment="Right" verticalAlignment="Top">
+				<textElement textAlignment="Left" verticalAlignment="Top">
 					<font fontName="Traditional Arabic" size="14" isItalic="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA["("+sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount( new java.text.DecimalFormat("###0.##").format($F{totalmonthsalary}))+")"]]></textFieldExpression>
@@ -384,8 +386,8 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				</textElement>
 				<text><![CDATA[Saudi Riyals only.]]></text>
 			</staticText>
-			<textField>
-				<reportElement x="311" y="1" width="195" height="23" uuid="35ad3e97-9797-4013-9537-8632cc32d620"/>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="418" y="1" width="95" height="23" uuid="35ad3e97-9797-4013-9537-8632cc32d620"/>
 				<box rightPadding="3"/>
 				<textElement textAlignment="Right" verticalAlignment="Top">
 					<font fontName="Traditional Arabic" size="14"/>
@@ -393,35 +395,35 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<textFieldExpression><![CDATA[$F{depname}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="296" y="1" width="15" height="23" uuid="5c0164de-a7b9-48f7-aab6-02b0717f4530"/>
+				<reportElement stretchType="RelativeToTallestObject" x="419" y="3" width="15" height="23" uuid="5c0164de-a7b9-48f7-aab6-02b0717f4530"/>
 				<textElement textAlignment="Left" verticalAlignment="Top">
 					<font fontName="Traditional Arabic" size="14"/>
 				</textElement>
 				<text><![CDATA[أن]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="506" y="1" width="49" height="25" uuid="ae65e214-a748-4c2d-bc85-c8c562e82497"/>
+				<reportElement stretchType="RelativeToTallestObject" x="513" y="1" width="42" height="25" uuid="ae65e214-a748-4c2d-bc85-c8c562e82497"/>
 				<textElement textAlignment="Right" verticalAlignment="Top">
 					<font fontName="Traditional Arabic" size="14"/>
 				</textElement>
-				<text><![CDATA[هبذا تشهد]]></text>
+				<text><![CDATA[بهذا تشهد]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="296" y="24" width="259" height="22" uuid="fa60fc9f-7934-4188-8df8-33dd3687fb9c"/>
-				<textElement textAlignment="Right" verticalAlignment="Top">
+				<reportElement positionType="FixRelativeToBottom" x="245" y="24" width="310" height="22" uuid="fa60fc9f-7934-4188-8df8-33dd3687fb9c"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
 					<font fontName="Traditional Arabic" size="14"/>
 				</textElement>
-				<text><![CDATA[املوظف أعاله يعمل لديها     اعتبارا من اتريخ]]></text>
+				<text><![CDATA[الموظف أعلاه يعمل لديها اعتباراً من تاريخ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="348" y="46" width="121" height="22" uuid="86f2a9b3-95e2-4372-8980-acdb8e5e81d2"/>
+				<reportElement positionType="FixRelativeToBottom" x="244" y="44" width="227" height="22" uuid="86f2a9b3-95e2-4372-8980-acdb8e5e81d2"/>
 				<textElement textAlignment="Right" verticalAlignment="Top">
-					<font fontName="Traditional Arabic" size="14"/>
+					<font fontName="Traditional Arabic" size="10"/>
 				</textElement>
-				<text><![CDATA[هـ. ويتقاضى راتب شهري إمجاي]]></text>
+				<text><![CDATA[هـ. ويتقاضى راتب شهري إجمالي]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="469" y="46" width="86" height="21" uuid="682c4ee7-a677-4cb5-b384-4755049de8e8"/>
+				<reportElement positionType="FixRelativeToBottom" isPrintRepeatedValues="false" x="471" y="46" width="84" height="21" uuid="682c4ee7-a677-4cb5-b384-4755049de8e8"/>
 				<box leftPadding="3"/>
 				<textElement textAlignment="Right" verticalAlignment="Top">
 					<font fontName="Traditional Arabic" size="14" isItalic="false"/>
@@ -436,7 +438,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[monthly]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="348" y="67" width="123" height="22" uuid="3374ca81-161f-4b39-96ac-648743ef6227"/>
+				<reportElement positionType="FixRelativeToBottom" isPrintRepeatedValues="false" x="388" y="65" width="123" height="22" uuid="3374ca81-161f-4b39-96ac-648743ef6227"/>
 				<box leftPadding="3"/>
 				<textElement textAlignment="Right" verticalAlignment="Top">
 					<font fontName="Traditional Arabic" size="14" isItalic="false"/>
@@ -444,21 +446,21 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<textFieldExpression><![CDATA["("+sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount( new java.text.DecimalFormat("###0.##").format($F{totalmonthsalary}))+")"]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="471" y="66" width="84" height="23" uuid="9a447416-ad45-4e01-ba5e-91de100d4ea5"/>
+				<reportElement positionType="FixRelativeToBottom" x="471" y="66" width="84" height="23" uuid="9a447416-ad45-4e01-ba5e-91de100d4ea5"/>
 				<textElement textAlignment="Right" verticalAlignment="Top">
 					<font fontName="Traditional Arabic" size="14"/>
 				</textElement>
 				<text><![CDATA[وقدرة]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="416" y="87" width="139" height="25" uuid="97088840-589f-4ed1-b25d-a06adf62e35f"/>
+				<reportElement positionType="FixRelativeToBottom" x="416" y="87" width="139" height="25" uuid="97088840-589f-4ed1-b25d-a06adf62e35f"/>
 				<textElement textAlignment="Right" verticalAlignment="Top">
 					<font fontName="Traditional Arabic" size="14"/>
 				</textElement>
 				<text><![CDATA[رايل سعودي فقط. ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="279" y="207" width="260" height="24" uuid="557ef9e8-fb46-4954-b5cf-dc334210530f"/>
+				<reportElement positionType="FixRelativeToBottom" x="294" y="145" width="260" height="24" uuid="557ef9e8-fb46-4954-b5cf-dc334210530f"/>
 				<box rightPadding="3"/>
 				<textElement textAlignment="Right">
 					<font fontName="Traditional Arabic" size="14"/>

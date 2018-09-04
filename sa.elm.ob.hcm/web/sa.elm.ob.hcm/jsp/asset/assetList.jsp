@@ -412,7 +412,8 @@ direction='ltr';
      assetGrid.jqGrid({
          direction :direction,
         url : '<%=request.getContextPath()%>/AssetAjax?action=GetAssetList',
-        colNames : [ '<fmt:message key="hcm.assetname"></fmt:message>',
+        colNames : [ '<fmt:message key="hcm.documentno"></fmt:message>',
+                     '<fmt:message key="hcm.assetname"></fmt:message>',
                      '<fmt:message key="hcm.startdate"></fmt:message>',
                      '<fmt:message key="hcm.enddate"></fmt:message>',
                      '<fmt:message key="hcm.letterNo"></fmt:message>',
@@ -422,6 +423,11 @@ direction='ltr';
                      '<fmt:message key="hcm.description"></fmt:message>',
                      '<fmt:message key="hcm.flag"></fmt:message>'],
         colModel : [
+                    {
+                        name : 'documentNo',
+                        index : 'documentNo',
+                        width : 140
+                    },
                     {
                         name : 'name',
                         index : 'name',
@@ -696,13 +702,13 @@ function enableButton(flag) {
     }    
 }
 function endisableButton(assertflag){
-	//alert(assertflag);
-	if(assertflag =="N"){
-		document.getElementById('buttonEdition').className = 'Main_ToolBar_Button_disabled';
+    //alert(assertflag);
+    if(assertflag =="N"){
+        document.getElementById('buttonEdition').className = 'Main_ToolBar_Button_disabled';
         document.getElementById('linkButtonEdition').className = 'Main_ToolBar_Button_Icon Main_ToolBar_Button_Icon_Edition_disabled';
         document.getElementById('buttonDelete').className = 'Main_ToolBar_Button_disabled';
         document.getElementById('linkButtonDelete').className = 'Main_ToolBar_Button_Icon Main_ToolBar_Button_Icon_Delete_disabled';
-	}
+    }
 }
 function onClickDelete() {
     if (document.getElementById('buttonDelete').className == 'Main_ToolBar_Button' && document.getElementById("inpAssetId").value != "") {

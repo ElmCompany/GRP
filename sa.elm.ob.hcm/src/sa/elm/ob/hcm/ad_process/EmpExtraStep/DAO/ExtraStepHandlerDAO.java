@@ -173,95 +173,121 @@ public class ExtraStepHandlerDAO {
             empinfo.setUpdated(new java.util.Date());
             empinfo.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
             Date startdate = empinfo.getStartDate();
-            Date dateBefore = new Date(
-                extraStepProcess.getStartDate().getTime() - 1 * 24 * 3600 * 1000);
-
-            if (startdate.compareTo(extraStepProcess.getStartDate()) == 0)
-              empinfo.setEndDate(empinfo.getStartDate());
-            else
-              empinfo.setEndDate(dateBefore);
-
+            /*
+             * Date dateBefore = new Date( extraStepProcess.getStartDate().getTime() - 1 * 24 * 3600
+             * * 1000);
+             * 
+             * if (startdate.compareTo(extraStepProcess.getStartDate()) == 0)
+             * empinfo.setEndDate(empinfo.getStartDate()); else empinfo.setEndDate(dateBefore);
+             * 
+             * }
+             */
+            // update old extrastep as inactive
+            EhcmEmployeeExtraStep oldExtraStep = extraStepProcess.getOriginalDecisionNo();
+            oldExtraStep.setEnabled(false);
+            OBDal.getInstance().save(oldExtraStep);
+            OBDal.getInstance().flush();
           }
+
+          EhcmEmpPerInfo person = OBDal.getInstance().get(EhcmEmpPerInfo.class,
+              extraStepProcess.getEhcmEmpPerinfo().getId());
+          if (extraStepProcess.getDecisionType().equals("CO")) {
+            person.setEmploymentStatus("AC");
+          } else {
+            person.setEmploymentStatus("ES");
+          }
+          OBDal.getInstance().save(person);
+          OBDal.getInstance().flush();
+
+        }
+        // cancel case
+        else if (extraStepProcess.getDecisionType().equals("CA")) {
+          // update the acive flag='Y' and enddate is null for recently update record
+          OBQuery<EmploymentInfo> originalemp = OBDal.getInstance().createQuery(
+              EmploymentInfo.class,
+              " ehcmEmpPerinfo.id=:employeeId  and (ehcmEmpExtrastep.id not in ('"
+                  + extraStepProcess.getOriginalDecisionNo().getId()
+                  + "') or ehcmEmpExtrastep.id is null) order by creationDate desc ");
+          originalemp.setNamedParameter("employeeId", extraStepProcess.getEhcmEmpPerinfo().getId());
+          originalemp.setMaxResult(1);
+          LOG.debug(originalemp.getWhereAndOrderBy());
+          empInfoList = originalemp.list();
+          if (empInfoList.size() > 0) {
+            EmploymentInfo empinfo = empInfoList.get(0);
+            empinfo.setUpdated(new java.util.Date());
+            empinfo.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
+            // empinfo.setEndDate(null);
+
+            if (empinfo.getChangereason().equals("H") || empinfo.getEhcmEmpPromotion() != null
+                || empinfo.getEhcmEmpSuspension() != null
+                || empinfo.getChangereason().equals("JWRSEC")) {
+              empinfo.setEndDate(null);
+            } else if (empinfo.getEhcmEmpTransfer() != null) {
+              if (empinfo.getEhcmEmpTransfer().getEndDate() != null) {
+                empinfo.setEndDate(empinfo.getEhcmEmpTransfer().getEndDate());
+              } else {
+                empinfo.setEndDate(null);
+              }
+            } else if (empinfo.getEhcmEmpTransferSelf() != null) {
+              if (empinfo.getEhcmEmpTransferSelf().getEndDate() != null) {
+                empinfo.setEndDate(empinfo.getEhcmEmpTransferSelf().getEndDate());
+              } else {
+                empinfo.setEndDate(null);
+              }
+            } else if (empinfo.getEhcmEmpSuspension() != null) {
+              if (empinfo.getEhcmEmpSuspension().getEndDate() != null) {
+                empinfo.setEndDate(empinfo.getEhcmEmpSuspension().getEndDate());
+              } else {
+                empinfo.setEndDate(null);
+              }
+            }
+            empinfo.setEnabled(true);
+            empinfo.setAlertStatus("ACT");
+            OBDal.getInstance().save(empinfo);
+            OBDal.getInstance().flush();
+
+            // remove the recent record
+            OBQuery<EmploymentInfo> employInfo1 = OBDal.getInstance().createQuery(
+                EmploymentInfo.class,
+                " ehcmEmpPerinfo.id=:employeeId  and enabled='Y'  and ehcmEmpExtrastep.id ='"
+                    + extraStepProcess.getOriginalDecisionNo().getId()
+                    + "' order by creationDate desc");
+            employInfo1.setNamedParameter("employeeId",
+                extraStepProcess.getEhcmEmpPerinfo().getId());
+            employInfo1.setMaxResult(1);
+            empInfoList = employInfo1.list();
+            if (empInfoList.size() > 0) {
+              EmploymentInfo empInfor = empInfoList.get(0);
+              OBDal.getInstance().remove(empInfor);
+              OBDal.getInstance().flush();
+            }
+          }
+          EhcmEmpPerInfo person = OBDal.getInstance().get(EhcmEmpPerInfo.class,
+              extraStepProcess.getEhcmEmpPerinfo().getId());
+
+          if (extraStepProcess.getOriginalDecisionNo().getDecisionType().equals("EX")) {
+            person.setEmploymentStatus("SE");
+          } else {
+            person.setEmploymentStatus("AC");
+          }
+          OBDal.getInstance().save(person);
+          OBDal.getInstance().flush();
+
           // update old extrastep as inactive
           EhcmEmployeeExtraStep oldExtraStep = extraStepProcess.getOriginalDecisionNo();
           oldExtraStep.setEnabled(false);
           OBDal.getInstance().save(oldExtraStep);
           OBDal.getInstance().flush();
-        }
 
-        EhcmEmpPerInfo person = OBDal.getInstance().get(EhcmEmpPerInfo.class,
-            extraStepProcess.getEhcmEmpPerinfo().getId());
-        if (extraStepProcess.getDecisionType().equals("CO")) {
-          person.setEmploymentStatus("AC");
-        } else {
-          person.setEmploymentStatus("ES");
-        }
-        OBDal.getInstance().save(person);
-        OBDal.getInstance().flush();
-
-      }
-      // cancel case
-      else if (extraStepProcess.getDecisionType().equals("CA")) {
-        // update the acive flag='Y' and enddate is null for recently update record
-        OBQuery<EmploymentInfo> originalemp = OBDal.getInstance().createQuery(EmploymentInfo.class,
-            " ehcmEmpPerinfo.id=:employeeId  and (ehcmEmpExtrastep.id not in ('"
-                + extraStepProcess.getOriginalDecisionNo().getId()
-                + "') or ehcmEmpExtrastep.id is null) order by creationDate desc ");
-        originalemp.setNamedParameter("employeeId", extraStepProcess.getEhcmEmpPerinfo().getId());
-        originalemp.setMaxResult(1);
-        LOG.debug(originalemp.getWhereAndOrderBy());
-        empInfoList = originalemp.list();
-        if (empInfoList.size() > 0) {
-          EmploymentInfo empinfo = empInfoList.get(0);
-          empinfo.setUpdated(new java.util.Date());
-          empinfo.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
-          empinfo.setEndDate(null);
-          empinfo.setEnabled(true);
-          empinfo.setAlertStatus("ACT");
-          OBDal.getInstance().save(empinfo);
+          extraStepProcess.setEnabled(false);
+          OBDal.getInstance().save(extraStepProcess);
           OBDal.getInstance().flush();
-
-          // remove the recent record
-          OBQuery<EmploymentInfo> employInfo = OBDal.getInstance().createQuery(EmploymentInfo.class,
-              " ehcmEmpPerinfo.id=:employeeId  and enabled='Y'  and ehcmEmpExtrastep.id ='"
-                  + extraStepProcess.getOriginalDecisionNo().getId()
-                  + "' order by creationDate desc");
-          employInfo.setNamedParameter("employeeId", extraStepProcess.getEhcmEmpPerinfo().getId());
-          employInfo.setMaxResult(1);
-          empInfoList = employInfo.list();
-          if (empInfoList.size() > 0) {
-            EmploymentInfo empInfor = empInfoList.get(0);
-            OBDal.getInstance().remove(empInfor);
-            OBDal.getInstance().flush();
-          }
         }
-        EhcmEmpPerInfo person = OBDal.getInstance().get(EhcmEmpPerInfo.class,
-            extraStepProcess.getEhcmEmpPerinfo().getId());
 
-        if (extraStepProcess.getOriginalDecisionNo().getDecisionType().equals("EX")) {
-          person.setEmploymentStatus("SE");
-        } else {
-          person.setEmploymentStatus("AC");
-        }
-        OBDal.getInstance().save(person);
-        OBDal.getInstance().flush();
+        count = 1;
 
-        // update old extrastep as inactive
-        EhcmEmployeeExtraStep oldExtraStep = extraStepProcess.getOriginalDecisionNo();
-        oldExtraStep.setEnabled(false);
-        OBDal.getInstance().save(oldExtraStep);
-        OBDal.getInstance().flush();
-
-        extraStepProcess.setEnabled(false);
-        OBDal.getInstance().save(extraStepProcess);
-        OBDal.getInstance().flush();
       }
-
-      count = 1;
-
-    }
-
-    catch (Exception e) {
+    } catch (Exception e) {
       if (LOG.isErrorEnabled()) {
         LOG.error("Exception while inserting lines in employment tab  : ", e, e);
       }

@@ -346,7 +346,18 @@
                                                     <div align="center">
                                                         <TABLE style="width:100%; margin-top: 10px;">
                                                         <!-- /*<<<<<Your Code Here>>>>>*/ -->
+                                                        <tr>
+                                                          <TD class="TitleCell" align="right" style="min-width:110px;"><span class="LabelText" ><fmt:message key="hcm.documentno"></fmt:message></span></TD>
+                                                          <td>
+                                                          
+                                                           <input type="text" name="inpdocumentNo" id="inpdocumentNo" maxlength="30" value="<%= Utility.nullToEmpty(request.getAttribute("inpdocumentNo")) %>"   class="dojoValidateValid TextBox_TwoCells_width " onkeydown="return onChangeEvent(event);enableForm();" />
+                                                          
+                                                          
+                                                          </td>
+                                                        <tr>
+                                                        
                                                           <TR>
+                                                          
                                                             <TD class="TitleCell" align="right" style="min-width:110px;"><span class="LabelText" ><fmt:message key="hcm.assetname"></fmt:message></span></TD>
                                                             <TD class="TextBox_ContentCell">
                                                                 <%if(request.getAttribute("inpAsset")!= null ) {%>

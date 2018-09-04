@@ -161,6 +161,7 @@ public class EmpSecondmentReactivateDAOImpl implements EmpSecondmentReactivateDA
           }
           prevEmpinfo.setUpdated(new java.util.Date());
           prevEmpinfo.setAlertStatus(Constants.EMPSTATUS_ACTIVE);
+          prevEmpinfo.setEnabled(true);
         }
 
         OBDal.getInstance().remove(info);
@@ -264,6 +265,7 @@ public class EmpSecondmentReactivateDAOImpl implements EmpSecondmentReactivateDA
           }
           prevEmpinfo.setUpdated(new java.util.Date());
           prevEmpinfo.setAlertStatus(Constants.EMPSTATUS_ACTIVE);
+          prevEmpinfo.setEnabled(true);
           OBDal.getInstance().remove(info);
         }
       }

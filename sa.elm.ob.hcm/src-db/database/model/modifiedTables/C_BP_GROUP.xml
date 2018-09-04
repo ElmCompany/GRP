@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+  <database name="MODIFIED TABLE C_BP_GROUP">
+    <table name="C_BP_GROUP" primaryKey="C_BP_GROUP_KEY">
+      <column name="EM_EHCM_CATEGORYTYPE" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default><![CDATA[OTH]]></default>
+        <onCreateDefault/>
+      </column>
+    </table>
+  </database>

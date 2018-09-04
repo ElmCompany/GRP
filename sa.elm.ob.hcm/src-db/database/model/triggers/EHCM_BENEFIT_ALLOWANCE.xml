@@ -11,7 +11,7 @@ BEGIN
 		END IF;
         END IF;
 	IF UPDATING THEN
-		IF(:OLD.decision_status = 'I') THEN
+		IF(:OLD.decision_status = 'I' AND :OLD.original_Decision_No<>:NEW.original_Decision_No) THEN
 			RAISE_APPLICATION_ERROR(-20000, '@EHCM_BenefitsAllowance_Issued@');
 		END IF;
 	END IF;

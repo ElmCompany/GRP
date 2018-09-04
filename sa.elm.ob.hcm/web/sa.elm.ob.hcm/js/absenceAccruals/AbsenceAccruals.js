@@ -177,6 +177,7 @@ function reSizeGrid() {
 }
 
 function getEmpDetails(value) {
+	if(value!="0"){
   var url = contextPath + "/sa.elm.ob.hcm.ad_process.AbsenceAccrual/AbsenceAccruals?inpAction=getEmpDetails&employeeId=" + value;
   //load all fields
   $.ajax({
@@ -198,4 +199,17 @@ function getEmpDetails(value) {
 
     }
   });
+	}
+	else{
+		 document.getElementById("inpHireDate").value = "";
+	      document.getElementById("inpPersonType").value = "";
+	      document.getElementById("inpSectionCode").value = "";
+	      document.getElementById("inpGrade").value = "";
+	      document.getElementById("inpJobno").value = "";
+	      document.getElementById("inpEmpGrade").value = "";
+	      document.getElementById("inpAssignedDept").value = "";
+	      document.getElementById("inpEmployeeCategory").value = "";
+	      document.getElementById("inpStatus").options.length = 0;
+
+	}
 }

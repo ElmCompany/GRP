@@ -145,8 +145,8 @@
         <default/>
         <onCreateDefault/>
       </column>
-      <column name="PAYMENT_TYPE" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
-        <default><![CDATA[(NOT NULL::boolean)]]></default>
+      <column name="PAYMENT_TYPE" primaryKey="false" required="true" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
         <onCreateDefault/>
       </column>
       <column name="PERIOD" primaryKey="false" required="true" type="DECIMAL" autoIncrement="false">
@@ -200,6 +200,9 @@
       </foreign-key>
       <foreign-key foreignTable="EHCM_GRADE" name="EHCM_EMPSECOND_EMPGRADE">
         <reference local="EMPLOYMENTGRADE" foreign="EHCM_GRADE_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EHCM_ELEMENT_GROUP" name="EHCM_PAYTPE">
+        <reference local="PAYMENT_TYPE" foreign="EHCM_ELEMENT_GROUP_ID"/>
       </foreign-key>
       <unique name="EHCM_SECONDMENT_DECNO_UNIQUE">
         <unique-column name="DECISION_NO"/>

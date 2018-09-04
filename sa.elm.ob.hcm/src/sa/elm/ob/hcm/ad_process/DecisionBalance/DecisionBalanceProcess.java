@@ -1,5 +1,6 @@
 package sa.elm.ob.hcm.ad_process.DecisionBalance;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -11,7 +12,6 @@ import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.client.kernel.RequestContext;
 import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.service.OBDal;
-import org.openbravo.dal.service.OBQuery;
 import org.openbravo.erpCommon.utility.OBError;
 import org.openbravo.erpCommon.utility.OBMessageUtils;
 import org.openbravo.scheduling.Process;
@@ -20,7 +20,6 @@ import org.openbravo.scheduling.ProcessBundle;
 import sa.elm.ob.hcm.DecisionBalance;
 import sa.elm.ob.hcm.DecisionBalanceHeader;
 import sa.elm.ob.hcm.EHCMAbsenceType;
-import sa.elm.ob.hcm.EHCMMiscatEmployee;
 import sa.elm.ob.hcm.ad_process.Constants;
 
 public class DecisionBalanceProcess implements Process {
@@ -41,7 +40,7 @@ public class DecisionBalanceProcess implements Process {
     String errormessage = null;
     String DecBalLneId = null, missioncategoryID = null, employeeID = null;
     Date hiredate = new Date(0);
-    long usedDays_initial_balance = 0;
+    BigDecimal usedDays_initial_balance = BigDecimal.ZERO;
     try {
       OBContext.setAdminMode();
 
@@ -96,7 +95,8 @@ public class DecisionBalanceProcess implements Process {
             .getEhcmDecisionBalanceList();
         for (DecisionBalance decisionBalanceListObject : decisionBalanceLineList) {
 
-          if (decisionBalanceListObject.getDecisionType().equals("BM")) {
+          if (decisionBalanceListObject.getDecisionType()
+              .equals(Constants.BUSINESSMISSIONBALANCE)) {
             if (!decisionBalanceListObject.getEhcmMissionCategory().getId().equals("")) {
 
               missioncategoryID = decisionBalanceListObject.getEhcmMissionCategory().getId();
@@ -104,13 +104,12 @@ public class DecisionBalanceProcess implements Process {
               hiredate = decisionBalanceListObject.getEmployee().getHiredate();
               usedDays_initial_balance = decisionBalanceListObject.getBalance();
 
-              businessMission(missioncategoryID, employeeID, hiredate, usedDays_initial_balance,
-                  decisionBalanceListObject);
+              decisionBalanceDAO.businessMission(missioncategoryID, employeeID, hiredate,
+                  usedDays_initial_balance, decisionBalanceListObject);
             }
           }
         }
 
-        // OBDal.getInstance().save(decisionbalanceHeader);
       }
 
       decisionbalance.setAlertStatus("CO");
@@ -132,29 +131,6 @@ public class DecisionBalanceProcess implements Process {
       bundle.setResult(error);
     } finally {
       OBContext.restorePreviousMode();
-    }
-
-  }
-
-  public void businessMission(String missioncategoryID, String employeeID, Date hiredate,
-      long usedDays_initial_balance, DecisionBalance decisionbalanceLine) {
-
-    OBQuery<EHCMMiscatEmployee> missionEmployeeObj = OBDal.getInstance().createQuery(
-        EHCMMiscatEmployee.class,
-        " as a  join a.ehcmMiscatPeriod b "
-            + " join b.ehcmMissionCategory c  where c.id=:PmissioncategoryID and "
-            + " :Phiredate between  b.startDate and b.endDate and a.employee.id =:PemployeeID");
-
-    missionEmployeeObj.setNamedParameter("PmissioncategoryID", missioncategoryID);
-    missionEmployeeObj.setNamedParameter("Phiredate", hiredate);
-    missionEmployeeObj.setNamedParameter("PemployeeID", employeeID);
-
-    if (missionEmployeeObj.list().size() > 0) {
-      EHCMMiscatEmployee missionEmployeeListObj = missionEmployeeObj.list().get(0);
-      long usedDays = missionEmployeeListObj.getUseddays();
-      missionEmployeeListObj.setUseddays(usedDays + usedDays_initial_balance);
-      missionEmployeeListObj.setEhcmDecisionBalance(decisionbalanceLine);
-
     }
 
   }

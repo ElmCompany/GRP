@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="CertificationLetterWithSalary" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="1b43357b-4a3a-406d-9610-34e4402f8f72">
-	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.zoom" value="1.1"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="0"/>
+	<property name="ireport.y" value="82"/>
 	<parameter name="inpClientId" class="java.lang.String"/>
 	<parameter name="inpCertificateId" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[select emp_name, grd.value as grade, jobtit.job_title as eposition, dept.name as dept_name,
+		<![CDATA[select emp_name, grd.name as grade, jobtit.job_title as eposition, substring(dept.name,1,30) as dept_name,
 eut_convert_to_hijri(to_char(hire_date,'YYYY-MM-dd')) as hire_date,
 case when ceiling(bs.amount) = floor(bs.amount)
        then bs.amount::bigint
@@ -21,7 +21,7 @@ case when ceiling(payrl.total_allowance) = floor(payrl.total_allowance)
        else payrl.total_allowance
        end as otherallowance
 from ehcm_employment_certificate cer
-left join ehcm_grade grd on grd.ehcm_grade_id=cer.ehcm_grade_id
+left join ehcm_grade grd on grd.ehcm_grade_id=cer.employmentgrade
 left join ehcm_position pos on pos.ehcm_position_id=cer.ehcm_position_id
 left join ehcm_jobs jobtit on jobtit.ehcm_jobs_id=pos.job_name
 left join ad_org dept on dept.ad_org_id=cer.Department_ID
@@ -95,9 +95,9 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 		</band>
 	</title>
 	<detail>
-		<band height="215" splitType="Stretch">
+		<band height="203" splitType="Stretch">
 			<staticText>
-				<reportElement stretchType="RelativeToTallestObject" x="420" y="13" width="82" height="35" uuid="537ec77e-515a-45d7-9198-633e63be2b99"/>
+				<reportElement stretchType="RelativeToTallestObject" x="420" y="13" width="114" height="35" uuid="537ec77e-515a-45d7-9198-633e63be2b99"/>
 				<box>
 					<topPen lineWidth="0.75"/>
 					<bottomPen lineWidth="0.75"/>
@@ -109,7 +109,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[الاسـم]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="Float" x="420" y="48" width="82" height="105" uuid="9a72fa96-f3dd-4e75-a7e1-344e53a73a44"/>
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="420" y="48" width="114" height="51" uuid="9a72fa96-f3dd-4e75-a7e1-344e53a73a44"/>
 				<box>
 					<bottomPen lineWidth="0.75"/>
 					<rightPen lineWidth="0.75"/>
@@ -120,7 +120,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[المرتبـة]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="Float" x="171" y="48" width="85" height="105" uuid="d074e3dc-876c-4029-aa46-575e4e600084"/>
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="171" y="48" width="85" height="51" uuid="d074e3dc-876c-4029-aa46-575e4e600084"/>
 				<box>
 					<bottomPen lineWidth="0.75"/>
 					<rightPen lineWidth="0.75"/>
@@ -131,7 +131,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[الوظيفـة]]></text>
 			</staticText>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="15" y="13" width="405" height="35" uuid="a0ccfcf9-f6e2-427c-accf-2c7c30d36cdf"/>
+				<reportElement stretchType="RelativeToTallestObject" x="24" y="13" width="396" height="35" uuid="a0ccfcf9-f6e2-427c-accf-2c7c30d36cdf"/>
 				<box rightPadding="3">
 					<topPen lineWidth="0.75"/>
 					<leftPen lineWidth="0.75"/>
@@ -144,7 +144,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<textFieldExpression><![CDATA[$F{emp_name}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement positionType="Float" x="256" y="48" width="164" height="105" uuid="e76831e9-9505-4f7f-9ca9-021519c0f865"/>
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="256" y="48" width="164" height="51" uuid="e76831e9-9505-4f7f-9ca9-021519c0f865"/>
 				<box rightPadding="3">
 					<bottomPen lineWidth="0.75"/>
 					<rightPen lineWidth="0.75"/>
@@ -155,7 +155,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{grade})]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement positionType="Float" x="15" y="48" width="156" height="105" uuid="02b4e486-8b70-4a75-999f-5864c8470baa"/>
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="24" y="48" width="147" height="51" uuid="02b4e486-8b70-4a75-999f-5864c8470baa"/>
 				<box rightPadding="3">
 					<leftPen lineWidth="0.75"/>
 					<bottomPen lineWidth="0.75"/>
@@ -167,7 +167,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{eposition})]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement positionType="Float" x="420" y="153" width="82" height="35" uuid="f993295b-3afc-47d0-b166-1ac76c2c7123"/>
+				<reportElement positionType="Float" x="420" y="99" width="114" height="35" uuid="f993295b-3afc-47d0-b166-1ac76c2c7123"/>
 				<box>
 					<bottomPen lineWidth="0.75"/>
 					<rightPen lineWidth="0.75"/>
@@ -178,7 +178,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[الراتـب الأساسي]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="Float" x="281" y="153" width="62" height="35" uuid="6b38a400-3adb-4ac8-a740-99dedfd520c6"/>
+				<reportElement positionType="Float" x="281" y="99" width="62" height="35" uuid="6b38a400-3adb-4ac8-a740-99dedfd520c6"/>
 				<box>
 					<bottomPen lineWidth="0.75"/>
 					<rightPen lineWidth="0.75"/>
@@ -189,7 +189,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[بدل النقـل]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="Float" x="115" y="153" width="76" height="35" uuid="57aca62e-3866-471a-9613-42a290bda1f4"/>
+				<reportElement positionType="Float" x="115" y="99" width="94" height="35" uuid="57aca62e-3866-471a-9613-42a290bda1f4"/>
 				<box>
 					<bottomPen lineWidth="0.75"/>
 					<rightPen lineWidth="0.75"/>
@@ -200,7 +200,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<text><![CDATA[بدلات أخرى]]></text>
 			</staticText>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement positionType="Float" x="15" y="153" width="100" height="35" uuid="d14c13aa-5468-4862-888f-8f2d508730ed"/>
+				<reportElement positionType="Float" x="24" y="99" width="91" height="35" uuid="d14c13aa-5468-4862-888f-8f2d508730ed"/>
 				<box rightPadding="3">
 					<leftPen lineWidth="0.75"/>
 					<bottomPen lineWidth="0.75"/>
@@ -212,7 +212,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<textFieldExpression><![CDATA[($F{otherallowance}==null?"":sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{otherallowance}.toString()))]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement positionType="Float" x="191" y="153" width="90" height="35" uuid="39440443-42dd-4edb-98d9-70ad169d1f7f"/>
+				<reportElement positionType="Float" x="209" y="99" width="72" height="35" uuid="39440443-42dd-4edb-98d9-70ad169d1f7f"/>
 				<box rightPadding="3">
 					<bottomPen lineWidth="0.75"/>
 					<rightPen lineWidth="0.75"/>
@@ -223,7 +223,7 @@ where ehcm_employment_certificate_id=$P{inpCertificateId}]]>
 				<textFieldExpression><![CDATA[($F{transportallow}==null?"":sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{transportallow}.toString()))]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement positionType="Float" x="343" y="153" width="77" height="35" uuid="cbf1d8fe-16d1-4702-a801-78ca0ec38db7"/>
+				<reportElement positionType="Float" x="343" y="99" width="77" height="35" uuid="cbf1d8fe-16d1-4702-a801-78ca0ec38db7"/>
 				<box rightPadding="3">
 					<bottomPen lineWidth="0.75"/>
 					<rightPen lineWidth="0.75"/>

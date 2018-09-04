@@ -51,7 +51,7 @@ case when $P{inpLineManagerId}='0' then true else ed5.ehcm_emp_supervisor_id=$P{
 case when $P{inpGenderId}='0' then true else ed1.gender=$P{inpGenderId}	end
 and ed2.status='ACT' and ed6.employment_status='AC' and ed1.ad_client_id=$P{inpClient}
 and (select split_part((ehcm_calculate_age(ed1.ehcm_emp_perinfo_id,ed1.ad_client_id,
-to_char(ed1.dob,'yyyy-mm-dd'),to_char($P{inpEndDateH}))),'-',1))>='60'
+to_char(ed1.dob,'yyyy-mm-dd'),to_char($P{inpEndDateH}))),'-',1))::int>='60'::int
 group by ed10.point,ed9.updated,ed9.amount,ed1.name,ed2.employeeno,ed6.arabicfullname, ed4.name,ed7.job_no,ed3.name,ed2.jobtitle
 ,ed2.deptname,ed1.ehcm_emp_perinfo_id,ed1.ad_client_id,ed1.dob,ed6.value,ed4.value,ed3.value
 order by ed2.employeeno asc]]>

@@ -137,6 +137,10 @@
         <default/>
         <onCreateDefault/>
       </column>
+      <column name="ISREACTIVATE" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default><![CDATA[N]]></default>
+        <onCreateDefault/>
+      </column>
       <foreign-key foreignTable="EHCM_GRADECLASS" name="EHCM_EXTRASTEP_CLASS">
         <reference local="EHCM_GRADECLASS_ID" foreign="EHCM_GRADECLASS_ID"/>
       </foreign-key>

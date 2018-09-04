@@ -68,6 +68,13 @@ public class EmployeeDelegationEvent extends EntityPersistenceEventObserver {
           throw new OBException(OBMessageUtils.messageBD("EHCM_StartDateGreThan_EndDate"));
         }
       }
+      // compare startdate with previous enddate
+      if (delegation.getOriginalDecisionNo() != null) {
+        if (delegation.getEndDate() != null && delegation.getEndDate()
+            .compareTo(delegation.getOriginalDecisionNo().getStartDate()) < 0) {
+          throw new OBException(OBMessageUtils.messageBD("EHCM_StartDateGreThan_EndDate"));
+        }
+      }
       // compare start with hire date
       if (delegation.getStartDate().compareTo(delegation.getEhcmEmpPerinfo().getHiredate()) < 0) {
         throw new OBException(OBMessageUtils.messageBD("Ehcm_StartDateVsHireDate"));
@@ -92,13 +99,14 @@ public class EmployeeDelegationEvent extends EntityPersistenceEventObserver {
               || !event.getCurrentState(endDate).equals(event.getPreviousState(endDate)))) {
 
         String delegationQry = "select e.id from Ehcm_Emp_Delegation as e"
-            + " where e.ehcmEmpPerinfo.id=:employee and e.enabled='Y'   and e.decisionStatus!='UP' "
+            + " where e.ehcmEmpPerinfo.id=:employee and e.enabled='Y' and e.newPosition.id=:newposition and e.decisionStatus!='UP' "
             + " and ((to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:fromdate,'dd-MM-yyyy') "
             + " and to_date(to_char(coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:todate,'dd-MM-yyyy')) "
             + " or (to_date(to_char( coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')) ,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:fromdate,'dd-MM-yyyy') "
             + " and to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:todate,'dd-MM-yyyy')))  ";
 
         Query query = OBDal.getInstance().getSession().createQuery(delegationQry);
+        query.setParameter("newposition", delegation.getNewPosition().getId());
         query.setParameter("employee", delegation.getEhcmEmpPerinfo().getId());
         query.setParameter("fromdate", Utility.formatDate(delegation.getStartDate()));
         query.setParameter("todate", Utility.formatDate(delegation.getEndDate()));
@@ -195,6 +203,13 @@ public class EmployeeDelegationEvent extends EntityPersistenceEventObserver {
           && delegation.getEndDate().compareTo(delegation.getStartDate()) < 0) {
         throw new OBException(OBMessageUtils.messageBD("EHCM_StartDateGreThan_EndDate"));
       }
+      // compare startdate with previous enddate
+      if (delegation.getOriginalDecisionNo() != null) {
+        if (delegation.getEndDate() != null && delegation.getEndDate()
+            .compareTo(delegation.getOriginalDecisionNo().getStartDate()) < 0) {
+          throw new OBException(OBMessageUtils.messageBD("EHCM_StartDateGreThan_EndDate"));
+        }
+      }
       // compare start with hire date
       if (delegation.getStartDate().compareTo(delegation.getEhcmEmpPerinfo().getHiredate()) < 0) {
         throw new OBException(OBMessageUtils.messageBD("Ehcm_StartDateVsHireDate"));
@@ -220,13 +235,14 @@ public class EmployeeDelegationEvent extends EntityPersistenceEventObserver {
       if (delegation.getDecisionType().equals("CR")) {
 
         String delegationQry = "select e.id from Ehcm_Emp_Delegation as e"
-            + " where e.ehcmEmpPerinfo.id=:employee and e.enabled='Y' and e.decisionStatus!='UP' "
+            + " where e.ehcmEmpPerinfo.id=:employee and e.enabled='Y' and e.newPosition.id=:newposition and e.decisionStatus!='UP' "
             + " and ((to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:fromdate,'dd-MM-yyyy') "
             + " and to_date(to_char(coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:todate,'dd-MM-yyyy')) "
             + " or (to_date(to_char( coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')) ,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:fromdate,'dd-MM-yyyy') "
             + " and to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:todate,'dd-MM-yyyy')))  ";
 
         Query query = OBDal.getInstance().getSession().createQuery(delegationQry);
+        query.setParameter("newposition", delegation.getNewPosition().getId());
         query.setParameter("employee", delegation.getEhcmEmpPerinfo().getId());
         query.setParameter("fromdate", Utility.formatDate(delegation.getStartDate()));
         query.setParameter("todate", Utility.formatDate(delegation.getEndDate()));

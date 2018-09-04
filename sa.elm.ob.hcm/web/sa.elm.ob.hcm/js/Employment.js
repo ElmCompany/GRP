@@ -319,6 +319,32 @@ function generateEmpgrade(gradeId){
  * @param positionId
  */
 function generateFields(positionId){
+	//secondary part
+	//set secondary Grade code
+	if(secGradeCode!=null && secGradeCode!='' && secGradeCode!='null'){
+		$("#inpSecGrade").val(secGradeCode);
+		 $("#inpSecGrade").append("<option value='"+secGradeCode+"'>"+inpSecGradeValue+"</option>"); 
+	}
+	//set secondary Job No. 
+	if(secJobNo!=null && secJobNo!='' && secJobNo!='null'){
+		$("#inpSecJobno").val(secJobNo);
+		 $("#inpSecJobno").append("<option value='"+secJobNo+"'>"+inpSecJobnoValue+"</option>"); 
+    }
+	//set secondary Job Code
+	if(secJobCode!=null && secJobCode!='' && secJobCode!='null'){
+		$("#inpSecJobCode").val(secJobCode);
+		 $("#inpSecJobCode").append("<option value='"+secJobCode+"'>"+inpSecJobCodeValue+"</option>"); 
+    }
+	//set secondary Dept Code
+	if(secDeptCode!=null && secDeptCode!='' && secDeptCode!='null'){
+		$("#inpSecDeptCode").val(secDeptCode);
+		 $("#inpSecDeptCode").append("<option value='"+secDeptCode+"'>"+inpSecDeptCodeValue+"</option>"); 
+    }
+	//set secondary Section code
+	if(secSectCode!=null && secSectCode!='' && secSectCode!='null'){
+		$("#inpSecSectionCode").val(secSectCode);
+		 $("#inpSecSectionCode").append("<option value='"+secSectCode+"'>"+inpSecSectionCodeValue+"</option>"); 
+    }
 	if(jobCode!=null && jobCode!='' && jobCode!='null'){
 		$("#inpJobCode").val(jobCode);
 		$("#inpJobCode").append("<option value='"+jobCode+"'>"+inpJobCodeValue+"</option>");     
@@ -329,6 +355,7 @@ function generateFields(positionId){
 				$("#inpSectionCode").val(sectCode);
 				$("#inpSectionCode").append("<option value='"+sectCode+"'>"+inpSectionCodeValue+"</option>"); 
 		    }
+			
 		}
 	}
 	else{

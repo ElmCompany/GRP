@@ -61,6 +61,7 @@ import sa.elm.ob.hcm.EhcmEmployeeOvertime;
 import sa.elm.ob.hcm.EhcmLoanHistory;
 import sa.elm.ob.hcm.EhcmPayrollGlobalValue;
 import sa.elm.ob.hcm.EhcmPosition;
+import sa.elm.ob.hcm.EmployeeSuspension;
 import sa.elm.ob.hcm.EmploymentGroupLines;
 import sa.elm.ob.hcm.EmploymentInfo;
 import sa.elm.ob.hcm.Jobs;
@@ -293,7 +294,7 @@ public class PayrollBaseProcessDAO {
     try {
       // Note should not check active flag because active flag set to false after new employment
       String whereClause = " e where e.ehcmEmpPerinfo.id = :empPerInfo and "
-          + "e.changereason in ('H', 'PR', 'PRT', 'OD',  'ID', 'ES', 'EOS') and "
+          + "e.changereason in ('H', 'PR', 'PRT', 'OD',  'ID', 'ES', 'EOS','SEC', 'SUS', 'SUE') and "
           + "((to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:fromdate) "
           + "and to_date(to_char(coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:todate,'dd-MM-yyyy')) "
           + "or (to_date(to_char( coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')) ,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:fromdate) "
@@ -541,7 +542,7 @@ public class PayrollBaseProcessDAO {
     try {
       // Note should not check active flag because active flag set to false after new employment
       String whereClause = " e where e.ehcmEmpPerinfo.id = :empPerInfo and "
-          + "e.changereason in ('H', 'PR', 'PRT', 'OD',  'ID', 'ES', 'EOS') and "
+          + "e.changereason in ('H', 'PR', 'PRT', 'OD',  'ID', 'ES', 'EOS', 'SEC', 'SUS', 'SUE') and "
           + "((to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:fromdate) "
           + "and to_date(to_char(coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:todate,'dd-MM-yyyy')) "
           + "or (to_date(to_char( coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')) ,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:fromdate) "
@@ -805,6 +806,66 @@ public class PayrollBaseProcessDAO {
     }
   }
 
+  public static List<ehcmpayscaleline> getApplicablePayScaleList(EmploymentInfo employment,
+      Date startDate, Date endDate, BigDecimal processingDays) {
+    List<ehcmpayscaleline> payScaleList = new ArrayList<ehcmpayscaleline>();
+    try {
+      String dbFormattedStartDate = sa.elm.ob.utility.util.Utility.formatDate(startDate);
+      String dbFormattedEndDate = sa.elm.ob.utility.util.Utility.formatDate(endDate);
+
+      String whereClause = "e where e.ehcmPayscale.ehcmGrade.id=:gradeId "
+          + "and e.ehcmProgressionpt.id = :pointsId "
+          + "and ((to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:startDate) "
+          + "and to_date(to_char(coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:endDate,'dd-MM-yyyy')) "
+          + "or (to_date(to_char( coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')) ,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:startDate) "
+          + "and to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:endDate,'dd-MM-yyyy'))) "
+          + "order by e.startDate ";
+
+      OBQuery<ehcmpayscaleline> payScaleQry = OBDal.getInstance()
+          .createQuery(ehcmpayscaleline.class, whereClause);
+      payScaleQry.setNamedParameter("gradeId", employment.getEmploymentgrade().getId());
+      payScaleQry.setNamedParameter("pointsId",
+          employment.getEhcmPayscaleline().getEhcmProgressionpt().getId());
+      payScaleQry.setNamedParameter("startDate", dbFormattedStartDate);
+      payScaleQry.setNamedParameter("endDate", dbFormattedEndDate);
+      payScaleQry.setFilterOnActive(false);
+      List<ehcmpayscaleline> payScaleLneList = payScaleQry.list();
+      for (ehcmpayscaleline payScaleLne : payScaleLneList) {
+        if (!PayrollBaseProcess.errorFlagMinor) {
+          log.info("PayScale Days applicable");
+          JSONObject payScalePeriodJSON = PayrollBaseProcess.getOverlapingDateRange(
+              payScaleLne.getStartDate(), payScaleLne.getEndDate(), startDate, endDate);
+
+          if (payScalePeriodJSON != null) {
+            Date applicablePayScaleStartDate = PayrollConstants.dateFormat
+                .parse(payScalePeriodJSON.getString("startDate"));
+            Date applicablePayScaleEndDate = PayrollConstants.dateFormat
+                .parse(payScalePeriodJSON.getString("endDate"));
+
+            BigDecimal payScaleAmount = payScaleLne.getAmount();
+            BigDecimal oneDayPayScale = payScaleAmount.divide(processingDays, 6,
+                BigDecimal.ROUND_HALF_UP);
+
+            ehcmpayscaleline payScaleObj = new ehcmpayscaleline();
+            payScaleObj.setStartDate(applicablePayScaleStartDate);
+            payScaleObj.setEndDate(applicablePayScaleEndDate);
+            payScaleObj.setAmount(oneDayPayScale);
+
+            payScaleList.add(payScaleObj);
+          }
+        }
+      }
+      return payScaleList;
+    } catch (Exception e) {
+      log.error("Error in PayrollBaseProcess.java : getApplicablePayScaleList() ");
+      e.printStackTrace();
+      PayrollBaseProcess.errorFlagMinor = true;
+      PayrollBaseProcess.errorMessage = "Error while getting Applicable Payscale List for Employment Grade "
+          + employment.getEmploymentgrade().getSearchKey();
+      return payScaleList;
+    }
+  }
+
   public static BigDecimal getLatestPayScaleValueInEmployment(EmploymentInfo empInfo,
       Date startDate, Date endDate) {
     BigDecimal payScaleAmount = BigDecimal.ZERO;
@@ -911,6 +972,66 @@ public class PayrollBaseProcessDAO {
       PayrollBaseProcess.errorMessage = "Error while calculating grade rate value for "
           + elmTypDef.getName();
       return BigDecimal.ZERO;
+    }
+  }
+
+  public static List<ehcmgraderatelines> getApplicableGradeRateList(EHCMElmttypeDef elmTypDef,
+      ehcmgraderates gradeRate, ehcmgrade grade, Date startDate, Date endDate,
+      BigDecimal processingDays) {
+    List<ehcmgraderatelines> gradeRateList = new ArrayList<ehcmgraderatelines>();
+    try {
+      String dbFormattedStartDate = sa.elm.ob.utility.util.Utility.formatDate(startDate);
+      String dbFormattedEndDate = sa.elm.ob.utility.util.Utility.formatDate(endDate);
+
+      String whereClause = "e where e.ehcmGraderates.id = :gradeRateId and e.grade.id=:gradeId "
+          + "and ((to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:startDate) "
+          + "and to_date(to_char(coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:endDate,'dd-MM-yyyy')) "
+          + "or (to_date(to_char( coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')) ,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:startDate) "
+          + "and to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:endDate,'dd-MM-yyyy')))";
+
+      OBQuery<ehcmgraderatelines> gradeLineQry = OBDal.getInstance()
+          .createQuery(ehcmgraderatelines.class, whereClause);
+      gradeLineQry.setNamedParameter("gradeRateId", gradeRate.getId());
+      gradeLineQry.setNamedParameter("gradeId", grade.getId());
+      gradeLineQry.setNamedParameter("startDate", dbFormattedStartDate);
+      gradeLineQry.setNamedParameter("endDate", dbFormattedEndDate);
+      gradeLineQry.setFilterOnActive(false);
+
+      List<ehcmgraderatelines> gradeLineList = gradeLineQry.list();
+      for (ehcmgraderatelines gradeRateLne : gradeLineList) {
+        log.info("GradeRate Days applicable");
+        JSONObject gradeRatePeriodJSON = PayrollBaseProcess.getOverlapingDateRange(
+            gradeRateLne.getStartDate(), gradeRateLne.getEndDate(), startDate, endDate);
+
+        if (gradeRatePeriodJSON != null) {
+          Date applicableGradeRateStartDate = PayrollConstants.dateFormat
+              .parse(gradeRatePeriodJSON.getString("startDate"));
+          Date applicableGradeRateEndDate = PayrollConstants.dateFormat
+              .parse(gradeRatePeriodJSON.getString("endDate"));
+
+          BigDecimal gradeRateValue = gradeRateLne.getSearchKey();
+          BigDecimal perDayGradeRate;
+          if (gradeRateLne.getEhcmGraderates().getDuration().equalsIgnoreCase("PM")) {
+            perDayGradeRate = gradeRateValue.divide(processingDays, 6, BigDecimal.ROUND_HALF_UP);
+          } else {
+            perDayGradeRate = gradeRateValue;
+          }
+
+          ehcmgraderatelines gradeRateLineObj = new ehcmgraderatelines();
+          gradeRateLineObj.setStartDate(applicableGradeRateStartDate);
+          gradeRateLineObj.setEndDate(applicableGradeRateEndDate);
+          gradeRateLineObj.setSearchKey(perDayGradeRate);
+          gradeRateList.add(gradeRateLineObj);
+        }
+      }
+      return gradeRateList;
+    } catch (Exception e) {
+      log.error("Error in PayrollProcess.java : getApplicableGradeRateList() ", e);
+      e.printStackTrace();
+      PayrollBaseProcess.errorFlagMinor = true;
+      PayrollBaseProcess.errorMessage = "Error while getting applicable grade rate list for "
+          + elmTypDef.getName();
+      return gradeRateList;
     }
   }
 
@@ -3352,6 +3473,47 @@ public class PayrollBaseProcessDAO {
   }
 
   public static BigDecimal calculateScholarshipDeductionValue(EmploymentInfo employment,
+      Date startDate, Date endDate, BigDecimal perDayValue, BigDecimal minDays) {
+    BigDecimal totalScholarshipDeductionValue = BigDecimal.ZERO;
+    try {
+      // Pay Scale
+      String dbFormattedStartDate = sa.elm.ob.utility.util.Utility.formatDate(startDate);
+      String dbFormattedEndDate = sa.elm.ob.utility.util.Utility.formatDate(endDate);
+
+      // Get No of Scholarship days in the pay scale duration
+      BigDecimal totalScholarshipDays = BigDecimal.ZERO;
+      List<EHCMEmpScholarship> scholarshipList = getScholarshipBusinessForEmployee(
+          employment.getEhcmEmpPerinfo(), dbFormattedStartDate, dbFormattedEndDate, minDays);
+
+      if (!PayrollBaseProcess.errorFlagMinor) {
+        for (EHCMEmpScholarship scholarship : scholarshipList) {
+          JSONObject scholarshipJSON = PayrollBaseProcess.getOverlapingDateRange(
+              scholarship.getStartDate(), scholarship.getEndDate(), startDate, endDate);
+          if (scholarshipJSON != null) {
+            BigDecimal scholarshipDays = new BigDecimal(scholarshipJSON.getLong("days"));
+            log.info("Applicable Scholarship Days in Payscale ==> " + scholarshipDays);
+            totalScholarshipDays = totalScholarshipDays.add(scholarshipDays);
+          }
+        }
+
+        log.info("Total Scholarship Days in Payscale ==> " + totalScholarshipDays);
+        if (totalScholarshipDays.compareTo(BigDecimal.ZERO) > 0) {
+          BigDecimal calculatedScholarshipValue = perDayValue.multiply(totalScholarshipDays)
+              .setScale(6, BigDecimal.ROUND_HALF_UP);
+          totalScholarshipDeductionValue = totalScholarshipDeductionValue
+              .add(calculatedScholarshipValue);
+        }
+      }
+      return totalScholarshipDeductionValue;
+    } catch (Exception e) {
+      log.error("Error in PayrollBaseProcessDAO.java : calculateScholarshipDeductionValue() ", e);
+      PayrollBaseProcess.errorFlagMinor = true;
+      PayrollBaseProcess.errorMessage = "Error while calculating Scholarship Deduction Value ";
+      return totalScholarshipDeductionValue;
+    }
+  }
+
+  public static BigDecimal calculateScholarshipDeductionValue(EmploymentInfo employment,
       Date startDate, Date endDate, BigDecimal processingDays, BigDecimal differenceDays,
       Date payrollEndDate, EHCMElmttypeDef payrollElement, BigDecimal minDays) {
     BigDecimal totalScholarshipDeductionValue = BigDecimal.ZERO;
@@ -3449,6 +3611,72 @@ public class PayrollBaseProcessDAO {
       PayrollBaseProcess.errorFlagMinor = true;
       PayrollBaseProcess.errorMessage = "Error while calculating Scholarship Deduction Value ";
       return totalScholarshipDeductionValue;
+    }
+  }
+
+  public static BigDecimal calculateSuspensionValue(EmploymentInfo employment, Date startDate,
+      Date endDate, BigDecimal perDayValue) {
+    BigDecimal totalSuspensionValue = BigDecimal.ZERO;
+    try {
+      String dbFormattedStartDate = sa.elm.ob.utility.util.Utility.formatDate(startDate);
+      String dbFormattedEndtDate = sa.elm.ob.utility.util.Utility.formatDate(endDate);
+
+      // Get No of Scholarship days in the pay scale duration
+      BigDecimal totalSuspensionDays = BigDecimal.ZERO;
+      List<EmployeeSuspension> suspensionList = getSuspensionForEmployee(
+          employment.getEhcmEmpPerinfo(), dbFormattedStartDate, dbFormattedEndtDate);
+
+      if (!PayrollBaseProcess.errorFlagMinor) {
+        for (EmployeeSuspension suspensionObj : suspensionList) {
+          JSONObject suspensionJSON = PayrollBaseProcess.getOverlapingDateRange(
+              suspensionObj.getStartDate(), suspensionObj.getEndDate(), startDate, endDate);
+          if (suspensionJSON != null) {
+            BigDecimal suspensionDays = new BigDecimal(suspensionJSON.getLong("days"));
+            log.info("Applicable Suspension Days in Payscale ==> " + suspensionDays);
+            totalSuspensionDays = totalSuspensionDays.add(suspensionDays);
+          }
+        }
+        log.info("Total Suspension Days in Payscale ==> " + totalSuspensionDays);
+        if (totalSuspensionDays.compareTo(BigDecimal.ZERO) > 0) {
+          BigDecimal calculatedSuspensionValue = perDayValue.multiply(totalSuspensionDays)
+              .setScale(6, BigDecimal.ROUND_HALF_UP);
+          totalSuspensionValue = totalSuspensionValue.add(calculatedSuspensionValue);
+        }
+      }
+      return totalSuspensionValue;
+    } catch (Exception e) {
+      log.error("Error in PayrollBaseProcessDAO.java : calculateSuspensionValue() ", e);
+      PayrollBaseProcess.errorFlagMinor = true;
+      PayrollBaseProcess.errorMessage = "Error while calculating Suspension Value ";
+      return totalSuspensionValue;
+    }
+  }
+
+  public static List<EmployeeSuspension> getSuspensionForEmployee(EhcmEmpPerInfo empPerInfo,
+      String startDate, String endDate) {
+    List<EmployeeSuspension> suspensionList = new ArrayList<EmployeeSuspension>();
+    try {
+      String whereClause = " e where e.ehcmEmpPerinfo.id= :employeeId and e.decisionType<>'CA' and e.suspensionType = 'SUS' "
+          + "and e.issueDecision='Y' and e.id not in(select a.originalDecisionNo from Ehcm_Emp_Suspension a where a.originalDecisionNo is not null) "
+          + "and ((to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:startDate) "
+          + "and to_date(to_char(coalesce(e.expectedEndDate, to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:endDate,'dd-MM-yyyy')) "
+          + "or (to_date(to_char( coalesce (e.expectedEndDate, to_date('21-06-2058','dd-MM-yyyy')) ,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:startDate) "
+          + "and to_date(to_char(e.startDate,'dd-MM-yyyy'), 'dd-MM-yyyy') <= to_date(:endDate, 'dd-MM-yyyy'))) "
+          + "order by e.startDate ";
+
+      OBQuery<EmployeeSuspension> suspensionQry = OBDal.getInstance()
+          .createQuery(EmployeeSuspension.class, whereClause);
+      suspensionQry.setNamedParameter("employeeId", empPerInfo.getId());
+      suspensionQry.setNamedParameter("startDate", startDate);
+      suspensionQry.setNamedParameter("endDate", endDate);
+      suspensionList = suspensionQry.list();
+      return suspensionList;
+    } catch (Exception e) {
+      log.error("Error in PayrollProcess.java : getSuspensionForEmployee() ", e);
+      PayrollBaseProcess.errorFlagMinor = true;
+      PayrollBaseProcess.errorMessage = "Error while getting Suspension of Employee "
+          + empPerInfo.getName();
+      return suspensionList;
     }
   }
 

@@ -1,5 +1,7 @@
 package sa.elm.ob.hcm.ad_process;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -69,16 +71,20 @@ public class JoinReqReactivateProcess extends DalBaseProcess {
       boolean chkIsActive = false;
       boolean chkEmplyInfoExistAfterJWR = false;
       int millSec = 1 * 24 * 3600 * 1000, a = 0;
+      PreparedStatement ps = null;
+      Connection conn = OBDal.getInstance().getConnection();
 
       EmploymentInfo employmentInfo = OBDal.getInstance().get(EmploymentInfo.class, employmentId);
-      chkEmplyInfoExistAfterJWR = JoinReqProcessDAO.chkEmplyInfoExistAfterJWR(joinReqProcess,
-          employmentInfo);
-      if (chkEmplyInfoExistAfterJWR) {
-        obError.setType("Error");
-        obError.setTitle("Error");
-        obError.setMessage(OBMessageUtils.messageBD("Ehcm_JoinIsactive_Error"));
-        bundle.setResult(obError);
-        return;
+      if (employmentInfo != null) {
+        chkEmplyInfoExistAfterJWR = JoinReqProcessDAO.chkEmplyInfoExistAfterJWR(joinReqProcess,
+            employmentInfo);
+        if (chkEmplyInfoExistAfterJWR) {
+          obError.setType("Error");
+          obError.setTitle("Error");
+          obError.setMessage(OBMessageUtils.messageBD("Ehcm_JoinIsactive_Error"));
+          bundle.setResult(obError);
+          return;
+        }
       }
       chkIsActive = JoinReqProcessDAO.chkIsActiveRecord(joinReqProcess);
       if (chkIsActive) {
@@ -220,6 +226,10 @@ public class JoinReqReactivateProcess extends DalBaseProcess {
       }
       if (promotionisjoinReq) {
         EmployeePromotionHandlerDAO.CancelinPromotion(empPromotion, vars);
+        ps = conn
+            .prepareStatement("delete from ehcm_posemp_history where ehcm_emp_promotion_id = ?");
+        ps.setString(1, empPromotion.getId());
+        ps.executeUpdate();
       }
       if (susjoinFlag) {
         int count = JoinReqProcessDAO.cancelEmploymentRecord(empSuspension, oldSuspension,

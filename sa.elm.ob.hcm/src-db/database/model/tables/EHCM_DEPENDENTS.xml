@@ -93,8 +93,15 @@
         <default/>
         <onCreateDefault/>
       </column>
+      <column name="LOOKUP_GENDER" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
       <foreign-key foreignTable="AD_CLIENT" name="EHCM_DEPENDENT_CLI">
         <reference local="AD_CLIENT_ID" foreign="AD_CLIENT_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="EUT_DEFLOOKUPS_TYPELN" name="EHCM_DEPENDENT_GENDER_FK">
+        <reference local="LOOKUP_GENDER" foreign="EUT_DEFLOOKUPS_TYPELN_ID"/>
       </foreign-key>
       <foreign-key foreignTable="AD_ORG" name="EHCM_DEPENDENT_ORG">
         <reference local="AD_ORG_ID" foreign="AD_ORG_ID"/>

@@ -15,7 +15,6 @@ import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.ehcmempstatusv;
 import sa.elm.ob.hcm.ad_forms.employee.dao.EmployeeDAO;
 import sa.elm.ob.hcm.dao.profile.EmployeeProfileDAO;
-import sa.elm.ob.hcm.dao.profile.EmployeeProfileDAOImpl;
 import sa.elm.ob.hcm.dto.profile.AddressInformationDTO;
 import sa.elm.ob.hcm.dto.profile.DependentInformationDTO;
 import sa.elm.ob.hcm.dto.profile.EmployeeAdditionalInformationDTO;
@@ -37,7 +36,6 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
 
   @Override
   public EmployeeProfileDTO getEmployeeProfileByUser(String username) {
-    employeeProfileDAO = new EmployeeProfileDAOImpl();
     EhcmEmpPerInfo employeePersonalInfo = employeeProfileDAO.getEmployeeProfileByUser(username);
     // Fill the DTO's
     EmployeeProfileDTO employeeProfileDTO = new EmployeeProfileDTO();
@@ -223,12 +221,11 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
       personalInformationDTO.setDob(
           DateUtils.convertDateToString(OPEN_BRAVO_DATE_FORMAT, employeePersonalInfo.getDob()));
     }
-    if (null != employeePersonalInfo.getEhcmTitletype()) {
-      personalInformationDTO.setTitle(employeePersonalInfo.getEhcmTitletype().getName());
-    }
+    personalInformationDTO.setTitle(employeePersonalInfo.getLookupTitle().getEnglishName());
     personalInformationDTO.setNationalId(employeePersonalInfo.getNationalityIdentifier());
-    personalInformationDTO.setMaritalStatus(employeePersonalInfo.getMarialstatus());
-    personalInformationDTO.setGender(employeePersonalInfo.getGender());
+    personalInformationDTO
+        .setMaritalStatus(employeePersonalInfo.getLookupMaritalStatus().getEnglishName());
+    personalInformationDTO.setGender(employeePersonalInfo.getLookupGender().getEnglishName());
 
     return personalInformationDTO;
 
@@ -308,7 +305,7 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
         dependentInformationDTO
             .setDob(DateUtils.convertDateToString(OPEN_BRAVO_DATE_FORMAT, ehcmDependent.getDob()));
       }
-      dependentInformationDTO.setGender(ehcmDependent.getGender());
+      dependentInformationDTO.setGender(ehcmDependent.getLookupGender().getEnglishName());
 
       dependentsList.add(dependentInformationDTO);
 
@@ -349,7 +346,6 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
 
   @Override
   public User findEmployeeUser(String username) {
-    // TODO Auto-generated method stub
     employeeProfileDAO.getEmployeeProfileByUser(username);
     return null;
   }

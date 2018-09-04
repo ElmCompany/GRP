@@ -141,7 +141,7 @@ public class EmployeeDelegationCallout extends SimpleCallout {
           OBQuery<EmployeeDelegation> objEmpQuery = OBDal.getInstance().createQuery(
               EmployeeDelegation.class,
               "as e where e.ehcmEmploymentInfo.id='" + employmentInfoId
-                  + "' and e.ehcmEmploymentInfo.enabled='Y' and e.decisionStatus != 'UP'"
+                  + "' and e.ehcmEmploymentInfo.enabled='Y' and e.enabled='Y' and e.decisionStatus != 'UP'"
                   + "  and e.ehcmEmploymentInfo.alertStatus='ACT' order by e.creationDate desc");
           objEmpQuery.setMaxResult(1);
           if (objEmpQuery.list().size() > 0) {

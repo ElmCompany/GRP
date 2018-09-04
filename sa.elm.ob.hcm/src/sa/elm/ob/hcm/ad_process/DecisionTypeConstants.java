@@ -27,4 +27,14 @@ public class DecisionTypeConstants {
   public static String CHANGEREASON_JWR_SECONDMENT = "JWRSEC";
   public static String CHANGEREASON_SECONDMENT_DELAY = "SECDLY";
 
+  // employment status
+  public static String EMPLOYMENTSTATUS_SECONDMENT = "SE";
+  public static String EMPLOYMENTSTATUS_EXTENDSERVICE = "EOS";
+  public static String EMPLOYMENTSTATUS_EXTRASTEP = "ES";
+  public static String EMPLOYMENTSTATUS_ACTIVE = "AC";
+
+  // status
+  public static final String Status_active = "ACT";
+  public static final String Status_Inactive = "INACT";
+
 }

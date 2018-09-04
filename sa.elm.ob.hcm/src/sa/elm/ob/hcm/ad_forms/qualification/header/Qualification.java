@@ -219,6 +219,13 @@ public class Qualification extends HttpSecureAppServlet {
             request.setAttribute("inpAddressId", dao1.getEmployeeAddressId(employeeId));
           request.setAttribute("CancelHiring",
               dao1.checkEmploymentStatusCancel(vars.getClient(), employeeId));
+          if (request.getParameter("inpEmployeeStatus") != null) {
+            request.setAttribute("inpEmployeeStatus",
+                request.getParameter("inpEmployeeStatus").toString());
+          }
+          if (request.getParameter("inpEmpStatus") != null) {
+            request.setAttribute("inpEmpStatus", request.getParameter("inpEmpStatus").toString());
+          }
           dispatch = request
               .getRequestDispatcher("../web/sa.elm.ob.hcm/jsp/qualification/qualification.jsp");
         }
@@ -267,6 +274,13 @@ public class Qualification extends HttpSecureAppServlet {
             request.setAttribute("inpAddressId", null);
           else
             request.setAttribute("inpAddressId", dao1.getEmployeeAddressId(employeeId));
+          if (request.getParameter("inpEmployeeStatus") != null) {
+            request.setAttribute("inpEmployeeStatus",
+                request.getParameter("inpEmployeeStatus").toString());
+          }
+          if (request.getParameter("inpEmpStatus") != null) {
+            request.setAttribute("inpEmpStatus", request.getParameter("inpEmpStatus").toString());
+          }
           dispatch = request
               .getRequestDispatcher("../web/sa.elm.ob.hcm/jsp/qualification/qualification.jsp");
 

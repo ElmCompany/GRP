@@ -33,13 +33,12 @@ public class AssetDAO {
     ResultSet rs = null;
     AssetVO assetVO = null;
     try {
-      st = conn
-          .prepareStatement("SELECT ehcm_emp_asset_id, ehcm_emp_perinfo_id,"
-              + "(select eut_convert_to_hijri (to_char(start_date,'YYYY-MM-DD HH24:MI:SS' ))) as startdate,"
-              + "(select eut_convert_to_hijri (to_char(end_date,'YYYY-MM-DD HH24:MI:SS' ))) as enddate,"
-              + "(select eut_convert_to_hijri (to_char(letter_date,'YYYY-MM-DD HH24:MI:SS' ))) as letterdate,"
-              + " name as name ,decision_no as decisionNo , letter_no as letterNo,balance as balance,description "
-              + "FROM ehcm_emp_asset WHERE ehcm_emp_asset_id = ?");
+      st = conn.prepareStatement("SELECT ehcm_emp_asset_id, ehcm_emp_perinfo_id,"
+          + "(select eut_convert_to_hijri (to_char(start_date,'YYYY-MM-DD HH24:MI:SS' ))) as startdate,"
+          + "(select eut_convert_to_hijri (to_char(end_date,'YYYY-MM-DD HH24:MI:SS' ))) as enddate,"
+          + "(select eut_convert_to_hijri (to_char(letter_date,'YYYY-MM-DD HH24:MI:SS' ))) as letterdate,"
+          + " name as name ,decision_no as decisionNo , letter_no as letterNo,balance as balance,description,documentno "
+          + "FROM ehcm_emp_asset WHERE ehcm_emp_asset_id = ?");
 
       st.setString(1, assetId);
 
@@ -55,6 +54,7 @@ public class AssetDAO {
         assetVO.setDecisionno(Utility.nullToEmpty(rs.getString("decisionNo")));
         assetVO.setBalance(rs.getBigDecimal("balance"));
         assetVO.setDescription(Utility.nullToEmpty(rs.getString("description")));
+        assetVO.setDocumentno(Utility.nullToEmpty(rs.getString("documentno")));
 
       }
     } catch (final SQLException e) {
@@ -130,13 +130,14 @@ public class AssetDAO {
       aVO.setStatus("0_0_0");
       ls.add(aVO);
       int offset = 0, totalPage = 0, totalRecord = 0;
-      int rows = Integer.parseInt(searchAttr.getString("rows")), page = Integer.parseInt(searchAttr
-          .getString("page"));
+      int rows = Integer.parseInt(searchAttr.getString("rows")),
+          page = Integer.parseInt(searchAttr.getString("page"));
 
       whereClause = " AND ad_client_id = '" + clientId + "' ";
 
       if (searchAttr.has("search") && searchAttr.getString("search").equals("true")) {
-
+        if (!StringUtils.isEmpty(assetVO.getDocumentno()))
+          whereClause += " and documentno ilike '%" + assetVO.getDocumentno() + "%'";
         if (!StringUtils.isEmpty(assetVO.getAssetname()))
           whereClause += " and name ilike '%" + assetVO.getAssetname() + "%'";
         if (!StringUtils.isEmpty(assetVO.getLetterno()))
@@ -228,7 +229,7 @@ public class AssetDAO {
       ls.add(aVO);
 
       // Employee Details
-      sqlQuery = "SELECT ehcm_cus_asset_v_id, ehcm_emp_perinfo_id,start_date as startdate,end_date as enddate,"
+      sqlQuery = "SELECT ehcm_cus_asset_v_id, ehcm_emp_perinfo_id,start_date as startdate,end_date as enddate,documentno,"
           + "letter_date as letterdate, name as name ,decision_no as decisionNo , letter_no as letterNo,balance as balance,description,flag "
           + "FROM ehcm_cus_asset_v WHERE ehcm_emp_perinfo_id ='" + selEmployeeId + "'";
       sqlQuery += whereClause;
@@ -268,7 +269,7 @@ public class AssetDAO {
         aVO.setBalance(rs.getBigDecimal("balance"));
         aVO.setDescription(Utility.nullToEmpty(rs.getString("description")));
         aVO.setFlag(rs.getString("flag"));
-    
+        aVO.setDocumentno(rs.getString("documentno"));
         ls.add(aVO);
       }
     } catch (final Exception e) {

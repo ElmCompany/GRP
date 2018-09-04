@@ -33,7 +33,7 @@ import sa.elm.ob.utility.util.DateUtils;
 public class EmploymentInformationServiceImpl implements EmploymentInformationService {
 
   private static final String OPEN_BRAVO_DATE_FORMAT = "dd-MM-yyyy";
-  private static final String OPEN_BRAVO_GREG_DATE_FORMAT = "yyyy-MM-dd hh:mm:ss";
+
   private final String EMPLOYEE_INFORMATIONS_WORKFLOW_KEY = "empInfoWorkflow";
 
   @Autowired
@@ -135,7 +135,8 @@ public class EmploymentInformationServiceImpl implements EmploymentInformationSe
         qualificationDTO.setId(qualificationOB.getId());
         qualificationDTO.setLocation(qualificationOB.getLocation());
         qualificationDTO.setDegree(qualificationOB.getDegree());
-        qualificationDTO.setEducationLevel(qualificationOB.getEdulevel());
+        qualificationDTO
+            .setEducationLevel(qualificationOB.getLookupEducationLevel().getEnglishName());
         qualificationDTO.setMajor(qualificationOB.getLicensesub());
         qualificationViewList.add(qualificationDTO);
       }
@@ -397,7 +398,7 @@ public class EmploymentInformationServiceImpl implements EmploymentInformationSe
         DateUtils.convertDateToString(OPEN_BRAVO_DATE_FORMAT, qualification.getExpirydate()));
 
     qualificationDTO.setDegree(qualification.getDegree());
-    qualificationDTO.setEducationLevel(qualification.getEdulevel());
+    qualificationDTO.setEducationLevel(qualification.getLookupEducationLevel().getEnglishName());
     qualificationDTO.setMajor(qualification.getLicensesub());
 
     return qualificationDTO;

@@ -631,6 +631,8 @@
                                                                         <TD class="TextBox_ContentCell">
                                                                          <SELECT id="inpRelationship" name="inpRelationship" class="ComboKey Combo_TwoCells_width required" onchange="document.getElementById('messageBoxID').style.display = 'none';enableForm();empnamedetails(); " onclick="enableForm();">
                                                                              <OPTION value='0' selected><%= Resource.getProperty("hcm.select", lang)%></OPTION>
+                                                                             <OPTION value="H" <%if(request.getAttribute("inpRelationship") !=null && request.getAttribute("inpRelationship").equals("H")){%> selected<%} %>><%= Resource.getProperty("hcm.husband",lang)%></OPTION>
+                                                                             <OPTION value="W" <%if(request.getAttribute("inpRelationship") !=null && request.getAttribute("inpRelationship").equals("W")){%> selected<%} %>><%= Resource.getProperty("hcm.wife",lang)%></OPTION>
                                                                              <OPTION value="S" <%if(request.getAttribute("inpRelationship") !=null && request.getAttribute("inpRelationship").equals("S")){%> selected<%} %>><%= Resource.getProperty("hcm.son",lang)%></OPTION>
                                                                              <OPTION value="D" <%if(request.getAttribute("inpRelationship") !=null && request.getAttribute("inpRelationship").equals("D")){%> selected<%} %>><%= Resource.getProperty("hcm.daughter",lang)%></OPTION>
                                                                              <OPTION value="M" <%if(request.getAttribute("inpRelationship") !=null && request.getAttribute("inpRelationship").equals("M")){%> selected<%} %>><%= Resource.getProperty("hcm.mother",lang)%></OPTION>
@@ -1226,7 +1228,7 @@ function checkValidData() {
         });
       
     } 
-    else if (document.getElementById("inpNatIdf").value!=''){
+    if (document.getElementById("inpNatIdf").value!=''){
         var url=contextPath+"/sa.elm.ob.hcm.ad_forms.dependents.ajax/DependentsAjax?action=CheckNationalNum";
         $.ajax({
             type:'GET',

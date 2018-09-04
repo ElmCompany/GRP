@@ -3,6 +3,7 @@ package sa.elm.ob.hcm.util;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Date;
 
 import javax.imageio.ImageIO;
@@ -233,7 +234,8 @@ public class Utility {
    * @return
    * @throws IOException
    */
-  public static int balanceDaysInYear(String employeeId, String DecisionType) throws IOException {
+  public static BigDecimal balanceDaysInYear(String employeeId, String DecisionType)
+      throws IOException {
     return UtilityDAO.getbalanceDaysInYear(employeeId, DecisionType);
   }
 }

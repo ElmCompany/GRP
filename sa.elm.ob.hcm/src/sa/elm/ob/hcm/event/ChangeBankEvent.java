@@ -107,6 +107,10 @@ public class ChangeBankEvent extends EntityPersistenceEventObserver {
       EfinBankBranch bankbranch = changebank.getBankBranch();
       Boolean isExist = true;
       String result = null;
+      if (changebank.getStartDate() == null) {
+        throw new OBException(OBMessageUtils.messageBD("EHCM_change_bank_startdate"));
+      }
+
       if (changebank.getStartDate().compareTo(changebank.getEffectiveDate()) >= 0) {
         throw new OBException(OBMessageUtils.messageBD("EHCM_change_bank_error"));
       }

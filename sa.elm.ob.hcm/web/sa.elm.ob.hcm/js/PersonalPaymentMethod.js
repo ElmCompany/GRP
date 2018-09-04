@@ -429,7 +429,7 @@ getBankBranch = function (e) {
 	 // inline editing
 	  rowid = $this.closest("tr.jqgrow").attr("id");
 	  var row = $this.closest('tr.jqgrow');
-		var branchList= '<option role="option" value="0">' + select + '</option>';
+		var branchList='<option role="option" value="0">' + select + '</option>';
         $('select[id*="' + rowid + '_Bank_Branch"]', row).empty();
         
 		 $.ajax({
@@ -462,7 +462,8 @@ getBankBranch = function (e) {
 function getbankBranchOnSelection(rowid){
 	 var row=$('tr#' + rowid);//$("#bankdetailslist").jqGrid('getGridParam',"selrow");
 	 var bankId= $("#bankdetailslist").jqGrid ('getCell', rowid, 'Bank_Name');
-		var branchList= '0:' + select + ';';
+		var branchList= '';//'0:' + select + ';';
+	 
  
 
 		 $.ajax({
@@ -477,7 +478,7 @@ function getbankBranchOnSelection(rowid){
 			    success: function (result) {
 			      if (result != undefined && result.length > 0) {
 			        for (var i = 0; i < result.length; i++) {
-			        	branchList +=  result[i].BankId + ':' + result[i].Branchcode + ';';
+			        	  branchList +=  result[i].BankId + ':' + result[i].Branchcode + ';';
 			        }
 			     
 			      }
@@ -610,32 +611,7 @@ function getbankBranchOnSelection(rowid){
 	  if (type == "ED" && document.getElementById("gs_End_Date").value != "") medicalInsuGrid[0].triggerToolbar();
 	}
 	
-	function alreadyExistPPMBankDetail(paymentmethodId,Is_Default){
-		 var isExists=false;
-	    
-	         $.ajax({     
-	             type:'GET',
-	             url:contextPath + '/sa.elm.ob.hcm.ad_forms.personalpaymentmethod.ajax/PersonalPaymentMethodAjax?action=checkDefaultPPMAlreadyExistBankDetail',            
-	             data:{inppersonalpaymethodId:document.getElementById("inpehcmPersonalPaymethdId").value,inpIsDefault :Is_Default },
-	             dataType:'xml',
-	             async:false,
-	             success:function(data)
-	             {       	                    
-	                 $(data).find("checkDefaultPPMAlreadyExistBankDetail").each(function()
-	                 {    
-	                     var result=$(this).find("value").text();
-	                     if(result=="true" && Is_Default){
-	                    	 isExists=true;	                            
-	                     }
-	                     else{
-	                    	 isExists=false;
-	                     }
-	                 });  
-	             }
-	         });
-  	       return isExists;
-	  	   
-	}
+	
  function saverow(options, rowid) {
 	  var percentage = $("#" + $.jgrid.jqID(rowid + "_Percentage")).val();
       var accnum = $("#" + $.jgrid.jqID(rowid + "_Account_Number")).val();
@@ -643,18 +619,48 @@ function getbankBranchOnSelection(rowid){
       var enddate =  $("#" + $.jgrid.jqID(rowid + "_End_Date")).val();
       var Bank_id = $("#" + $.jgrid.jqID(rowid + "_Bank_Name")).val();
       var Is_default = $("#" + $.jgrid.jqID(rowid + "_Default")).prop('checked');
+      
+      
+      
       if(enddate!==''&&Is_default){
     	OBAlert(EnddateShouldbenull);  
     	return false;
       }
       else{
-      var duplicateRowBankDetail=alreadyExistPPMBankDetail(document.getElementById("inpehcmPersonalPaymethdId").value,Is_default);
+      var duplicateRowBankDetail=alreadyExistPPMBankDetail(document.getElementById("inpehcmPersonalPaymethdId").value,Is_default,rowid);
  }
       if(duplicateRowBankDetail){
     	  OBAlert(DefaultValidation);
     	  return false;
       }
       
+      
+      function alreadyExistPPMBankDetail(paymentmethodId,Is_Default,rowid){
+ 		 var isExists=false;
+ 	    
+ 	         $.ajax({     
+ 	             type:'GET',
+ 	             url:contextPath + '/sa.elm.ob.hcm.ad_forms.personalpaymentmethod.ajax/PersonalPaymentMethodAjax?action=checkDefaultPPMAlreadyExistBankDetail',            
+ 	             data:{inppersonalpaymethodId:document.getElementById("inpehcmPersonalPaymethdId").value,inpIsDefault :Is_Default,inprowid:rowid},
+ 	             dataType:'xml',
+ 	             async:false,
+ 	             success:function(data)
+ 	             {       	                    
+ 	                 $(data).find("checkDefaultPPMAlreadyExistBankDetail").each(function()
+ 	                 {    
+ 	                     var result=$(this).find("value").text();
+ 	                     if(result=="true" && Is_Default){
+ 	                    	 isExists=true;	                            
+ 	                     }
+ 	                     else{
+ 	                    	 isExists=false;
+ 	                     }
+ 	                 });  
+ 	             }
+ 	         });
+   	       return isExists;
+ 	  	   
+ 	}
     
 	  var percentagevalidation = percentageValidation(percentage, document.getElementById("inpehcmPersonalPaymethdId").value,rowid);
 	        if (!percentagevalidation) {

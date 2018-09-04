@@ -286,6 +286,14 @@ public class Dependents extends HttpSecureAppServlet {
             request.setAttribute("inpAddressId", empdao.getEmployeeAddressId(employeeId));
           }
         }
+
+        if (request.getParameter("inpEmpStatus") != null) {
+          request.setAttribute("inpEmpStatus", request.getParameter("inpEmpStatus").toString());
+        }
+        if (request.getParameter("inpEmployeeStatus") != null) {
+          request.setAttribute("inpEmployeeStatus",
+              request.getParameter("inpEmployeeStatus").toString());
+        }
         dispatch = request
             .getRequestDispatcher("../web/sa.elm.ob.hcm/jsp/dependents/Dependents.jsp");
 

@@ -471,6 +471,13 @@ public class Employment extends HttpSecureAppServlet {
           }
           request.setAttribute("cancelHiring",
               dao.employmentCancelHiring(employeeId, vars.getClient()));
+          if (StringUtils.isNotBlank(request.getParameter("inpEmployeeStatus"))) {
+            request.setAttribute("inpEmployeeStatus",
+                request.getParameter("inpEmployeeStatus").toString());
+          }
+          if (StringUtils.isNotBlank(request.getParameter("inpEmpStatus"))) {
+            request.setAttribute("inpEmpStatus", request.getParameter("inpEmpStatus").toString());
+          }
           dispatch = request
               .getRequestDispatcher("../web/sa.elm.ob.hcm/jsp/employement/Employment.jsp");
         }

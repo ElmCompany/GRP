@@ -1053,7 +1053,7 @@ function onClickDelete() {
 
                 xmlhttp = new getXMLObject();
                 if (xmlhttp) {
-                    var urlPath = "&inpEmployeeId=" + document.getElementById("inpEmployeeId").value;
+                    var urlPath = "&inpEmployeeId=" + document.getElementById("inpEmployeeId").value+"&inpEmpstatus=" + document.getElementById("inpEmployeeStatus").value;
 
                     xmlhttp.open("GET", '<%=request.getContextPath()%>/EmployeeAjax?action=DeleteEmployee' + urlPath, true);
                     xmlhttp.onreadystatechange = function() {

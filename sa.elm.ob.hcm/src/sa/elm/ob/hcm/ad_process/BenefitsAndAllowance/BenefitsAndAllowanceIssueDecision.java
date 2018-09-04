@@ -1,5 +1,6 @@
 package sa.elm.ob.hcm.ad_process.BenefitsAndAllowance;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,6 +31,8 @@ public class BenefitsAndAllowanceIssueDecision implements Process {
         allowanceId);
     HttpServletRequest request = RequestContext.get().getRequest();
     VariablesSecureApp vars = new VariablesSecureApp(request);
+    BenefitsAndAllowanceDAOImpl empAllowanceDAOImpl = new BenefitsAndAllowanceDAOImpl();
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
     try {
       OBContext.setAdminMode(true);
       log.debug("issueDecision B&A :" + allowance.isSueDecision());
@@ -37,17 +40,61 @@ public class BenefitsAndAllowanceIssueDecision implements Process {
 
       // check Issued or not
       if (!allowance.isSueDecision()) {
-        // update status as Issued and set decision date for all cases
-        allowance.setSueDecision(true);
-        allowance.setDecisionDate(new Date());
-        allowance.setDecisionStatus("I");
-        OBDal.getInstance().save(allowance);
-        OBDal.getInstance().flush();
+        if ("UP".equals(allowance.getDecisionType())) {
+          boolean isProc = false;
+          EHCMBenefitAllowance orgAllowance = OBDal.getInstance().get(EHCMBenefitAllowance.class,
+              allowance.getOriginalDecisionNo().getId());
+          // Check if original decision processed
+          if (empAllowanceDAOImpl.checkPayrollProcessed(orgAllowance)) {
+            Date originalStartDate = orgAllowance.getStartDate();
+            Date updateStartDate = allowance.getStartDate();
+            Date originalEndDate = orgAllowance.getEndDate();
+            Date updateEndDate = allowance.getEndDate();
 
-        obError.setType("Success");
-        obError.setTitle("Success");
-        obError.setMessage(OBMessageUtils.messageBD("Efin_BudgetPre_Submit"));
-        bundle.setResult(obError);
+            originalStartDate = formatter.parse(orgAllowance.getStartDate().toString());
+            updateStartDate = formatter.parse(allowance.getStartDate().toString());
+            if (orgAllowance.getEndDate() != null)
+              originalEndDate = formatter.parse(orgAllowance.getEndDate().toString());
+            if (allowance.getEndDate() != null)
+              updateEndDate = formatter.parse(allowance.getEndDate().toString());
+
+            // Case 1:Check start date should not be changed
+            if (originalStartDate.compareTo(updateStartDate) != 0) {
+              isProc = true;
+            } // Case 2:Check original end date is greater if yes, don't allow to update
+            else if ((originalEndDate != null && updateEndDate != null)
+                && originalEndDate.compareTo(updateEndDate) > 0) {
+              isProc = true;
+            }
+          }
+          if (isProc) {
+            obError.setType("Error");
+            obError.setTitle("Error");
+            obError.setMessage(OBMessageUtils.messageBD("EHCM_OrginalDecisionPayrollProc"));
+            bundle.setResult(obError);
+            return;
+          }
+        }
+        if (empAllowanceDAOImpl.checkPayrollProcessed(allowance)) {
+          obError.setType("Error");
+          obError.setTitle("Error");
+          obError.setMessage(OBMessageUtils.messageBD("EHCM_PayrollProcessed"));
+          bundle.setResult(obError);
+          return;
+        } else {
+          // update status as Issued and set decision date for all cases
+          allowance.setSueDecision(true);
+          allowance.setDecisionDate(new Date());
+          allowance.setDecisionStatus("I");
+          OBDal.getInstance().save(allowance);
+          OBDal.getInstance().flush();
+
+          obError.setType("Success");
+          obError.setTitle("Success");
+          obError.setMessage(OBMessageUtils.messageBD("Efin_BudgetPre_Submit"));
+          bundle.setResult(obError);
+        }
+
         OBDal.getInstance().flush();
         OBDal.getInstance().commitAndClose();
       }

@@ -92,6 +92,16 @@ public class PayrollConfirmDao {
                 isError = true;
               }
             }
+
+            // Ticket Order
+            if (ref.getTicketOrders() != null) {
+              if (!ref.getTicketOrders().getDecisionStatus().equals("PR")) {
+                errorMessage = errorMessage + seperator + ref.getPayrollElement().getName() + "-"
+                    + ref.getTicketOrders().getDecisionNo();
+                isError = true;
+              }
+            }
+
           }
 
           // update element to processed if no error.

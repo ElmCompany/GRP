@@ -29,6 +29,7 @@ import sa.elm.ob.hcm.dto.profile.DependentInformationDTO;
 import sa.elm.ob.hcm.dto.profile.EmployeeAdditionalInformationDTO;
 import sa.elm.ob.hcm.dto.profile.PersonalInformationDTO;
 import sa.elm.ob.hcm.properties.Resource;
+import sa.elm.ob.hcm.selfservice.dao.lookup.LookUpDAO;
 import sa.elm.ob.hcm.selfservice.exceptions.BusinessException;
 import sa.elm.ob.hcm.selfservice.exceptions.SystemException;
 import sa.elm.ob.hcm.selfservice.security.SecurityUtils;
@@ -45,6 +46,9 @@ public class EmployeeProfileUpdateDAOImpl implements EmployeeProfileUpdateDAO {
 
   @Autowired
   private EmployeeProfileDAO employeeProfileDAO;
+
+  @Autowired
+  private LookUpDAO lookUpDAO;
 
   /**
    * find Title by Title Name
@@ -105,7 +109,7 @@ public class EmployeeProfileUpdateDAOImpl implements EmployeeProfileUpdateDAO {
       PersonalInformationDTO personalInformationDTO) throws SystemException {
     try {
       OBContext.setAdminMode();
-      // TODO Auto-generated method stub
+
       employeeOB.setName(personalInformationDTO.getFirstNameEn());
       employeeOB.setArabicname(personalInformationDTO.getFirstNameAr());
       employeeOB.setArabicfatname(personalInformationDTO.getFatherNameAr());
@@ -119,21 +123,17 @@ public class EmployeeProfileUpdateDAOImpl implements EmployeeProfileUpdateDAO {
           employeeOB.setDob(DateUtils.convertStringToDate(OPEN_BRAVO_DATE_FORMAT,
               personalInformationDTO.getDob()));
         } catch (ParseException e) {
-          // TODO Auto-generated catch block
           e.printStackTrace();
         }
       }
-      // get title id based on title name
-      if (personalInformationDTO.getTitle() != null) {
-
-        employeeOB
-            .setEhcmTitletype(findTitleByTitleName(personalInformationDTO.getTitle(), employeeOB));
-      }
+      employeeOB.setLookupTitle(lookUpDAO.findSubLookupByCode(personalInformationDTO.getTitle()));
 
       employeeOB.setNationalityIdentifier(personalInformationDTO.getNationalId());
-      employeeOB.setMarialstatus(personalInformationDTO.getMaritalStatus());
-      employeeOB.setGender(personalInformationDTO.getGender());
+      employeeOB.setLookupMaritalStatus(
+          lookUpDAO.findSubLookupByCode(personalInformationDTO.getMaritalStatus()));
+      employeeOB.setLookupGender(lookUpDAO.findSubLookupByCode(personalInformationDTO.getGender()));
       OBDal.getInstance().save(employeeOB);
+      OBDal.getInstance().flush();
     } catch (OBException e) {
       throw new OBException(e.getMessage());
     } finally {
@@ -145,7 +145,7 @@ public class EmployeeProfileUpdateDAOImpl implements EmployeeProfileUpdateDAO {
   @Override
   public void updateEmployeeDependent(EhcmEmpPerInfo employeeOB,
       DependentInformationDTO ehcmDependent) throws SystemException {
-    // TODO Auto-generated method stub
+
     try {
       OBContext.setAdminMode();
       // find dependent
@@ -180,7 +180,7 @@ public class EmployeeProfileUpdateDAOImpl implements EmployeeProfileUpdateDAO {
   @Override
   public void updateEmployeeAddress(EhcmEmpPerInfo employeeOB,
       AddressInformationDTO addressInformationDTO) throws SystemException, BusinessException {
-    // TODO Auto-generated method stub
+
     try {
       OBContext.setAdminMode();
       EHCMEmpAddress ehcmEmpAddress = null;// Need to
@@ -239,7 +239,7 @@ public class EmployeeProfileUpdateDAOImpl implements EmployeeProfileUpdateDAO {
   @Override
   public void addDependent(String userName, DependentInformationDTO dependentInformationDTO)
       throws SystemException {
-    // TODO Auto-generated method stub
+
     try {
       OBContext.setAdminMode();
       EhcmEmpPerInfo employeeOB = employeeProfileDAO.getEmployeeProfileByUser(userName);
@@ -257,11 +257,11 @@ public class EmployeeProfileUpdateDAOImpl implements EmployeeProfileUpdateDAO {
           ehcmDependents.setDob(DateUtils.convertStringToDate(OPEN_BRAVO_DATE_FORMAT,
               dependentInformationDTO.getDob()));
         } catch (ParseException e) {
-          // TODO Auto-generated catch block
           e.printStackTrace();
         }
       }
-      ehcmDependents.setGender(dependentInformationDTO.getGender());
+      ehcmDependents
+          .setLookupGender(lookUpDAO.findSubLookupByCode(dependentInformationDTO.getGender()));
       ehcmDependents.setEhcmEmpPerinfo(employeeOB);
       ehcmDependents.setOrganization(employeeOB.getOrganization());
       ehcmDependents.setClient(employeeOB.getClient());
@@ -281,7 +281,7 @@ public class EmployeeProfileUpdateDAOImpl implements EmployeeProfileUpdateDAO {
   @Override
   public void removeDependent(String userName, String dependentId)
       throws SystemException, BusinessException {
-    // TODO Auto-generated method stub
+
     final String userLang = SecurityUtils.getUserLanguage();
     try {
       OBContext.setAdminMode();
@@ -304,7 +304,7 @@ public class EmployeeProfileUpdateDAOImpl implements EmployeeProfileUpdateDAO {
   public void updateContactInformation(String userName,
       EmployeeAdditionalInformationDTO additionalInformationDTO)
       throws SystemException, BusinessException {
-    // TODO Auto-generated method stub
+
     try {
       OBContext.setAdminMode();
       EhcmEmpPerInfo employeeOB = employeeProfileDAO.getEmployeeProfileByUser(userName);
@@ -327,7 +327,7 @@ public class EmployeeProfileUpdateDAOImpl implements EmployeeProfileUpdateDAO {
   @Override
   public EhcmDependents findDependentByNationalId(String userName, String NationalID)
       throws SystemException, BusinessException {
-    // TODO Auto-generated method stub
+
     EhcmEmpPerInfo employeeOB = employeeProfileDAO.getEmployeeProfileByUser(userName);
     EhcmDependents ehcmDependents = findDependentByNationalId(NationalID, employeeOB);
     return ehcmDependents;
@@ -336,7 +336,7 @@ public class EmployeeProfileUpdateDAOImpl implements EmployeeProfileUpdateDAO {
   @Override
   public void updateProfilePhoto(String userName, String PhotoBytes)
       throws SystemException, BusinessException {
-    // TODO Auto-generated method stub
+
     try {
       // find dependent
       OBContext.setAdminMode();

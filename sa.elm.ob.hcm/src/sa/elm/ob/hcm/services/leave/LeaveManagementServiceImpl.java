@@ -135,7 +135,7 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
       viewLeaveList.add(viewLeaveDTO);
 
     }
-    // TODO Auto-generated method stub
+
     return viewLeaveList;
   }
 
@@ -205,14 +205,14 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
       }
       viewAccuralList.add(viewLeaveAccuralDTO);
     }
-    // TODO Auto-generated method stub
+
     return viewAccuralList;
   }
 
   @Override
   public Boolean submitLeaveRequest(String username, LeaveRequestDTO leaveRequestDTO)
       throws SystemException, BusinessException {
-    // TODO Auto-generated method stub
+
     // create leave request based on decision
     createOrUpdateLeaveRequest(username, leaveRequestDTO, Constants.CREATE_DECISION);
     return true;
@@ -227,7 +227,7 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
    */
   private EHCMAbsenceAttendance createAbsenceAttendanceForEmployee(EhcmEmpPerInfo employeeOB,
       LeaveRequestDTO leaveRequestDTO, String decisionType, EHCMAbsenceType absenceTypeOB) {
-    // TODO Auto-generated method stub
+
     EHCMAbsenceAttendance absenceAttendance = leaveManagementDAO.createAbsenceAttendanceForEmployee(
         employeeOB, leaveRequestDTO, decisionType, absenceTypeOB);
     return absenceAttendance;
@@ -316,7 +316,7 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
    * @return absence type entity
    */
   private EHCMAbsenceType findAbsenceType(String absenceType) {
-    // TODO Auto-generated method stub
+
     EHCMAbsenceType absenceTypeOB = leaveManagementDAO.findAbsenceType(absenceType);
 
     return absenceTypeOB;
@@ -325,13 +325,13 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
   @Override
   public LeaveRequestDTO saveForLaterLeaveRequest(String username,
       LeaveRequestDTO leaveRequestDTO) {
-    // TODO Auto-generated method stub
+
     return null;
   }
 
   @Override
   public List<String> getAllOriginalDecisionNo(String username) {
-    // TODO Auto-generated method stub
+
     List<String> originalDecisionList = leaveManagementDAO
         .getAllOriginalDecisionNoByUserName(username);
     return originalDecisionList;
@@ -339,13 +339,13 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
 
   @Override
   public LeaveRequestDTO getLeaveRequestByOriginalDecisionNo(String orginalDecNo) {
-    // TODO Auto-generated method stub
+
     List<LeaveRequestDTO> leaveRequestList = getLeaveRequestByDecisionNo(orginalDecNo);
     return leaveRequestList.get(0);
   }
 
   private List<LeaveRequestDTO> getLeaveRequestByDecisionNo(String orginalDecNo) {
-    // TODO Auto-generated method stub
+
     List<EHCMAbsenceAttendance> absenceDecisionList = leaveManagementDAO
         .getLeaveRequestByDecisionNoOrByUsername(orginalDecNo, null);
     List<LeaveRequestDTO> leaveRequestList = mapLeaveRequest(absenceDecisionList);
@@ -359,7 +359,6 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
    * @return
    */
   private List<LeaveRequestDTO> mapLeaveRequest(List<EHCMAbsenceAttendance> absenceDecisionList) {
-    // TODO Auto-generated method stub
 
     List<LeaveRequestDTO> leaveRequestList = new ArrayList<LeaveRequestDTO>();
     LeaveRequestDTO leaveRequestDTO = null;
@@ -399,14 +398,14 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
   @Override
   public LeaveRequestDTO saveForLaterCutoffLeaveRequest(String username, String orginalDecNo,
       LeaveRequestDTO leaveRequestDTO) {
-    // TODO Auto-generated method stub
+
     return null;
   }
 
   @Override
   public Boolean submitCancelLeaveRequest(String username, LeaveRequestDTO leaveRequestDTO)
       throws BusinessException, SystemException {
-    // TODO Auto-generated method stub
+
     // create leave request based on decision
     createOrUpdateLeaveRequest(username, leaveRequestDTO, Constants.CANCEL_DECISION);
     return true;
@@ -415,7 +414,7 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
   @Override
   public RejoinLeaveRequestDTO submitRejoinLeaveRequest(String username, String orginalDecNo,
       RejoinLeaveRequestDTO leaveRequestDTO) {
-    // TODO Auto-generated method stub
+
     return null;
   }
 
@@ -454,7 +453,7 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
   // @Override
   // public Boolean updateLeaveRequestWithApprovalFlow(String username,
   // LeaveRequestDTO leaveRequestDTO) throws SystemException, BusinessException {
-  // // TODO Auto-generated method stub
+  //
   // createOrUpdateLeaveRequest(username, leaveRequestDTO, Constants.UPDATE_DECISION);
   // startApprovalWorkFlow(username);
   // return true;
@@ -590,7 +589,7 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
   // @Override
   // public Boolean updateExtendLeaveRequestWithApproval(String username,
   // LeaveRequestDTO leaveRequestDTO) throws SystemException, BusinessException {
-  // // TODO Auto-generated method stub
+  //
   // updateLeaveRequest(username, leaveRequestDTO);
   // startApprovalWorkFlow(username);
   // return true;
@@ -599,7 +598,7 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
   @Override
   public Boolean updateCutoffLeaveRequest(String username, LeaveRequestDTO leaveRequestDTO)
       throws BusinessException, SystemException {
-    // TODO Auto-generated method stub
+
     updateLeaveRequest(username, leaveRequestDTO);
     return true;
   }
@@ -607,7 +606,7 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
   // @Override
   // public Boolean updateCutoffLeaveRequestWithApproval(String username, String orginalDecNo,
   // LeaveRequestDTO leaveRequestDTO) throws BusinessException, SystemException {
-  // // TODO Auto-generated method stub
+  //
   // updateLeaveRequest(username, leaveRequestDTO);
   // startApprovalWorkFlow(username);
   // return true;

@@ -115,14 +115,12 @@
        <% }%>
        
        
-       <% if(request.getAttribute("inpstatus")!=null && (request.getAttribute("inpstatus").equals("I"))||(request.getAttribute("inpstatus").equals("UP"))) {%>
+       <% if(request.getAttribute("inpstatus")!=null&&(request.getAttribute("inpstatus").equals("UP"))) {%>
         
        $('#inpmary').calendarsPicker({calendar:  
            $.calendars.instance('ummalqura'),dateFormat: 'dd-mm-yyyy', onSelect: function() {enableForm();}, showTrigger:  
        '<span class="inpMaryImage" > <img  src="../web/sa.elm.ob.utility/js/jquery.calendars.package-2.0.2/calendar.gif" alt="Popup"  class="trigger"> </span>'}); 
     
-       
-        
        <% }%>
        
       
@@ -177,7 +175,7 @@
          DisplaylogicCancel();
 
         <%} %> 
-        <% if(request.getAttribute("inpstatus")!=null && (request.getAttribute("inpstatus").equals("C"))){%> 
+        <% if(request.getAttribute("inpstatus")!=null && (request.getAttribute("inpstatus").equals("C"))){%>
         $('#inpMcsLetterNo').prop('readonly',false); 
         $('#inpDecisionNo').prop('readonly',false); 
         $('#inpMcsLetterDate').prop('readonly',false); 
@@ -187,6 +185,9 @@
         document.getElementById("inpGovHireDate").style.display="none";
         document.getElementById("inphireLabel").style.display="none";
         document.getElementById("inpgovhireLabel").style.display="none";
+        <%} %>
+        <% if(request.getAttribute("inpstatus")!=null && (request.getAttribute("inpstatus").equals("I"))){%>
+        $('#inpmary').prop('readonly',true);
         <%} %>
         <% if(request.getAttribute("inpExtendService")!=null && (request.getAttribute("inpExtendService").equals(true))){%> 
         $('#inpDoj').prop('readonly',true); 
@@ -1546,7 +1547,7 @@ function checkValidData() {
                       var startdate=document.getElementById("inpStartDate").value;
                      
                       if (OBCompareDate(startdate, exstartdate) == -1 || OBCompareDate(startdate, exstartdate) == 0) {
-                          OBAlert('<%= Resource.getProperty("hcm.cancelstartdate>exstartdate",lang)%> (' + document.getElementById("inpStartDate").value + ')', function(r) {
+                          OBAlert('<%= Resource.getProperty("hcm.cancelstartdate>exstartdate",lang)%> (' + exstartdate + ')', function(r) {
                               showCalendar('frmMain.inpStartDate', document.frmMain.inpStartDate.value, false);
                           });
                           valStartDateFailed='1';
@@ -1824,6 +1825,7 @@ function onClickSave(index, type) {
         if (type == "Save") {
             var bit = $('#CivilPic').attr('src');
             document.getElementById("inpStatus").value = $("#inpstatus").find('option:selected').val();
+            document.getElementById("inpEmployeeStatus").value = $("#inpstatus").find('option:selected').val();
             document.getElementById("inpAction").value = "EditView";
             document.getElementById("SubmitType").value = "Save";
             
@@ -1873,7 +1875,7 @@ function reloadTabSave(tab) {
 function reloadTab(tab) {
     
      var employeeId ="";
-     if(document.getElementById("inpstatus").value == 'C' || document.getElementById("inpstatus").value == 'TE')
+     if(document.getElementById("inpstatus").value == 'C' || document.getElementById("inpstatus").value == 'TE' && document.getElementById('inpcancelHiring').value == "false")
      {
        employeeId=document.getElementById("inpExEmployeeId").value;
      }

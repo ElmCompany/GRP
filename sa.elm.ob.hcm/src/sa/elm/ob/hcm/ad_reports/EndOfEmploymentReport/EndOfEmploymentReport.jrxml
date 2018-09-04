@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report1" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="54b5440a-1719-470d-8897-1fdc4430e836">
-	<property name="ireport.zoom" value="1.7715610000000108"/>
+	<property name="ireport.zoom" value="1.3310000000000106"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="0"/>
+	<property name="ireport.y" value="528"/>
 	<parameter name="endofemploymentid" class="java.lang.String"/>
 	<parameter name="terminationDate" class="java.util.Date"/>
 	<parameter name="inpDepartmentName" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[select sub.total_allowance,per.Nationality_Identifier,eut_convert_to_hijri(to_char(now(),'YYYY-MM-DD')) as today,loc.Location, graderateln.Value as transportallowance,payline.Amount,job.value as jobcode,gra.Name as gradename,pos.JOB_No,ter.JOB_Title,eut_convert_to_hijri(to_char(per.Hiredate,'YYYY-MM-DD')) as hiredate ,eut_convert_to_hijri(to_char(per.dob,'YYYY-MM-DD')) as dob ,eut_convert_to_hijri(to_char(ter.Decision_Date,'YYYY-MM-DD')) as decision_date,org.Name as dname,ter.Decision_No,ter.Authorize_Person_Title,ter.Ehcm_Authorize_Person_ID,
+		<![CDATA[select sub.total_allowance,per.Nationality_Identifier,eut_convert_to_hijri(to_char(now(),'YYYY-MM-DD')) as today,location.location_name as Location, graderateln.Value as transportallowance,payline.Amount,job.value as jobcode,gra.Name as gradename,pos.JOB_No,ter.JOB_Title,eut_convert_to_hijri(to_char(per.Hiredate,'YYYY-MM-DD')) as hiredate ,eut_convert_to_hijri(to_char(per.dob,'YYYY-MM-DD')) as dob ,eut_convert_to_hijri(to_char(ter.Decision_Date,'YYYY-MM-DD')) as decision_date,org.Name as dname,ter.Decision_No,ter.Authorize_Person_Title,ter.Ehcm_Authorize_Person_ID,
 eut_convert_to_hijri(to_char(ter.Termination_Date,'YYYY-MM-DD')) as terminationDate
 ,ter.EMP_Name from EHCM_EMP_Termination as ter
 left join AD_Org as org on ter.department_id=org.ad_org_id
+left join c_region as region on org.em_ehcm_c_region=region.c_region_id
+left join escm_location location on region.c_region_id=location.c_region_id
  left join Ehcm_Emp_PerInfo as per on ter.Ehcm_Emp_PerInfo_id=per.Ehcm_Emp_PerInfo_id
  left join Ehcm_Position as pos on ter.Ehcm_Position_ID=pos.Ehcm_Position_ID
 left  join ehcm_grade as gra on ter.ehcm_grade_id=gra.ehcm_grade_id
@@ -528,8 +530,8 @@ where payrollln.Basic >0 and  defperiod.END_Date = ( select max(defprd.END_Date)
 				<text><![CDATA[‫بداية‬ ‫تاريخ‫الخدمة:     ]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement positionType="Float" x="5" y="519" width="226" height="20" uuid="c147a341-4295-4b9c-9cd2-6467d572a8c9"/>
-				<textElement textAlignment="Right">
+				<reportElement positionType="Float" x="5" y="518" width="226" height="20" uuid="c147a341-4295-4b9c-9cd2-6467d572a8c9"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="Traditional Arabic"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{location}]]></textFieldExpression>

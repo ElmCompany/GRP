@@ -16,6 +16,7 @@ public class AssetVO {
   private BigDecimal Balance;
   private String status;
   private String flag;
+  private String documentno;
 
   public BigDecimal getBalance() {
     return Balance;
@@ -104,13 +105,21 @@ public class AssetVO {
   public void setStatus(String status) {
     this.status = status;
   }
-  
+
   public String getFlag() {
     return flag;
   }
 
   public void setFlag(String flag) {
     this.flag = flag;
+  }
+
+  public String getDocumentno() {
+    return documentno;
+  }
+
+  public void setDocumentno(String documentno) {
+    this.documentno = documentno;
   }
 
 }

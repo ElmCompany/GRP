@@ -60,16 +60,53 @@ public interface AssingedOrReleaseEmpInPositionDAO {
       EmployeeSuspension suspension, EHCMEMPTermination endofemployment,
       EmploymentInfo recentEmployeInfo) throws Exception;
 
+  /**
+   * 
+   * @param employee
+   * @param empTransfer
+   * @param empPromotion
+   * @param empTransferSelf
+   * @return
+   * @throws Exception
+   */
   EhcmPosition revertOldValuesAndGetOldestPosition(EhcmEmpPerInfo employee,
       EHCMEmpTransfer empTransfer, EHCMEmpPromotion empPromotion,
       EHCMEmpTransferSelf empTransferSelf) throws Exception;
 
+  /**
+   * 
+   * @param employee
+   * @param empPromotion
+   * @param empTransfer
+   * @return
+   * @throws Exception
+   */
   EhcmPosition getCurrentPositionOfEmployee(EhcmEmpPerInfo employee, EHCMEmpPromotion empPromotion,
       EHCMEmpTransfer empTransfer) throws Exception;
 
+  /**
+   * 
+   * @param employee
+   * @param empPromotion
+   * @param empTransfer
+   * @param empTransferSelf
+   * @return
+   * @throws Exception
+   */
   EhcmPosition getRecentPosition(EhcmEmpPerInfo employee, EHCMEmpPromotion empPromotion,
       EHCMEmpTransfer empTransfer, EHCMEmpTransferSelf empTransferSelf) throws Exception;
 
+  /**
+   * 
+   * @param employee
+   * @param position
+   * @param startDate
+   * @param endDate
+   * @param decisionType
+   * @param isdelegated
+   * @return
+   * @throws Exception
+   */
   Boolean chkPositionAvailableOrNot(EhcmEmpPerInfo employee, EhcmPosition position, Date startDate,
       Date endDate, String decisionType, Boolean isdelegated) throws Exception;
 
@@ -107,11 +144,43 @@ public interface AssingedOrReleaseEmpInPositionDAO {
   boolean checkDelegatedRecordwithGreaterthanStartDate(EhcmEmpPerInfo employee, Date enddate)
       throws Exception;
 
+  /**
+   * 
+   * @param employee
+   * @param empSuspension
+   * @param ehcmempTermination
+   * @param StartDate
+   * @param Enddate
+   * @param decisionType
+   * @param isdelegated
+   * @return
+   * @throws Exception
+   */
   Boolean chkDelegatePositionAvailableOrNot(EhcmEmpPerInfo employee,
       EmployeeSuspension empSuspension, EHCMEMPTermination ehcmempTermination, Date StartDate,
       Date Enddate, String decisionType, Boolean isdelegated) throws Exception;
 
+  /**
+   * 
+   * @param employee
+   * @param promotion
+   * @param empTransfer
+   * @param empTransferSelf
+   * @return
+   * @throws Exception
+   */
   EmploymentInfo getRecentEmploymentInfo(EhcmEmpPerInfo employee, EHCMEmpPromotion promotion,
       EHCMEmpTransfer empTransfer, EHCMEmpTransferSelf empTransferSelf) throws Exception;
+
+  /**
+   * Update enddate for Position employee history record for emp which are cancelling from
+   * employmentinfo
+   * 
+   * @param employee
+   * @param postion
+   * @throws Exception
+   */
+  void updateEndDatePositionEmployeeHisotryForCancelledEmp(EhcmEmpPerInfo employee,
+      EhcmPosition postion) throws Exception;
 
 }

@@ -1,21 +1,22 @@
 package sa.elm.ob.hcm.ad_process.BenefitsAndAllowance;
 
-import java.sql.Connection;
+import sa.elm.ob.hcm.EHCMBenefitAllowance;
 
-import org.openbravo.dal.service.OBDal;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+/**
+ * Interface for all Benefits and Allowance related DB Operations
+ * 
+ * @author Kousalya -28-07-2018
+ *
+ */
 
-public class BenefitsAndAllowanceDAO {
+public interface BenefitsAndAllowanceDAO {
 
-  private Connection connection = null;
-  private static final Logger log = LoggerFactory.getLogger(BenefitsAndAllowanceDAO.class);
-
-  public BenefitsAndAllowanceDAO() {
-    connection = getDbConnection();
-  }
-
-  private Connection getDbConnection() {
-    return OBDal.getInstance().getConnection();
-  }
+  /**
+   * Reactivate Benefits and Allowance
+   * 
+   * @param allowance
+   * @return boolean
+   * @throws Exception
+   */
+  boolean reactivateEmpBenefitandAllowance(EHCMBenefitAllowance allowance) throws Exception;
 }

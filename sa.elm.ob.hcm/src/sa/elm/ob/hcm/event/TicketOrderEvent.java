@@ -106,7 +106,7 @@ public class TicketOrderEvent extends EntityPersistenceEventObserver {
               EHCMticketordertransaction.class,
               "as e where e.businessMission.id =:businessMissionId and e.issueDecision='Y' and e.id!=:tktOrderId "
                   + " and e.businessMission.id in (select e.businessMission.id from EHCM_ticketordertransaction "
-                  + "where e.processed = 'Y' and e.decisionType !='CA')");
+                  + "where e.iscancel = 'Y' and e.decisionType !='CA')");
           ticketCount.setNamedParameter("businessMissionId",
               ticketOrder.getBusinessMission().getId());
           ticketCount.setNamedParameter("tktOrderId", ticketOrder.getId());
@@ -132,22 +132,26 @@ public class TicketOrderEvent extends EntityPersistenceEventObserver {
               EHCMticketordertransaction.class,
               "as e where e.ehcmEmpScholarship.id =:scholarshipId and e.issueDecision='Y' and e.id!=:tktOrderId "
                   + " and e.ehcmEmpScholarship.id in (select e.ehcmEmpScholarship.id from EHCM_ticketordertransaction "
-                  + "where e.processed = 'Y' and e.decisionType !='CA')");
+                  + "where e.iscancel = 'Y' and e.decisionType !='CA')");
           ticketCount.setNamedParameter("scholarshipId",
               ticketOrder.getEhcmEmpScholarship().getId());
           ticketCount.setNamedParameter("tktOrderId", ticketOrder.getId());
+          log.debug(ticketCount.list().size());
           if (ticketCount.list().size() > 0) {
             throw new OBException(OBMessageUtils.messageBD("EHCM_Ticketorder_SCUniqueValidation"));
           }
         }
       }
 
+      // Payment is mandatory if ticket provided is checked
+      if (ticketOrder.getDecisionType().equals("TP") && ticketOrder.getPaymentPeriod() == null) {
+        throw new OBException(OBMessageUtils.messageBD("Ehcm_PayrollMandatory"));
+      }
+
     } catch (OBException e) {
       log.error(" Exception while Ticket Order event   " + e);
-      e.printStackTrace();
       throw new OBException(e.getMessage());
     } catch (Exception e) {
-      e.printStackTrace();
       throw new OBException(OBMessageUtils.messageBD("HB_INTERNAL_ERROR"));
     }
   }
@@ -217,7 +221,7 @@ public class TicketOrderEvent extends EntityPersistenceEventObserver {
               EHCMticketordertransaction.class,
               "as e where e.businessMission.id =:businessMissionId and e.issueDecision='Y' and e.id!=:tktOrderId "
                   + " and e.businessMission.id in (select e.businessMission.id from EHCM_ticketordertransaction "
-                  + "where e.processed = 'Y' and e.decisionType !='CA')");
+                  + "where e.iscancel = 'Y' and e.decisionType !='CA')");
           ticketCount.setNamedParameter("businessMissionId",
               ticketOrder.getBusinessMission().getId());
           ticketCount.setNamedParameter("tktOrderId", ticketOrder.getId());
@@ -243,7 +247,7 @@ public class TicketOrderEvent extends EntityPersistenceEventObserver {
               EHCMticketordertransaction.class,
               "as e where e.ehcmEmpScholarship.id =:scholarshipId and e.issueDecision='Y' and e.id!=:tktOrderId "
                   + " and e.ehcmEmpScholarship.id in (select e.ehcmEmpScholarship.id from EHCM_ticketordertransaction "
-                  + "where e.processed = 'Y' and e.decisionType !='CA')");
+                  + "where e.iscancel = 'Y' and e.decisionType !='CA')");
           ticketCount.setNamedParameter("scholarshipId",
               ticketOrder.getEhcmEmpScholarship().getId());
           ticketCount.setNamedParameter("tktOrderId", ticketOrder.getId());
@@ -253,11 +257,15 @@ public class TicketOrderEvent extends EntityPersistenceEventObserver {
         }
       }
 
+      // Payment is mandatory if ticket provided is checked
+      if (ticketOrder.getDecisionType().equals("TP") && ticketOrder.getPaymentPeriod() == null) {
+        throw new OBException(OBMessageUtils.messageBD("Ehcm_PayrollMandatory"));
+      }
+
     } catch (OBException e) {
       log.error(" Exception while Ticket Order event   " + e);
       throw new OBException(e.getMessage());
     } catch (Exception e) {
-      e.printStackTrace();
       throw new OBException(OBMessageUtils.messageBD("HB_INTERNAL_ERROR"));
     }
   }
@@ -278,7 +286,6 @@ public class TicketOrderEvent extends EntityPersistenceEventObserver {
       log.error(" Exception while Ticket Order event   " + e);
       throw new OBException(e.getMessage());
     } catch (Exception e) {
-      e.printStackTrace();
       throw new OBException(OBMessageUtils.messageBD("HB_INTERNAL_ERROR"));
     }
   }

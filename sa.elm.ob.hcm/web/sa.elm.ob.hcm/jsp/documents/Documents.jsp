@@ -2,6 +2,7 @@
 <%@page import="sa.elm.ob.utility.util.Utility"%>
 <%@page import="java.util.List, java.util.ArrayList"%>
 <%@page import="sa.elm.ob.hcm.ad_forms.documents.vo.DocumentsVO"%>
+<%@page import="sa.elm.ob.hcm.ad_forms.documents.dao.DocumentsDAO"%>
 <%@page import="org.codehaus.jettison.json.JSONObject"%>
 <%@page import="org.codehaus.jettison.json.JSONArray"%>
 <%@ page import="sa.elm.ob.hcm.properties.Resource" errorPage="/web/jsp/ErrorPage.jsp" %>
@@ -171,14 +172,14 @@
     }
     function enableForm() {
        changesFlag = 1;
-/*         hideMessage();
- */         if(( document.getElementById('inpDocType').value !='0' ) &&   (document.getElementById('inpIssuedDate').value !="") && ( document.getElementById('inpIsOriginal').value !="" ) ){
-              enableSaveButton("true");
-         }
-        else{
-             enableSaveButton("false");
-        } 
-            
+       /*         hideMessage();
+       * 
+       */
+       if((document.getElementById('inpDocType').value !='0' && document.getElementById('inpDocType').value !="" ) && (document.getElementById('inpIssuedDate').value !="") && ( document.getElementById('inpIsOriginal').value !="" ) ){
+            enableSaveButton("true");
+       } else{
+            enableSaveButton("false");
+       }  
     }
     
     function savevaliddata(){
@@ -187,8 +188,7 @@
         var Doctype = document.getElementById("inpDocType").value;
         var IssuedDate = document.getElementById("inpIssuedDate").value;
         var isOriginalorDuplicate = document.getElementById('inpIsOriginal').value;
-
-        
+      
         if(Doctype == '0' || IssuedDate == "" || isOriginalorDuplicate == ""){
             mandatory = '1';
         }
@@ -231,7 +231,7 @@
         <INPUT type="hidden" name="inpempCategory" id="inpempCategory" value="<%= request.getAttribute("inpempCategory") %>"></INPUT>
         <INPUT type="hidden" name="inpEmploymentId" id="inpEmploymentId" value="<%= request.getAttribute("inpEmploymentId") %>"></INPUT>
         <INPUT type="hidden" name="inpAddressId" id="inpAddressId" value="<%=request.getAttribute("inpAddressId")%>"></INPUT>
-         <INPUT type="hidden" name="inpEmpStatus" id="inpEmpStatus" value="<%= request.getAttribute("inpEmpStatus") %>"></INPUT>
+        <INPUT type="hidden" name="inpEmpStatus" id="inpEmpStatus" value="<%= request.getAttribute("inpEmpStatus") %>"></INPUT>
         <INPUT type="hidden" id="inpEmployeeStatus" name="inpEmployeeStatus" value="<%= request.getAttribute("inpEmployeeStatus") %>"></INPUT>
         <INPUT type="hidden" id="SubmitType" name="SubmitType" value="<%= request.getAttribute("SubmitType") %>"></INPUT>
         <INPUT type="hidden" id="inpFileName" name="inpFileName" value="<%= request.getAttribute("inpFileName") %>"></INPUT>
@@ -544,7 +544,7 @@
                                                              </TD>
                                                              <TD class="TextBox_ContentCell">
                                                                   <SELECT id="inpDocType" name="inpDocType" class="ComboKey Combo_TwoCells_width required" onchange="document.getElementById('messageBoxID').style.display = 'none';enableForm();">
-                                                                    <%-- <OPTION value='0' selected><%= Resource.getProperty("hcm.select", lang)%></OPTION> --%>
+                                                                     <%-- <OPTION value='0' selected><%= Resource.getProperty("hcm.select", lang)%></OPTION> --%> 
                                                                         <%-- <% 
                                                                          if(doctype!=null && doctype.size()>0) { 
                                                                          for(DocumentsVO vo:doctype){%>
@@ -665,6 +665,7 @@ function getDocTypeOnLoad(){
         $("#inpDocType").on("select2:unselecting", function (e) {
           document.getElementById("inpDocType").options.length = 0;
         });
+      
     }, 100);
 }
 if(docTypeId!=null && docTypeId!="" ){
@@ -675,6 +676,9 @@ if(docTypeId!=null && docTypeId!="" ){
     $("#inpDocType").select2({
         data: data
     });
+    $("#inpDocType").on("select2:unselecting", function (e) {
+        document.getElementById("inpDocType").options.length = 0;
+      }); 
 }
 </script> 
 

@@ -182,7 +182,7 @@ public class EhcmElementTypeDefinitionEvent extends EntityPersistenceEventObserv
         Checkrecord.setGradeRate(null);
         if (!Checkrecord.getElementSource().equals("GR")
             && !Checkrecord.getBaseProcess().equals("E")) {
-          Checkrecord.setExtendProcess("");
+          Checkrecord.setExtendProcess(null);
         }
       }
       // Empty grade rate and Extend process field for except Grade rate in ElementSource if

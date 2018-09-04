@@ -84,7 +84,7 @@ public class Constants {
   // Initial Balance
   public static String ANNUALLEAVEBALANCE = "ALB";
   public static String ALLPAIDLEAVEBALANCE = "APLB";
-  public static String BUSINESSMISSIONBALANCE = "BMB";
+  public static String BUSINESSMISSIONBALANCE = "BM";
   public static String TOTALPERIODOFSERVICE = "TPS";
 
   public static String PROMOTIONBALANCE = "LPD";

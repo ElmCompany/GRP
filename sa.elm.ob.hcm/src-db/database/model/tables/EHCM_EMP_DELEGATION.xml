@@ -177,6 +177,10 @@
         <default/>
         <onCreateDefault/>
       </column>
+      <column name="REACTIVATE" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
       <foreign-key foreignTable="AD_ORG" name="EHCM_EMP_DEL_ORG">
         <reference local="AD_ORG_ID" foreign="AD_ORG_ID"/>
       </foreign-key>

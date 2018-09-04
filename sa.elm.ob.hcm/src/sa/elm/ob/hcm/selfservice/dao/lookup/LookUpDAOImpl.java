@@ -10,13 +10,20 @@ import org.openbravo.dal.service.OBQuery;
 import org.openbravo.model.common.geography.City;
 import org.openbravo.model.common.geography.Country;
 import org.openbravo.model.common.geography.Region;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import sa.elm.ob.hcm.EhcmEmpPerInfo;
+import sa.elm.ob.hcm.dao.profile.EmployeeProfileDAO;
+import sa.elm.ob.hcm.selfservice.security.SecurityUtils;
 import sa.elm.ob.utility.EUTDeflookupsType;
 import sa.elm.ob.utility.EUTDeflookupsTypeLn;
 
 @Repository
 public class LookUpDAOImpl implements LookUpDAO {
+
+  @Autowired
+  EmployeeProfileDAO employeeProfileDAO;
 
   @Override
   public List<Country> getCountries() {
@@ -122,7 +129,10 @@ public class LookUpDAOImpl implements LookUpDAO {
   @Override
   public List<EUTDeflookupsTypeLn> getLookupList(String lookupCode) {
 
-    final String query = " as e where e.searchKey=:code  ";
+    String username = SecurityUtils.loggedInUserName();
+    EhcmEmpPerInfo user = employeeProfileDAO.getEmployeeProfileByUser(username);
+
+    final String query = " as e where e.searchKey=:code and e.client.id=:clientId ";
 
     EUTDeflookupsType list = null;
     try {
@@ -131,6 +141,7 @@ public class LookUpDAOImpl implements LookUpDAO {
       OBQuery<EUTDeflookupsType> result = OBDal.getInstance().createQuery(EUTDeflookupsType.class,
           query);
       result.setNamedParameter("code", lookupCode);
+      result.setNamedParameter("clientId", user.getClient().getId());
       result.setFilterOnReadableOrganization(false);
       result.setFilterOnReadableClients(false);
       list = result.list().get(0);
@@ -144,6 +155,40 @@ public class LookUpDAOImpl implements LookUpDAO {
 
     return list.getEUTDeflookupsTypeLnList();
 
+  }
+
+  @Override
+  public EUTDeflookupsTypeLn findSubLookupByCode(String code) {
+
+    String username = SecurityUtils.loggedInUserName();
+    EhcmEmpPerInfo user = employeeProfileDAO.getEmployeeProfileByUser(username);
+
+    final String query = " as e where e.code=:code and e.client.id=:clientId ";
+
+    EUTDeflookupsTypeLn lookup = null;
+
+    try {
+      OBContext.setAdminMode();
+
+      OBQuery<EUTDeflookupsTypeLn> result = OBDal.getInstance()
+          .createQuery(EUTDeflookupsTypeLn.class, query);
+      result.setNamedParameter("code", code);
+      result.setNamedParameter("clientId", user.getClient().getId());
+      result.setFilterOnReadableOrganization(false);
+      result.setFilterOnReadableClients(false);
+      if (result.list().size() > 0)
+        lookup = result.list().get(0);
+      else
+        return null;
+
+    } catch (OBException e) {
+
+      throw new OBException(e.getMessage());
+    } finally {
+      OBContext.restorePreviousMode();
+    }
+
+    return lookup;
   }
 
 }

@@ -476,8 +476,9 @@ public class AssingedOrReleaseEmpInPositionDAOImpl implements AssingedOrReleaseE
 
           if (posHistory.equals(posEmpHistoryList.get(0))) {
             oldestPos = position;
-            updateEndDateInPositionEmployeeHisotry(employee, position, null, empTransfer,
-                empPromotion, empTransferSelf, null, null, null, null);
+            updateEndDateInPositionEmployeeHisotry(employee, position, null,
+                empTransfer.getOriginalDecisionsNo(), empPromotion.getOriginalDecisionsNo(),
+                empTransferSelf.getOriginalDecisionsNo(), null, null, null, null);
           } else {
             deletePositionEmployeeHisotry(employee, position);
           }
@@ -707,5 +708,29 @@ public class AssingedOrReleaseEmpInPositionDAOImpl implements AssingedOrReleaseE
       log.error("Exception in getRecentEmploymentInfo: ", e);
     }
     return recentEmployInfo;
+  }
+
+  @Override
+  public void updateEndDatePositionEmployeeHisotryForCancelledEmp(EhcmEmpPerInfo employee,
+      EhcmPosition postion) throws Exception {
+    // TODO Auto-generated method stub
+    List<EHCMPosEmpHistory> posEmpHistoryList = null;
+    try {
+      OBQuery<EHCMPosEmpHistory> posEmpHistoryQry = OBDal.getInstance().createQuery(
+          EHCMPosEmpHistory.class,
+          " as e where e.employee.id=:employeeId  and e.position.id=:postionId  ORDER BY e.creationDate desc ");
+      posEmpHistoryQry.setNamedParameter("employeeId", employee.getId());
+      posEmpHistoryQry.setNamedParameter("postionId", postion.getId());
+      posEmpHistoryQry.setMaxResult(1);
+      posEmpHistoryList = posEmpHistoryQry.list();
+      if (posEmpHistoryList.size() > 0) {
+        EHCMPosEmpHistory posEmpHistoryObj = posEmpHistoryList.get(0);
+        posEmpHistoryObj.setEndDate(new Date());
+      }
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      log.error("Exception in UpdateEndDate: ", e);
+    }
   }
 }

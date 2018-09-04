@@ -1,3 +1,6 @@
+
+
+contextPath = '<%=request.getContextPath()%>';
 function reSizeGrid() {
   if (window.innerWidth) {
     gridW = window.innerWidth - 52;
@@ -289,9 +292,29 @@ function checkValidData() {
   }
   var IssuedDate = document.getElementById("inpIssuedDate").value;
   var isOriginalorDuplicate = document.getElementById('inpIsOriginal').value;
+  var checkValidData;
   if(IssuedDate == "" || isOriginalorDuplicate == ""){
       return false;
   }
-  
+  $.ajax({
+		type:'GET',
+		//url: contextPath+'/DocumentsAjax?action=CheckValidData',
+		url: contextPath+'/sa.elm.ob.hcm.ad_forms.documents.ajax/DocumentsAjax?inpAction=CheckValidData',             
+		data:{inpDocType:document.getElementById("inpDocType").value,inpIssuedDate:document.getElementById("inpIssuedDate").value,
+			inpValidDate:document.getElementById("inpValidDate").value},
+      	dataType:'json',
+      async:false
+		}).done(function(response) {
+			checkValidData=response.isExists;
+		});
+	if(checkValidData=='Y'){
+		OBAlert('Already there exists an active document type with similar period Range, so its not possible to save current record.');
+		checkValidData='Y';
+		return false;
+	}
+	else{
+		checkValidData='N';
+	}
+
   return true;
 }

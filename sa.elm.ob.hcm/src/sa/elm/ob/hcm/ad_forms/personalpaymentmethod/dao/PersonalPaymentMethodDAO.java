@@ -811,13 +811,14 @@ public class PersonalPaymentMethodDAO implements PaymentMethodDAO {
   }
 
   public boolean checkDefaultPPMBankDefaultAlreadyExists(String perpaymethodId, String Isdefault,
-      String clientId) {
+      String clientId, String rowids) {
     List<EHCMPpmBankdetail> ls = new ArrayList<EHCMPpmBankdetail>();
     try {
       if (Isdefault.equals("true")) {
         OBQuery<EHCMPpmBankdetail> count = OBDal.getInstance().createQuery(EHCMPpmBankdetail.class,
-            "as e where e.ehcmPersonalPaymethd.id=:PaymentMethodId and e.default='Y'");
+            "as e where e.ehcmPersonalPaymethd.id=:PaymentMethodId and e.default='Y' and e.id<>:rowids");
         count.setNamedParameter("PaymentMethodId", perpaymethodId);
+        count.setNamedParameter("rowids", rowids);
         // count.setFilterOnActive(false);
         ls = count.list();
         log4j.debug("count :" + ls.size());

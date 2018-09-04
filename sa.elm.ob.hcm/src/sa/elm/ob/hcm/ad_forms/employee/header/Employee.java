@@ -16,34 +16,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
-import org.openbravo.base.provider.OBProvider;
 import org.openbravo.base.secureApp.HttpSecureAppServlet;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.dal.service.OBQuery;
-import org.openbravo.model.ad.access.User;
-import org.openbravo.model.ad.system.Client;
-import org.openbravo.model.ad.utility.Image;
-import org.openbravo.model.common.businesspartner.BusinessPartner;
 import org.openbravo.model.common.businesspartner.Category;
 import org.openbravo.model.common.currency.Currency;
-import org.openbravo.model.common.enterprise.Organization;
-import org.openbravo.model.common.geography.City;
-import org.openbravo.model.common.geography.Country;
 
-import sa.elm.ob.hcm.EhcmActiontype;
-import sa.elm.ob.hcm.EhcmAddNationality;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
-import sa.elm.ob.hcm.EhcmPosition;
-import sa.elm.ob.hcm.EhcmReligion;
-import sa.elm.ob.hcm.EhcmTitletype;
 import sa.elm.ob.hcm.EmploymentInfo;
 import sa.elm.ob.hcm.ehcmempstatus;
 import sa.elm.ob.hcm.ehcmempstatusv;
-import sa.elm.ob.hcm.ehcmgradeclass;
 import sa.elm.ob.hcm.ad_forms.employee.dao.EmployeeDAO;
 import sa.elm.ob.hcm.ad_forms.employee.vo.EmployeeVO;
 import sa.elm.ob.hcm.ad_process.assignedOrReleasePosition.AssingedOrReleaseEmpInPositionDAO;
@@ -88,6 +73,9 @@ public class Employee extends HttpSecureAppServlet {
     EmployeeVO vo = null;
     String bpartnerSeqName = "DocumentNo_C_BPartner";
     AssingedOrReleaseEmpInPositionDAO assingedOrReleaseEmpInPositionDAO = new AssingedOrReleaseEmpInPositionDAOImpl();
+    List<Currency> currencyList = null;
+    List<Category> categoryList = null;
+    List<EmploymentInfo> employInfoList = null;
     try {
       OBContext.setAdminMode();
       String action = (request.getParameter("inpAction") == null ? ""
@@ -106,217 +94,44 @@ public class Employee extends HttpSecureAppServlet {
       String inpEmployeeStatus = (request.getParameter("inpEmployeeStatus") == null ? ""
           : request.getParameter("inpEmployeeStatus"));
       log4j.debug("action:" + action);
-      Category CatId = null;
-      Currency CurId = null;
+      Category categoryObj = null;
+      Currency currencyObj = null;
       con = getConnection();
       EhcmEmpPerInfo perinfo = null;
       vars = new VariablesSecureApp(request);
       dao = new EmployeeDAO(con);
+
+      // save operation
       if (request.getParameter("SubmitType") != null
           && (request.getParameter("SubmitType").equals("Save")
               || request.getParameter("SubmitType").equals("SaveGrid")
               || request.getParameter("SubmitType").equals("SaveNew"))) {
+
+        // if we are saving other than cancel record then insert into employee perinfo table
         if (request.getParameter("inpStatus") != null
             && !request.getParameter("inpStatus").equals("C")) {
+
+          // getting currency value for saudi arabia
           OBQuery<Currency> curr = OBDal.getInstance().createQuery(Currency.class, " id='317'");
-          if (curr.list().size() > 0) {
-            for (Currency currs : curr.list()) {
-              CurId = currs;
-              break;
-            }
-          }
-          // need to insert a record in employee personal info table
-          if (employeeId.equals("")) {
-            perinfo = OBProvider.getInstance().get(EhcmEmpPerInfo.class);
-            perinfo.setNationalityIdentifier(request.getParameter("inpNatIdf").toString());
-            perinfo.setSearchKey(request.getParameter("inpEmpNo"));
-            perinfo.setCountry(OBDal.getInstance().get(Country.class,
-                request.getParameter("inpCountry").toString()));
-            perinfo.setCity(
-                OBDal.getInstance().get(City.class, request.getParameter("inpCity").toString()));
-            perinfo.setEhcmAddnationality(OBDal.getInstance().get(EhcmAddNationality.class,
-                request.getParameter("inpNat").toString()));
-            perinfo.setEhcmReligion(OBDal.getInstance().get(EhcmReligion.class,
-                request.getParameter("inpRel").toString()));
-          } else {
-            perinfo = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
-          }
-          if (employeeId.equals("")) {
-            perinfo.setClient(OBDal.getInstance().get(Client.class, vars.getClient()));
-            perinfo.setOrganization(OBDal.getInstance().get(Organization.class, "0"));
-            perinfo.setCreationDate(new java.util.Date());
-            perinfo.setCreatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
+          curr.setMaxResult(1);
+          currencyList = curr.list();
+          if (currencyList.size() > 0) {
+            currencyObj = currencyList.get(0);
           }
 
-          perinfo.setUpdated(new java.util.Date());
-          perinfo.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
-
-          /* cat detail */
-          perinfo.setEhcmActiontype(
-              OBDal.getInstance().get(EhcmActiontype.class, request.getParameter("inpSalutation")));
-          if (request.getParameter("inpEmpCat") != null)
-            perinfo.setGradeClass(
-                OBDal.getInstance().get(ehcmgradeclass.class, request.getParameter("inpEmpCat")));
-          if (request.getParameter("inpStartDate") != null
-              && request.getParameter("inpStartDate") != "")
-            perinfo.setStartDate(
-                dao.convertGregorian(request.getParameter("inpStartDate").toString()));
-          if (request.getParameter("inpEndDate") != null
-              && request.getParameter("inpEndDate") != "")
-            perinfo.setEndDate(dao.convertGregorian(request.getParameter("inpEndDate").toString()));
-          if (request.getParameter("inpHireDate") != null
-              && request.getParameter("inpHireDate") != "")
-            perinfo
-                .setHiredate(dao.convertGregorian(request.getParameter("inpHireDate").toString()));
-          if (request.getParameter("inpGovHireDate") != null
-              && request.getParameter("inpGovHireDate") != "")
-            perinfo.setGovhiredate(
-                dao.convertGregorian(request.getParameter("inpGovHireDate").toString()));
-          else
-            perinfo.setGovhiredate(null);
-          if (request.getParameter("inpMcsLetterDate") != null
-              && request.getParameter("inpMcsLetterDate") != "")
-            perinfo.setMcsletterdate(
-                dao.convertGregorian(request.getParameter("inpMcsLetterDate").toString()));
-          else
-            perinfo.setMcsletterdate(null);
-          perinfo.setMcsletterno(request.getParameter("inpMcsLetterNo").toString());
-          if (request.getParameter("inpDecisionDate") != null
-              && request.getParameter("inpDecisionDate") != "")
-            perinfo.setDecisiondate(
-                dao.convertGregorian(request.getParameter("inpDecisionDate").toString()));
-          perinfo.setDecisionno(request.getParameter("inpDecisionNo").toString());
-
-          /* name details */
-          perinfo.setEhcmTitletype(
-              OBDal.getInstance().get(EhcmTitletype.class, request.getParameter("inpTitle")));
-          perinfo.setGender(request.getParameter("inpGen").toString());
-          perinfo.setGrandfathername(request.getParameter("inpEngGraFatName").toString());
-          perinfo.setArbgrafaname(request.getParameter("inpAraGraFatName").toString());
-
-          perinfo.setArabicfamilyname(
-              Utility.unescapeHTML(request.getParameter("inpAraFamName").toString()));
-          perinfo.setFamilyname(request.getParameter("inpEngFamName").toString());
-
-          perinfo
-              .setArabicname(Utility.unescapeHTML(request.getParameter("inpAraFName").toString()));
-          perinfo.setName(request.getParameter("inpEngFName"));
-
-          perinfo.setArabicfatname(
-              Utility.unescapeHTML(request.getParameter("inpAraFatName").toString()));
-          perinfo.setFathername(request.getParameter("inpEngFatName").toString());
-
-          perinfo.setArbfouname(
-              Utility.unescapeHTML(request.getParameter("inpAraFourthName").toString()));
-          perinfo.setFourthname(request.getParameter("inpEngFourthName"));
-
-          /* contact details */
-          perinfo.setMobno(request.getParameter("inpMobno"));
-          perinfo.setHomeno(request.getParameter("inpHomeNo"));
-          perinfo.setWorkno(request.getParameter("inpWorkNo"));
-          perinfo.setOfficename(request.getParameter("inpOff"));
-          perinfo.setEmail(request.getParameter("inpEmail"));
-          perinfo.setLocation(request.getParameter("inpLoc"));
-          if (!StringUtils.isEmpty(request.getParameter("inpmary"))) {
-            perinfo
-                .setMarrieddate(dao.convertGregorian(request.getParameter("inpmary").toString()));
-          }
-          /* image details */
-          Image civImg = null;
-          String mimetype = request.getParameter("inpcivfiletype");
-
-          String civ = request.getParameter("inpcivfilebyte");
-          String wrk = request.getParameter("inpwrkfilebyte");
-
-          String[] civparts = civ.split("base64,");
-          String[] wrkparts = wrk.split("base64,");
-
-          if (civparts.length > 1) {
-            byte[] civbytes = Base64.decodeBase64(civparts[1]);
-            civImg = OBProvider.getInstance().get(Image.class);
-            civImg.setClient(OBDal.getInstance().get(Client.class, vars.getClient()));
-            civImg.setOrganization(OBDal.getInstance().get(Organization.class, "0"));
-            civImg.setName(request.getParameter("inpcivfilename"));
-            civImg.setBindaryData(civbytes);
-            civImg.setWidth(new Long(200));
-            civImg.setHeight(new Long(200));
-            civImg.setMimetype(mimetype);
-            OBDal.getInstance().save(civImg);
-            OBDal.getInstance().flush();
-            perinfo.setCIVAdImage(civImg);
-
-          }
-          if (wrkparts.length > 1) {
-            Image wrkImg = null;
-            byte[] wrkbytes = Base64.decodeBase64(wrkparts[1]);
-
-            wrkImg = OBProvider.getInstance().get(Image.class);
-            wrkImg.setClient(OBDal.getInstance().get(Client.class, vars.getClient()));
-            wrkImg.setOrganization(OBDal.getInstance().get(Organization.class, "0"));
-            wrkImg.setName(request.getParameter("inpwrkfilename"));
-            wrkImg.setBindaryData(wrkbytes);
-            wrkImg.setWidth(new Long(200));
-            wrkImg.setHeight(new Long(200));
-            wrkImg.setMimetype(mimetype);
-            OBDal.getInstance().save(wrkImg);
-            OBDal.getInstance().flush();
-            perinfo.setWorkAdImage(wrkImg);
-
-          }
-
-          /* personal details */
-          perinfo.setDob(dao.convertGregorian(request.getParameter("inpDoj").toString()));
-          perinfo.setHeight(request.getParameter("inpHeight").toString());
-          perinfo.setWeight(request.getParameter("inpWeight").toString());
-          perinfo.setMarialstatus(request.getParameter("inpMarStat").toString());
-          perinfo.setBloodtype(request.getParameter("inpBlodTy").toString());
-          perinfo.setTownbirth(request.getParameter("inpTownBirth").toString());
-          if (request.getParameter("inpStatus") != null
-              && request.getParameter("inpStatus").equals("C"))
-            perinfo.setStatus("C");
-          else if (request.getParameter("inpStatus") != null
-              && request.getParameter("inpStatus").equals("I"))
-            perinfo.setStatus("I");
-          else
-            perinfo.setStatus("UP");
-          if (request.getParameter("inpStatus") != null
-              && !request.getParameter("inpStatus").equals("C"))
-            perinfo.setPersonType(OBDal.getInstance().get(EhcmActiontype.class,
-                request.getParameter("inpSalutation")));
-          else if (request.getParameter("inpStatus") != null
-              && request.getParameter("inpStatus").equals("C")) {
-            EhcmEmpPerInfo experinfo = OBDal.getInstance().get(EhcmEmpPerInfo.class,
-                request.getParameter("inpExEmployeeId"));
-            perinfo.setPersonType(experinfo.getEhcmActiontype());
-          }
-
-          OBDal.getInstance().save(perinfo);
-          OBDal.getInstance().flush();
+          // insert or update the employee details and get the employee perinfo object
+          perinfo = dao.insertOrUpdateEmployee(request, employeeId, vars);
           employeeId = perinfo.getId();
 
           // update arabic full name
           dao.updateArabicFullName(employeeId);
-          // update employement enddate
-          if (request.getParameter("inpSalText").equals("HE")) {
 
-            OBQuery<BusinessPartner> bp = OBDal.getInstance().createQuery(BusinessPartner.class,
-                " ehcmEmpPerinfo.id='" + perinfo.getId() + "'");
-            if (bp.list().size() > 0) {
-              for (BusinessPartner bpart : bp.list()) {
-                bpart.setSearchKey(perinfo.getSearchKey());
-                bpart.setName(perinfo.getArabicfullname());
-                bpart.setName2(perinfo.getArabicname());
-                bpart.setEfinIdentityname("NID");
-                bpart.setEfinNationalidnumber(perinfo.getNationalityIdentifier());
-                bpart.setEhcmEmpPerinfo(perinfo);
-                bpart.setEfinNationality(
-                    OBDal.getInstance().get(Country.class, perinfo.getCountry().getId()));
-                bpart.setEhcmProcessing(true);
-                OBDal.getInstance().save(bpart);
-                OBDal.getInstance().flush();
-              }
-            }
+          // update business partner details after done issue decision
+          if (StringUtils.isNotEmpty(employeeId)) {
+            dao.updateBusinessPartnerDetails(perinfo, request.getParameter("inpSalText"));
           }
+
+          // redirect tab
           if (nextTab.equals("")) {
             if (request.getParameter("SubmitType").equals("Save")) {
               action = "EditView";
@@ -355,197 +170,83 @@ public class Employee extends HttpSecureAppServlet {
           request.setAttribute("savemsg", "Success");
         }
 
+        // if we are saving cancek record then insert into empstatus table
         if (request.getParameter("inpStatus") != null
             && request.getParameter("inpStatus").equals("C")) {
-
-          perinfo = OBDal.getInstance().get(EhcmEmpPerInfo.class,
-              request.getParameter("inpExEmployeeId"));
-          OBQuery<ehcmempstatus> duplicate = OBDal.getInstance().createQuery(ehcmempstatus.class,
-              " ehcmEmpPerinfo.id='" + request.getParameter("inpExEmployeeId") + "'");
-
-          duplicate.setMaxResult(1);
-          if (duplicate.list().size() > 0) {
-            ehcmempstatus employeestatus = duplicate.list().get(0);
-
-            employeestatus.setUpdated(new java.util.Date());
-            employeestatus.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
-            employeestatus.setDecisionno(request.getParameter("inpDecisionNo").toString());
-            if (request.getParameter("inpStartDate") != null
-                && request.getParameter("inpStartDate") != "")
-              employeestatus.setStartDate(
-                  dao.convertGregorian(request.getParameter("inpStartDate").toString()));
-            if (request.getParameter("inpEndDate") != null
-                && request.getParameter("inpEndDate") != "")
-              employeestatus
-                  .setTodate(dao.convertGregorian(request.getParameter("inpEndDate").toString()));
-
-            employeestatus.setStatus(request.getParameter("inpStatus").toString());
-            OBDal.getInstance().save(employeestatus);
-            // OBDal.getInstance().flush();
-            // OBDal.getInstance().commitAndClose();
-            empstatus = employeestatus.getId();
-            employeeId = request.getParameter("inpExEmployeeId");
-
-          } else {
-            int st = 0;
-            ehcmempstatus ehcmempstatus = null;
-            ehcmempstatus = dao.insertempstatus(perinfo,
-                request.getParameter("inpStartDate").toString(),
-                request.getParameter("inpEndDate").toString(),
-                request.getParameter("inpDecisionNo"));
-            empstatus = ehcmempstatus.getId();
-            employeeId = request.getParameter("inpExEmployeeId");
-          }
+          ehcmempstatus empstatusObj = dao.insertOrUpdateEmpStatus(request, vars);
+          empstatus = empstatusObj.getId();
+          employeeId = request.getParameter("inpExEmployeeId");
           request.setAttribute("savemsg", "Success");
         }
       }
 
-      // /save close
-
+      // issue decision process
       if (request.getParameter("inpAction") != null
           && request.getParameter("inpAction").equals("IssueDecision")) {
+
+        // other than cancel record doing for issue decision need to insert a record in business
+        // partner
         if (request.getParameter("inpStatus") != null
             && !request.getParameter("inpStatus").equals("C")) {
           EhcmEmpPerInfo person = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
+
           if (request.getParameter("inpSalText").equals("HE")
               || request.getParameter("inpSalText").equals("HSP")
               || request.getParameter("inpSalText").equals("HC")
               || request.getParameter("inpSalText").equals("HA")
               || request.getParameter("inpSalText").equals("HP")) {
+
             OBQuery<Category> cat = OBDal.getInstance().createQuery(Category.class,
-                " name='Employee'");
-            if (cat.list().size() > 0) {
-              for (Category cats : cat.list()) {
-                CatId = cats;
-                break;
-              }
+                " as e where e.ehcmCategorytype='EMP' and e.client.id=:clientId ");
+            cat.setNamedParameter("clientId", vars.getClient());
+            cat.setMaxResult(1);
+            categoryList = cat.list();
+            if (categoryList.size() > 0) {
+              categoryObj = categoryList.get(0);
             }
-            BusinessPartner partner = OBProvider.getInstance().get(BusinessPartner.class);
-            partner.setClient(OBDal.getInstance().get(Client.class, vars.getClient()));
-            partner.setOrganization(OBDal.getInstance().get(Organization.class, "0"));
-            partner.setCreationDate(new java.util.Date());
-            partner.setCreatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
-            partner.setUpdated(new java.util.Date());
-            partner.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
-            partner.setSearchKey(person.getSearchKey());
-            partner.setName(person.getArabicname().concat(" ").concat(person.getArabicfatname())
-                .concat(" ").concat(person.getArbgrafaname()));
-            // partner.setName2(person.getFourthname());
-            partner.setName2(person.getArabicname());
-            partner.setBusinessPartnerCategory(CatId);
-            partner.setEmployee(true);
-            partner.setCustomer(true);
-            partner.setVendor(true);
-            partner.setEfinIdentityname("NID");
-            partner.setCurrency(CurId);
-            partner.setEfinNationalidnumber(person.getNationalityIdentifier());
-            partner.setEfinNationality(
-                OBDal.getInstance().get(Country.class, person.getCountry().getId()));
-            partner.setEhcmEmpPerinfo(person);
-            partner.setEfinDocumentno(
-                Utility.getSequenceNo(con, vars.getClient(), bpartnerSeqName, false));
-            OBDal.getInstance().save(partner);
-            OBDal.getInstance().flush();
+            // insert business partner
+            dao.insertBusinessPartner(vars, person, categoryObj, currencyObj, con, bpartnerSeqName);
 
           }
+          // update employee status as "Issued" and employment status as "Active"
           person.setStatus("I");
           person.setEmploymentStatus("AC");
           person.setDecisiondate(new java.util.Date());
           OBDal.getInstance().save(person);
           OBDal.getInstance().flush();
 
-          // update employee name in Position
-          if (person != null && person.getEhcmEmploymentInfoList().size() > 0) {
-            for (EmploymentInfo objEmplyment : person.getEhcmEmploymentInfoList()) {
-              EhcmPosition objPosition = OBDal.getInstance().get(EhcmPosition.class,
-                  objEmplyment.getPosition().getId());
-
-              /*
-               * Task No.6797 objPosition
-               * .setAssignedEmployee(OBDal.getInstance().get(EmployeeView.class, person.getId()));
-               */
-              objEmplyment.setDecisionDate(person.getDecisiondate());
-              OBDal.getInstance().save(objEmplyment);
-              // OBDal.getInstance().flush();
-
-              // insert position employee history
-              assingedOrReleaseEmpInPositionDAO.insertPositionEmployeeHisotry(
-                  objEmplyment.getClient(), objEmplyment.getOrganization(),
-                  objEmplyment.getEhcmEmpPerinfo(), null, objEmplyment.getStartDate(),
-                  objEmplyment.getEndDate(), objEmplyment.getDecisionNo(),
-                  objEmplyment.getDecisionDate(), objEmplyment.getPosition(), vars, null, null,
-                  null);
+          // maintain employee history in position details.
+          if (person != null) {
+            employInfoList = person.getEhcmEmploymentInfoList();
+            if (employInfoList.size() > 0) {
+              EmploymentInfo objEmplyment = employInfoList.get(0);
+              dao.updatePositionOnIssueDecision(objEmplyment, person, vars);
             }
           }
+
+          // insert business mission category
+          dao.insertBusinessMissionCategory(person);
 
           // insert into emp table
           // int count = dao.insertEmpLeave(person);
 
         }
 
+        // if we doing issue decision for cancel record then inactive the business partner and
+        // relase the postion
         if (request.getParameter("inpStatus") != null
             && request.getParameter("inpStatus").equals("C")) {
-
-          EhcmEmpPerInfo experinfo = OBDal.getInstance().get(EhcmEmpPerInfo.class,
+          ehcmempstatus cancelEmp = OBDal.getInstance().get(ehcmempstatus.class,
+              request.getParameter("inpEmployeeId"));
+          EhcmEmpPerInfo issuedEmp = OBDal.getInstance().get(EhcmEmpPerInfo.class,
               request.getParameter("inpExEmployeeId"));
-          EhcmEmpPerInfo perinfocan = OBDal.getInstance().get(EhcmEmpPerInfo.class,
-              request.getParameter("inpExEmployeeId"));
-          experinfo.setUpdated(new java.util.Date());
-          experinfo.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
-          experinfo.setEnabled(false);
-          Date startdate = experinfo.getStartDate();
-          Date dateBefore = new Date(perinfocan.getStartDate().getTime() - 1 * 24 * 3600 * 1000);
 
-          if (startdate.compareTo(perinfocan.getStartDate()) == 0)
-            experinfo.setEndDate(perinfocan.getStartDate());
-          else
-            experinfo.setEndDate(dateBefore);
-          OBDal.getInstance().save(experinfo);
-          OBDal.getInstance().flush();
-          // update employement enddate while cancel
-          OBQuery<EmploymentInfo> empinfo = OBDal.getInstance().createQuery(EmploymentInfo.class,
-              " ehcmEmpPerinfo.id='" + experinfo.getId()
-                  + "' and enabled='Y' order by creationDate desc");
-          empinfo.setMaxResult(1);
-          if (empinfo.list().size() > 0) {
-            EmploymentInfo info = empinfo.list().get(0);
-            info.setUpdated(new java.util.Date());
-            info.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
-            info.setEnabled(false);
-            Date startdateemp = info.getStartDate();
-            Date dateBeforeemp = new Date(
-                perinfocan.getStartDate().getTime() - 1 * 24 * 3600 * 1000);
-
-            if (startdateemp.compareTo(perinfocan.getStartDate()) == 0)
-              info.setEndDate(perinfocan.getStartDate());
-            else
-              info.setEndDate(dateBeforeemp);
-            OBDal.getInstance().save(info);
-            OBDal.getInstance().flush();
-            /* release the employee */
-            EhcmPosition pos = OBDal.getInstance().get(EhcmPosition.class,
-                info.getPosition().getId());
-            /*
-             * Task No.6797 pos.setAssignedEmployee(null); OBDal.getInstance().save(info);
-             * OBDal.getInstance().flush();
-             */
-
-            // delete the position employee history
-            assingedOrReleaseEmpInPositionDAO.deletePositionEmployeeHisotry(experinfo, pos);
-
-          }
-
-          OBQuery<BusinessPartner> bpar = OBDal.getInstance().createQuery(BusinessPartner.class,
-              " ehcmEmpPerinfo.id='" + request.getParameter("inpExEmployeeId") + "'");
-          if (bpar.list().size() > 0) {
-            for (BusinessPartner bp : bpar.list()) {
-              bp.setUpdated(new java.util.Date());
-              bp.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
-              bp.setActive(false);
-              OBDal.getInstance().save(bp);
-              OBDal.getInstance().flush();
-            }
-          }
+          // update employement &employee endd ate for issued record while cancelling and relase the
+          // position
+          dao.updateEmployeeEnddateAndPositionReleaseInCancel(employeeId, vars, issuedEmp,
+              cancelEmp);
+          // inactive the business partner
+          dao.inActiveTheBusinessPartner(request.getParameter("inpExEmployeeId"), vars);
 
         }
         HttpSession httpSession = request.getSession();
@@ -596,11 +297,12 @@ public class Employee extends HttpSecureAppServlet {
                 request.getParameter("inpEmployeeStatus").toString());
           }
 
-          else if (request.getParameter("inpStatus") != null) {
-            vo = dao.getEmpEditList(employeeId, request.getParameter("inpStatus").toString());
-          } else if (request.getParameter("inpissued") != null) {
-            vo = dao.getEmpEditList(employeeId, request.getParameter("inpissued").toString());
-          }
+          /*
+           * else if (request.getParameter("inpStatus") != null) { vo =
+           * dao.getEmpEditList(employeeId, request.getParameter("inpStatus").toString()); } else if
+           * (request.getParameter("inpissued") != null) { vo = dao.getEmpEditList(employeeId,
+           * request.getParameter("inpissued").toString()); }
+           */
           request.setAttribute("inpEmployeeId", employeeId);
           if (person.getGradeClass() != null) {
             if (person.getGradeClass().isContract()) {
@@ -701,6 +403,7 @@ public class Employee extends HttpSecureAppServlet {
           }
 
           request.setAttribute("inpStatus", request.getParameter("inpStatus"));
+          request.setAttribute("inpEmployeeStatus", request.getParameter("inpEmployeeStatus"));
           request.setAttribute("inpExEmployeeId",
               dao.getStarteDate(vars.getClient(), vo.getEmpNo(), false));
           request.setAttribute("inpAddressId", employeeaddId);
@@ -715,9 +418,10 @@ public class Employee extends HttpSecureAppServlet {
               dao.checkHiringDecisionStatus(vars.getClient(), employeeId));
 
           request.setAttribute("inpEmpCurrentStatus",
-              dao.getEmployeeStatus((request.getAttribute("inpExEmployeeId") != null
-                  ? request.getAttribute("inpExEmployeeId").toString()
-                  : employeeId), vars.getLanguage()));
+              dao.getEmployeeStatus(
+                  (request.getAttribute("inpExEmployeeId") != null
+                      ? request.getAttribute("inpExEmployeeId").toString() : employeeId),
+                  vars.getLanguage()));
           dispatch = request.getRequestDispatcher("../web/sa.elm.ob.hcm/jsp/employee/Employee.jsp");
 
         } else if (employeeId == null || employeeId == "" || employeeId.equals("null")) {
@@ -898,7 +602,7 @@ public class Employee extends HttpSecureAppServlet {
         // request.setAttribute("inpCity", dao.getCity(vars.getClient(), vo.getCountryId()));
         // break;
         // }
-        List<EmployeeVO> exitact = dao.getactionType(vars.getClient(), actTypeId, null);
+        List<EmployeeVO> exitact = dao.getactionType(vars.getClient(), vo.getActTypeId(), null);
         for (EmployeeVO voex : exitact) {
           request.setAttribute("inpPersonType", voex.getCancelpersontype());
           break;

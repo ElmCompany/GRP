@@ -429,7 +429,8 @@ public class PersonalPaymentMethodAjax extends HttpSecureAppServlet {
           dao = new PersonalPaymentMethodDAO(con);
           Boolean chk = dao.checkDefaultPPMBankDefaultAlreadyExists(
               request.getParameter("inppersonalpaymethodId"), request.getParameter("inpIsDefault"),
-              vars.getClient());
+              vars.getClient(), request.getParameter("inprowid"));
+
           sb.append("<checkDefaultPPMAlreadyExistBankDetail>");
           sb.append("<value>" + chk + "</value>");
           sb.append("</checkDefaultPPMAlreadyExistBankDetail>");

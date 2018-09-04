@@ -308,7 +308,6 @@ public class Documents extends HttpSecureAppServlet {
           docvo = dao.getDocumentEditList(employeeId, documentId);
           request.setAttribute("inpDocumentId", documentId);
           request.setAttribute("inpEmployeeId", employeeId);
-          log4j.debug(docvo.getDoctype());
           request.setAttribute("inpDocType", Utility.nullToEmpty(docvo.getDoctype()));
           request.setAttribute("inpDocTypeName", DocumentsDAO.getDocumentType(docvo.getDoctype()));
           request.setAttribute("inpIssuedDate", Utility.nullToEmpty(docvo.getIssueddate()));
@@ -343,6 +342,13 @@ public class Documents extends HttpSecureAppServlet {
             request.setAttribute("inpAddressId", null);
           else
             request.setAttribute("inpAddressId", empdao.getEmployeeAddressId(employeeId));
+          if (request.getParameter("inpEmpStatus") != null) {
+            request.setAttribute("inpEmpStatus", request.getParameter("inpEmpStatus").toString());
+          }
+          if (request.getParameter("inpEmployeeStatus") != null) {
+            request.setAttribute("inpEmployeeStatus",
+                request.getParameter("inpEmployeeStatus").toString());
+          }
           dispatch = request
               .getRequestDispatcher("../web/sa.elm.ob.hcm/jsp/documents/Documents.jsp");
         } else {

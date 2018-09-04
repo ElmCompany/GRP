@@ -1,5 +1,6 @@
 package sa.elm.ob.hcm.ad_process.EmpExtendService;
 
+import java.text.DateFormat;
 import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,6 +20,7 @@ import org.openbravo.service.db.DbUtility;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EhcmExtendService;
 import sa.elm.ob.hcm.ad_process.EmpExtendService.DAO.ExtendServiceHandlerDAO;
+import sa.elm.ob.utility.util.Utility;
 
 /**
  * @author poongodi on 08/02/2018
@@ -39,42 +41,69 @@ public class ExtendServiceProcess implements Process {
     VariablesSecureApp vars = new VariablesSecureApp(request);
     int count = 0;
     String ClientId = extendServiceProcess.getClient().getId();
-
+    DateFormat dateYearFormat = Utility.YearFormat;
+    boolean isissued = false;
     try {
 
       OBContext.setAdminMode(true);
       EhcmEmpPerInfo person = OBDal.getInstance().get(EhcmEmpPerInfo.class,
           extendServiceProcess.getEmployee().getId());
 
-      // If extension has reached for that employee then throw the error.
-      if (extendServiceProcess.getDecisionType().equals("CR")) {
-        JSONObject result = new JSONObject();
+      // check selected Original Decision No is issued or not
+      if (!extendServiceProcess.getDecisionType().equals("CR")) {
+        isissued = ExtendServiceHandlerDAO.checkOriginalDecisionNoIssued(extendServiceProcess,
+            ClientId);
+        if (isissued) {
+          obError.setType("Error");
+          obError.setTitle("Error");
+          obError.setMessage(OBMessageUtils.messageBD("EHCM_AbsenceOrigianlDecNoUP"));
+          bundle.setResult(obError);
+          return;
+        }
+      }
+      JSONObject result = new JSONObject();
 
-        result = sa.elm.ob.hcm.util.UtilityDAO.getExtendPeriodRecord(ClientId,
-            extendServiceProcess.getOrganization().getId());
-        if (result != null) {
-          if (result.has("extendAllowed") && result.has("maxExtPeriod")) {
-            if (result.getInt("extendAllowed") == 0 && result.getInt("maxExtPeriod") > 0) {
+      result = sa.elm.ob.hcm.util.UtilityDAO.getExtendPeriodRecord(ClientId,
+          extendServiceProcess.getOrganization().getId());
+      if (result != null) {
+        if (result.has("extendAllowed") && result.has("maxExtPeriod")) {
+          if (result.getInt("extendAllowed") == 0 && result.getInt("maxExtPeriod") > 0) {
+            obError.setType("Error");
+            obError.setTitle("Error");
+            obError.setMessage(OBMessageUtils.messageBD("Ehcm_client_Extperiod"));
+            bundle.setResult(obError);
+            return;
+          }
+
+          else if (result.getInt("maxExtPeriod") == 0 && result.getInt("extendAllowed") > 0) {
+            obError.setType("Error");
+            obError.setTitle("Error");
+            obError.setMessage(OBMessageUtils.messageBD("Ehcm_client_maxextpeiod"));
+            bundle.setResult(obError);
+            return;
+          } else if (result.getInt("maxExtPeriod") == 0 && result.getInt("extendAllowed") == 0) {
+            obError.setType("Error");
+            obError.setTitle("Error");
+            obError.setMessage(OBMessageUtils.messageBD("Ehcm_Extend_Error"));
+            bundle.setResult(obError);
+            return;
+          } else {
+            // check the employee eligible for extend
+            String dob_Date = ExtendServiceHandlerDAO
+                .convertTohijriDate(dateYearFormat.format(person.getDob()));
+            String effective_Date = ExtendServiceHandlerDAO
+                .convertTohijriDate(dateYearFormat.format(extendServiceProcess.getEffectivedate()));
+            boolean ageCalculation = ExtendServiceHandlerDAO.chkEmpExtendOrNot(effective_Date,
+                dob_Date, extendServiceProcess.getClient().getEhcmMaxempage().intValue());
+            if (ageCalculation) {
               obError.setType("Error");
               obError.setTitle("Error");
-              obError.setMessage(OBMessageUtils.messageBD("Ehcm_client_Extperiod"));
+              obError.setMessage(OBMessageUtils.messageBD("Ehcm_Extend_EmpAge"));
               bundle.setResult(obError);
               return;
             }
-
-            else if (result.getInt("maxExtPeriod") == 0 && result.getInt("extendAllowed") > 0) {
-              obError.setType("Error");
-              obError.setTitle("Error");
-              obError.setMessage(OBMessageUtils.messageBD("Ehcm_client_maxextpeiod"));
-              bundle.setResult(obError);
-              return;
-            } else if (result.getInt("maxExtPeriod") == 0 && result.getInt("extendAllowed") == 0) {
-              obError.setType("Error");
-              obError.setTitle("Error");
-              obError.setMessage(OBMessageUtils.messageBD("Ehcm_Extend_Error"));
-              bundle.setResult(obError);
-              return;
-            } else {
+            if (extendServiceProcess.getDecisionType().equals("CR")) {
+              // check the extendallowed is possible for selected employee
               int empCount = ExtendServiceHandlerDAO
                   .getExtendCountFromEmploymentInfo(extendServiceProcess);
 
@@ -90,7 +119,9 @@ public class ExtendServiceProcess implements Process {
             }
           }
         }
-        // Check the employee period exist.
+      }
+      if (extendServiceProcess.getDecisionType().equals("CR")) {
+        // check the employee period exist.
         boolean periodExists = ExtendServiceHandlerDAO.checkPeriodExists(extendServiceProcess);
         if (periodExists) {
           obError.setType("Error");
@@ -100,7 +131,6 @@ public class ExtendServiceProcess implements Process {
           return;
         }
       }
-
       // check Issued or not
       if (!extendServiceProcess.isSueDecision()) {
         // update status as Issued and set decision date for all cases
@@ -120,6 +150,7 @@ public class ExtendServiceProcess implements Process {
           OBDal.getInstance().flush();
           OBDal.getInstance().commitAndClose();
         }
+
       }
     } catch (Exception e) {
       e.printStackTrace();

@@ -30,6 +30,7 @@ import org.openbravo.dal.service.OBQuery;
 import org.openbravo.erpCommon.utility.poc.EmailManager;
 import org.openbravo.utils.CryptoUtility;
 
+import sa.elm.ob.hcm.EhcmDocuments;
 import sa.elm.ob.hcm.EhcmEmpDocType;
 import sa.elm.ob.hcm.ad_forms.documents.vo.DocumentsVO;
 import sa.elm.ob.utility.util.Utility;
@@ -295,17 +296,37 @@ public class DocumentsDAO {
     return true;
   }
 
+  public boolean checkValidData(String docTypeId, Date issuedDate, Date validDate) {
+    OBQuery<EhcmDocuments> docList = null;
+    try {
+      docList = OBDal.getInstance().createQuery(EhcmDocuments.class,
+          "as e where e.doctype=:docId and ((e.issueddate >=:issued and e.validdate <=:valid) "
+              + "or (e.issueddate <=:valid and e.validdate >=:issued)"
+              + "or (e.issueddate >=:issued and e.validdate >=:issued))");
+      docList.setNamedParameter("docId", docTypeId);
+      docList.setNamedParameter("issued", issuedDate);
+      docList.setNamedParameter("valid", validDate);
+      log4j.debug(docList.list().size());
+      if (docList.list().size() > 0) {
+        return true;
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      log4j.debug("Exception in checkValidData :" + e);
+    }
+    return false;
+  }
+
   public static String getDocumentType(String docTypeId) {
     OBQuery<EhcmEmpDocType> docList = null;
     String returndata = null;
     try {
-      log4j.debug(docTypeId);
       docList = OBDal.getInstance().createQuery(EhcmEmpDocType.class,
           " as e where e.id='" + docTypeId + "'");
       docList.setMaxResult(1);
+      log4j.debug(docList);
       returndata = docList.list().get(0).getValidationCode() + "-"
           + docList.list().get(0).getName();
-      log4j.debug(returndata);
     } catch (Exception e) {
       e.printStackTrace();
       log4j.debug("Exception getDocumentTypeList :" + e);
@@ -331,7 +352,7 @@ public class DocumentsDAO {
       fromQuery.append(" from ehcm_emp_doctype doc" + " where doc.ad_org_id in ("
           + Utility.getChildOrg(clientId, orgId)
           + ") and doc.ad_org_id in( select ad_org_id from ad_role_orgaccess where ad_role_id = ? and ad_client_id = ? ) "
-          + "and doc.ad_client_id=? ");
+          + "and doc.ad_client_id=?");
 
       if (searchTerm != null && !searchTerm.equals(""))
         fromQuery.append(" and ( doc.code ilike '%" + searchTerm.toLowerCase() + "%' )");

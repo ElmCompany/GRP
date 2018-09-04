@@ -205,10 +205,10 @@ public class EmploymentDAO {
       countQuery.append(" select count(distinct gd.ehcm_grade_id) as count ");
       selectQuery
           .append(" select distinct gd.value as gdNo , gd.ehcm_grade_id as gdId, gd.seqno as seq ");
-      fromQuery.append(" from ehcm_grade gd where ad_org_id in ("
-          + Utility.getChildOrg(clientId, orgId)
-          + ") and ad_org_id in( select ad_org_id from ad_role_orgaccess where ad_role_id = ? and ad_client_id = ? ) and ad_client_id=? "
-          + "and gd.seqno <= ? ");
+      fromQuery
+          .append(" from ehcm_grade gd where ad_org_id in (" + Utility.getChildOrg(clientId, orgId)
+              + ") and ad_org_id in( select ad_org_id from ad_role_orgaccess where ad_role_id = ? and ad_client_id = ? ) and ad_client_id=? "
+              + "and gd.seqno <= ? ");
 
       if (searchTerm != null && !searchTerm.equals(""))
         fromQuery.append(" and ( gd.value ilike '%" + searchTerm.toLowerCase() + "%' )");
@@ -585,10 +585,10 @@ public class EmploymentDAO {
       countQuery.append(" select count(distinct payscl.ehcm_payscale_id) as count ");
       selectQuery.append(
           " select distinct payscl.name as paysclNo , payscl.ehcm_payscale_id as paysclId ");
-      fromQuery.append(" from ehcm_payscale payscl where ad_org_id in ("
-          + Utility.getChildOrg(clientId, orgId)
-          + ") and ad_org_id in( select ad_org_id from ad_role_orgaccess where ad_role_id = ? and ad_client_id = ? ) and ad_client_id=? "
-          + "and payscl.ehcm_grade_id = ?");
+      fromQuery.append(
+          " from ehcm_payscale payscl where ad_org_id in (" + Utility.getChildOrg(clientId, orgId)
+              + ") and ad_org_id in( select ad_org_id from ad_role_orgaccess where ad_role_id = ? and ad_client_id = ? ) and ad_client_id=? "
+              + "and payscl.ehcm_grade_id = ?");
 
       if (searchTerm != null && !searchTerm.equals(""))
         fromQuery.append(" and ( payscl.name ilike '%" + searchTerm.toLowerCase() + "%' )");
@@ -750,8 +750,9 @@ public class EmploymentDAO {
         whereClause.append(" and concat(name,' ',fathername,' ',grandfathername) ilike '%")
             .append(searchAttr.getString("fname")).append("%'");
       if (searchAttr.has("aname"))
-        whereClause.append(
-            " and concat(arabicname,' ',arabicfatname,' ',arbgrafaname,' ',arabicfamilyname) ilike '%")
+        whereClause
+            .append(
+                " and concat(arabicname,' ',arabicfatname,' ',arbgrafaname,' ',arabicfamilyname) ilike '%")
             .append(searchAttr.getString("aname")).append("%'");
       if (searchAttr.has("empno"))
         whereClause.append(" and value ilike '%").append(searchAttr.getString("empno"))
@@ -1116,9 +1117,10 @@ public class EmploymentDAO {
         empVO.setPayscale(Utility.nullToEmpty(rs.getString("pscale")));
         empVO.setGradeStep(Utility.nullToEmpty(rs.getString("gstep")));
         empVO.setEmploymentNo(Utility.nullToEmpty(rs.getString("empno")));
-        if (rs.getString("status").equalsIgnoreCase("ACT")) {
+        if (rs.getString("status") != null && rs.getString("status").equalsIgnoreCase("ACT")) {
           empVO.setStatus(Resource.getProperty("hcm.active", lang));
-        } else if (rs.getString("status").equalsIgnoreCase("TE")) {
+        } else if (rs.getString("status") != null
+            && rs.getString("status").equalsIgnoreCase("TE")) {
           empVO.setStatus(Resource.getProperty("hcm.terminate", lang));
         } else
           empVO.setStatus(Resource.getProperty("hcm.inactive", lang));
@@ -1537,8 +1539,8 @@ public class EmploymentDAO {
       employeeObj.setStatus("TE");
       employeeObj.setEnabled(false);
       // remove assigned position from position
-      assingedOrReleaseEmpInPositionDAO.deletePositionEmployeeHisotry(employeeObj,
-          empInfoOB.getPosition());
+      assingedOrReleaseEmpInPositionDAO.updateEndDatePositionEmployeeHisotryForCancelledEmp(
+          employeeObj, empInfoOB.getPosition());
 
       /*
        * Task No.6797 OBQuery<EhcmPosition> positionQry =

@@ -100,8 +100,13 @@ $(function() {
 });
 function resetTabHeader() {
 	if (currentWindow == 'EMP') {
-		if (currentTab == 'EMPINF')
+		if (currentTab == 'EMPINF'){
 			$('#inpEmploymentId').val('');
+			$('#inpEmpStatus').val('');
+			$('#inpEmployeeStatus').val('');
+			$('#inpissued').val('');
+			$('#inpStatus').val('');
+		}
 		if(currentTab=='Dependent')
 			$('#inpDependentId').val('');
 		if(currentTab=='EMPQUAL')

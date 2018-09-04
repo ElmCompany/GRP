@@ -61,6 +61,10 @@
         <default><![CDATA[Y]]></default>
         <onCreateDefault/>
       </column>
+      <column name="ISSECONDMENT" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default><![CDATA[N]]></default>
+        <onCreateDefault/>
+      </column>
       <foreign-key foreignTable="AD_CLIENT" name="EHCM_ELEGRP_CLI">
         <reference local="AD_CLIENT_ID" foreign="AD_CLIENT_ID"/>
       </foreign-key>
@@ -72,9 +76,11 @@
       </foreign-key>
       <unique name="EHCM_ELMTGRP_CODE_KEY">
         <unique-column name="ELEMENT_GROUP_CODE"/>
+        <unique-column name="AD_CLIENT_ID"/>
       </unique>
       <unique name="EHCM_ELMTGRP_NAME_KEY">
         <unique-column name="ELEMENT_GROUP_NAME"/>
+        <unique-column name="AD_CLIENT_ID"/>
       </unique>
     </table>
   </database>

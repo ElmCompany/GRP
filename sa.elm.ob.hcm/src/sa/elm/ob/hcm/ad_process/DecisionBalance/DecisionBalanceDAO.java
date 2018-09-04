@@ -1,5 +1,9 @@
 package sa.elm.ob.hcm.ad_process.DecisionBalance;
 
+import java.math.BigDecimal;
+import java.util.Date;
+
+import sa.elm.ob.hcm.DecisionBalance;
 import sa.elm.ob.hcm.DecisionBalanceHeader;
 import sa.elm.ob.hcm.EHCMAbsenceType;
 
@@ -28,5 +32,16 @@ public interface DecisionBalanceDAO {
 
   String chkAlreadyOpeningBalanceAddedForTatEmp(DecisionBalanceHeader decisionBalanceHeader,
       EHCMAbsenceType absenceType) throws Exception;
+
+  void businessMission(String missioncategoryID, String employeeID, Date hiredate,
+      BigDecimal usedDays_initial_balance, DecisionBalance decisionbalanceLine) throws Exception;
+
+  /**
+   * 
+   * @param decisionBalance
+   * @return
+   * @throws Exception
+   */
+  Boolean checkUniqueConstraintForDecisionBalLine(DecisionBalance decisionBalance) throws Exception;
 
 }

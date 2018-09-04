@@ -27,14 +27,14 @@ public class WorkflowUtilityServiceImpl implements WorkflowUtilityService {
 
   @Override
   public String getLineManagerByUserName(String empUsername) throws SystemException {
-    // TODO Auto-generated method stub
+
     String lineManagerId = workFlowDAO.getLineManagerIdByUserNameOrUserId(empUsername, null);
     return lineManagerId;
   }
 
   @Override
   public String getDepartmentManager(String empUsername) throws SystemException {
-    // TODO Auto-generated method stub
+
     String departmentManagerId = workFlowDAO.getDepartmentManagerByUserName(empUsername);
     return departmentManagerId;
   }
@@ -60,20 +60,20 @@ public class WorkflowUtilityServiceImpl implements WorkflowUtilityService {
 
   @Override
   public String getLineManagerByUserId(String empUserId) throws SystemException {
-    // TODO Auto-generated method stub
+
     String lineManagerId = workFlowDAO.getLineManagerIdByUserNameOrUserId(null, empUserId);
     return lineManagerId;
   }
 
   @Override
   public List<String> getRoleListByUsingUsername(String userName) {
-    // TODO Auto-generated method stub
+
     return workFlowDAO.getRoleListByUsingUsername(userName);
   }
 
   @Override
   public String getTopManagerByUsername(String userName) throws SystemException, BusinessException {
-    // TODO Auto-generated method stub
+
     String topManagerId = workFlowDAO.getTopManagerByUsername(userName);
     return topManagerId;
   }

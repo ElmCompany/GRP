@@ -45,10 +45,10 @@ public class TicketOrderProcess implements Process {
       }
 
       if (ticketorder.getDecisionType().equals("CA") && ticketorder.isSueDecision().equals(false)) {
-        ticketorder.setProcessed(false);
-        ticketorder.getOriginalDecisionNo().setProcessed(false);
+        ticketorder.setCancel(false);
+        ticketorder.getOriginalDecisionNo().setCancel(false);
       } else {
-        ticketorder.setProcessed(true);
+        ticketorder.setCancel(true);
       }
 
       if (ticketorder.getDecisionStatus().equals("UP")) {

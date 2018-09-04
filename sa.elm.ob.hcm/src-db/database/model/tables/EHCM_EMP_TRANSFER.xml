@@ -173,6 +173,10 @@
         <default/>
         <onCreateDefault/>
       </column>
+      <column name="REACTIVATE" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
       <foreign-key foreignTable="EHCM_GRADE" name="EHCM_EMP_TRAN_GRADE">
         <reference local="EHCM_GRADE_ID" foreign="EHCM_GRADE_ID"/>
       </foreign-key>

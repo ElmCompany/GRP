@@ -368,8 +368,13 @@ public class EmployeePromotionHandlerDAO {
         empinfo.setAlertStatus("ACT");
         // empinfo.setEhcmEmpTransfer(null);
         if (empinfo.getPosition() != null) {
-          EhcmPosition pos = OBDal.getInstance().get(EhcmPosition.class,
-              promotion.getPosition().getId());
+          EhcmPosition pos = null;
+          EmploymentInfo recentEmployeInfo = null;
+          if (promotion.isJoinWorkRequest().equals(true)) {
+            pos = OBDal.getInstance().get(EhcmPosition.class, promotion.getNewPosition().getId());
+          } else {
+            pos = OBDal.getInstance().get(EhcmPosition.class, promotion.getPosition().getId());
+          }
           /*
            * Task No.6797 pos.setAssignedEmployee(null); OBDal.getInstance().save(pos);
            * OBDal.getInstance().flush();
@@ -378,12 +383,18 @@ public class EmployeePromotionHandlerDAO {
            * EhcmPosition currentPos = assingedOrReleaseEmpInPositionDAO.getRecentPosition(
            * promotion.getEhcmEmpPerinfo(), promotion.getOriginalDecisionsNo(), null, null);
            */
-          EmploymentInfo recentEmployeInfo = assingedOrReleaseEmpInPositionDAO
-              .getRecentEmploymentInfo(promotion.getEhcmEmpPerinfo(),
-                  promotion.getOriginalDecisionsNo(), null, null);
+          if (promotion.isJoinWorkRequest().equals(true)) {
+            recentEmployeInfo = assingedOrReleaseEmpInPositionDAO
+                .getRecentEmploymentInfo(promotion.getEhcmEmpPerinfo(), promotion, null, null);
+          } else {
+            recentEmployeInfo = assingedOrReleaseEmpInPositionDAO.getRecentEmploymentInfo(
+                promotion.getEhcmEmpPerinfo(), promotion.getOriginalDecisionsNo(), null, null);
+          }
 
-          assingedOrReleaseEmpInPositionDAO
-              .deletePositionEmployeeHisotry(promotion.getEhcmEmpPerinfo(), pos);
+          if (pos != null) {
+            assingedOrReleaseEmpInPositionDAO
+                .deletePositionEmployeeHisotry(promotion.getEhcmEmpPerinfo(), pos);
+          }
 
           EhcmPosition newpos = OBDal.getInstance().get(EhcmPosition.class,
               empinfo.getPosition().getId());
@@ -392,10 +403,11 @@ public class EmployeePromotionHandlerDAO {
            * promotion.getEhcmEmpPerinfo().getId())); OBDal.getInstance().save(newpos);
            * OBDal.getInstance().flush();
            */
-
-          assingedOrReleaseEmpInPositionDAO.updateEndDateInPositionEmployeeHisotry(
-              promotion.getEhcmEmpPerinfo(), recentEmployeInfo.getPosition(), null, null, null,
-              null, null, null, null, recentEmployeInfo);
+          if (recentEmployeInfo != null) {
+            assingedOrReleaseEmpInPositionDAO.updateEndDateInPositionEmployeeHisotry(
+                promotion.getEhcmEmpPerinfo(), recentEmployeInfo.getPosition(), null, null, null,
+                null, null, null, null, recentEmployeInfo);
+          }
         }
         OBDal.getInstance().save(empinfo);
         OBDal.getInstance().flush();

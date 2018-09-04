@@ -1,5 +1,6 @@
 package sa.elm.ob.hcm.event.dao;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -923,7 +924,7 @@ public class EmpSecondmentEventDAOImpl implements EmpSecondmentEventDAO {
     OBQuery<EmploymentInfo> employInfo = null;
     List<EmploymentInfo> employInfoList = new ArrayList<EmploymentInfo>();
     String changeReason = null;
-    int days = 0;
+    BigDecimal days = BigDecimal.ZERO;
     JSONObject result = new JSONObject();
     Date endDate = null;
     try {
@@ -946,15 +947,15 @@ public class EmpSecondmentEventDAOImpl implements EmpSecondmentEventDAO {
           changeReason = empInfo.getChangereason();
           if (changeReason.equals(DecisionTypeConstants.CHANGEREASON_SECONDMENT)
               || changeReason.equals(DecisionTypeConstants.CHANGEREASON_EXTEND_SECONDMENT)) { // ||
-            days += sa.elm.ob.hcm.util.UtilityDAO.caltheDaysUsingGreDate(empInfo.getStartDate(),
-                empInfo.getEndDate());
+            days = days.add(BigDecimal.valueOf(sa.elm.ob.hcm.util.UtilityDAO
+                .caltheDaysUsingGreDate(empInfo.getStartDate(), empInfo.getEndDate())));
           } else {
             continue;
           }
         }
       }
-      days += sa.elm.ob.hcm.util.Utility.balanceDaysInYear(secondment.getEhcmEmpPerinfo().getId(),
-          "SB");
+      days = days.add(sa.elm.ob.hcm.util.Utility
+          .balanceDaysInYear(secondment.getEhcmEmpPerinfo().getId(), "SB"));
 
       result.put("endDate", endDate);
       result.put("days", days);
@@ -968,27 +969,28 @@ public class EmpSecondmentEventDAOImpl implements EmpSecondmentEventDAO {
 
   public Boolean YearValidationForSecondment(EHCMEmpSecondment secondment, String decisionType,
       int year) {
-    int existingDays = 0;
-    int currentDays = 0;
-    int totalSecondmentDays = 0;
-    int totalYearDays = 0;
+    BigDecimal existingDays = BigDecimal.ZERO;
+    BigDecimal currentDays = BigDecimal.ZERO;
+    BigDecimal totalSecondmentDays = BigDecimal.ZERO;
+    BigDecimal totalYearDays = BigDecimal.ZERO;
     Boolean yearValidation = Boolean.TRUE;
     JSONObject result = new JSONObject();
     try {
       // existing secondemnt days
       result = existingSecondmentDayCal(secondment, decisionType);
       if (result != null) {
-        existingDays = result.getInt("days");
+        existingDays = new BigDecimal(result.getString("days"));
       }
       // current record total days
-      currentDays = sa.elm.ob.hcm.util.UtilityDAO.caltheDaysUsingGreDate(secondment.getStartDate(),
-          secondment.getEndDate());
+      currentDays = BigDecimal.valueOf(sa.elm.ob.hcm.util.UtilityDAO
+          .caltheDaysUsingGreDate(secondment.getStartDate(), secondment.getEndDate()));
       // total days
-      totalSecondmentDays = existingDays + currentDays;
+      totalSecondmentDays = existingDays.add(currentDays);
       if (year > 0) {
-        totalYearDays = year * Constants.NoOfDaysInYear;
+        totalYearDays = BigDecimal.valueOf(year)
+            .multiply(BigDecimal.valueOf(Constants.NoOfDaysInYear));
       }
-      if (totalYearDays < totalSecondmentDays) {
+      if (totalYearDays.compareTo(totalSecondmentDays) < 0) {
         yearValidation = Boolean.FALSE;
       }
     } catch (final Exception e) {

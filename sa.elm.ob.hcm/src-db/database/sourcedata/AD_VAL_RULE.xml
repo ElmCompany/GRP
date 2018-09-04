@@ -111,8 +111,14 @@ and Ehcm_Emp_PerInfo.isactive='Y' and Ehcm_Emp_PerInfo.Employment_Status in ('AC
 <!--16E8C7A5104B4CA6BD2C452B47C73BD0-->  <ISACTIVE><![CDATA[Y]]></ISACTIVE>
 <!--16E8C7A5104B4CA6BD2C452B47C73BD0-->  <NAME><![CDATA[SC val in tkt ]]></NAME>
 <!--16E8C7A5104B4CA6BD2C452B47C73BD0-->  <TYPE><![CDATA[S]]></TYPE>
-<!--16E8C7A5104B4CA6BD2C452B47C73BD0-->  <CODE><![CDATA[ehcm_emp_scholarship.ehcm_emp_scholarship_id in(select ehcm_emp_scholarship_id from ehcm_emp_scholarship where ehcm_emp_scholarship.decision_type = 'SP' and decision_status = 'I' and  ehcm_emp_perinfo_id=@Ehcm_Emp_Perinfo_ID@)
-]]></CODE>
+<!--16E8C7A5104B4CA6BD2C452B47C73BD0-->  <CODE><![CDATA[ehcm_emp_scholarship.ehcm_emp_scholarship_id in
+ (SELECT ehcm_emp_scholarship_id FROM ehcm_emp_scholarship WHERE decision_type = 'SP' AND decision_status = 'I' 
+AND ehcm_emp_perinfo_id=@ehcm_emp_perinfo_id@) AND ehcm_emp_scholarship_id IN
+(SELECT ehcm_emp_scholarship_id from ehcm_emp_scholarship where CASE 
+	WHEN @decision_type@ = 'TP'  
+    THEN ehcm_emp_scholarship_id in(SELECT ehcm_emp_scholarship_id FROM ehcm_emp_scholarship WHERE isticketprovided='N')
+    ELSE ehcm_emp_scholarship_id in (SELECT ehcm_emp_scholarship_id FROM ehcm_emp_scholarship WHERE isticketprovided='Y')
+    END )]]></CODE>
 <!--16E8C7A5104B4CA6BD2C452B47C73BD0-->  <AD_MODULE_ID><![CDATA[61076388910A43ECA7DA588EC716E9D9]]></AD_MODULE_ID>
 <!--16E8C7A5104B4CA6BD2C452B47C73BD0--></AD_VAL_RULE>
 
@@ -375,7 +381,7 @@ and isactive ='Y' and ad_client_id =@#AD_Client_ID@)]]></CODE>
 <!--31CCA309521B4D3F97301D8AB9500FCF-->  <NAME><![CDATA[EHCM_DecisionBalanceAbsType]]></NAME>
 <!--31CCA309521B4D3F97301D8AB9500FCF-->  <TYPE><![CDATA[S]]></TYPE>
 <!--31CCA309521B4D3F97301D8AB9500FCF-->  <CODE><![CDATA[Ehcm_Absence_Type_ID not in ( select Ehcm_Absence_Type_ID from ehcm_payroll_report_config where ad_client_id=@#AD_Client_ID@)
-and Ehcm_Absence_Type.category='PL']]></CODE>
+and Ehcm_Absence_Type.category='PL'  and Ehcm_Absence_Type.isaccrual='Y']]></CODE>
 <!--31CCA309521B4D3F97301D8AB9500FCF-->  <AD_MODULE_ID><![CDATA[61076388910A43ECA7DA588EC716E9D9]]></AD_MODULE_ID>
 <!--31CCA309521B4D3F97301D8AB9500FCF--></AD_VAL_RULE>
 
@@ -642,6 +648,17 @@ and empinfo.status='I'  and empinfo.status not in ('C') and empinfo.isactive='Y'
 <!--50C08188088E4372B7392E943D35F6A2-->  <AD_MODULE_ID><![CDATA[61076388910A43ECA7DA588EC716E9D9]]></AD_MODULE_ID>
 <!--50C08188088E4372B7392E943D35F6A2--></AD_VAL_RULE>
 
+<!--53CD5425C1664CC0B059856876B35677--><AD_VAL_RULE>
+<!--53CD5425C1664CC0B059856876B35677-->  <AD_VAL_RULE_ID><![CDATA[53CD5425C1664CC0B059856876B35677]]></AD_VAL_RULE_ID>
+<!--53CD5425C1664CC0B059856876B35677-->  <AD_CLIENT_ID><![CDATA[0]]></AD_CLIENT_ID>
+<!--53CD5425C1664CC0B059856876B35677-->  <AD_ORG_ID><![CDATA[0]]></AD_ORG_ID>
+<!--53CD5425C1664CC0B059856876B35677-->  <ISACTIVE><![CDATA[Y]]></ISACTIVE>
+<!--53CD5425C1664CC0B059856876B35677-->  <NAME><![CDATA[Ehcm_Secondment_ElementGrp]]></NAME>
+<!--53CD5425C1664CC0B059856876B35677-->  <TYPE><![CDATA[S]]></TYPE>
+<!--53CD5425C1664CC0B059856876B35677-->  <CODE><![CDATA[Ehcm_Element_Group.Ehcm_Element_Group_id in (select ehcm_element_group_id from ehcm_element_group where issecondment = 'Y' and ad_client_id = @#AD_Client_ID@)]]></CODE>
+<!--53CD5425C1664CC0B059856876B35677-->  <AD_MODULE_ID><![CDATA[61076388910A43ECA7DA588EC716E9D9]]></AD_MODULE_ID>
+<!--53CD5425C1664CC0B059856876B35677--></AD_VAL_RULE>
+
 <!--54AC1FF27B5844DEBBB31DD840E39996--><AD_VAL_RULE>
 <!--54AC1FF27B5844DEBBB31DD840E39996-->  <AD_VAL_RULE_ID><![CDATA[54AC1FF27B5844DEBBB31DD840E39996]]></AD_VAL_RULE_ID>
 <!--54AC1FF27B5844DEBBB31DD840E39996-->  <AD_CLIENT_ID><![CDATA[0]]></AD_CLIENT_ID>
@@ -900,8 +917,14 @@ and decision_status = 'I'  and ehcm_emp_perinfo_id = @Ehcm_Emp_Perinfo_ID@ ]]></
 <!--6F3D56FF56774B8F9E1C0EB83B1B2424-->  <ISACTIVE><![CDATA[Y]]></ISACTIVE>
 <!--6F3D56FF56774B8F9E1C0EB83B1B2424-->  <NAME><![CDATA[BM val in tkt order]]></NAME>
 <!--6F3D56FF56774B8F9E1C0EB83B1B2424-->  <TYPE><![CDATA[S]]></TYPE>
-<!--6F3D56FF56774B8F9E1C0EB83B1B2424-->  <CODE><![CDATA[ehcm_emp_businessmission.ehcm_emp_businessmission_id in(select ehcm_emp_businessmission_id from ehcm_emp_businessmission where ehcm_emp_businessmission.decision_type = 'BP' and decision_status = 'I' and ehcm_emp_perinfo_id=@Ehcm_Emp_Perinfo_ID@)
-]]></CODE>
+<!--6F3D56FF56774B8F9E1C0EB83B1B2424-->  <CODE><![CDATA[ehcm_emp_businessmission.ehcm_emp_businessmission_id in
+    (select ehcm_emp_businessmission_id from ehcm_emp_businessmission where decision_type = 'BP' 
+     and decision_status = 'I' and ehcm_emp_perinfo_id=@Ehcm_Emp_Perinfo_ID@) AND ehcm_emp_businessmission_id IN
+(SELECT ehcm_emp_businessmission_id from ehcm_emp_businessmission where CASE 
+	WHEN @decision_type@ = 'TP'  
+    THEN ehcm_emp_businessmission_id in(SELECT ehcm_emp_businessmission_id FROM ehcm_emp_businessmission WHERE isticketprovided='N')
+    ELSE ehcm_emp_businessmission_id in (SELECT ehcm_emp_businessmission_id FROM ehcm_emp_businessmission WHERE isticketprovided='Y')
+    END )]]></CODE>
 <!--6F3D56FF56774B8F9E1C0EB83B1B2424-->  <AD_MODULE_ID><![CDATA[61076388910A43ECA7DA588EC716E9D9]]></AD_MODULE_ID>
 <!--6F3D56FF56774B8F9E1C0EB83B1B2424--></AD_VAL_RULE>
 

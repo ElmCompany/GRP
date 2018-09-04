@@ -28,6 +28,8 @@ import sa.elm.ob.hcm.EHCMMisEmpCategory;
 import sa.elm.ob.hcm.EHCMMiscatEmployee;
 import sa.elm.ob.hcm.EHCMMissionCategory;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
+import sa.elm.ob.hcm.EmployeeSuspension;
+import sa.elm.ob.hcm.ehcmgradeclass;
 import sa.elm.ob.hcm.ad_process.Constants;
 import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
 import sa.elm.ob.hcm.util.Utility;
@@ -410,6 +412,7 @@ public class MissionCategoryDAOImpl implements MissionCategoryDAO {
       OBContext.setAdminMode();
       // get Recent Period
       missCatPeriod = getRecentEmpCategoryPeriod(misCategory);
+
       if (missCatPeriod != null) {
         insertMisCatEmployeeUsingPrd(missCatPeriod, user, true);
         return true;
@@ -421,6 +424,92 @@ public class MissionCategoryDAOImpl implements MissionCategoryDAO {
     } finally {
     }
     return false;
+  }
+
+  @Override
+  public boolean addNewEmployeesToAllPeriodGreaterThanOfEmpStartDate(
+      EHCMMissionCategory misCategory, User user, ehcmgradeclass gradeClass,
+      EhcmEmpPerInfo employee) {
+    List<EhcmEmpPerInfo> empList = new ArrayList<EhcmEmpPerInfo>();
+    EHCMMiscatEmployee misCatEmployee = null;
+    String refreshhql = "";
+    int a = 0;
+    try {
+      OBContext.setAdminMode();
+      // get Recent Period
+      refreshhql = " and e.id not in ( select misscatemp.employee.id  from  EHCM_Miscat_Employee misscatemp  where misscatemp.ehcmMiscatPeriod.id=:misscatPerId ) ";
+
+      if (employee != null) {
+        refreshhql += " and e.id=:employeeId ";
+      }
+      for (EHCMMisCatPeriod empCatgryPeriod : misCategory.getEHCMMisCatPeriodList()) {
+
+        for (EHCMMisEmpCategory empCategory : misCategory.getEHCMMisEmpCategoryList()) {
+          if ((gradeClass != null
+              && (gradeClass.getId().equals(empCategory.getGradeClassifications().getId())))
+              || gradeClass == null) {
+            OBQuery<EhcmEmpPerInfo> empQry = OBDal.getInstance().createQuery(EhcmEmpPerInfo.class,
+                " as e where e.gradeClass.id=:gradeclassId  and e.client.id=:clientId  and ( e.startDate <=:periodstartDate or e.startDate <=:periodendDate )  and e.status<>'UP' and e.enabled='Y'"
+                    + refreshhql);
+            empQry.setNamedParameter("gradeclassId", empCategory.getGradeClassifications().getId());
+            empQry.setNamedParameter("clientId", empCategory.getClient().getId());
+            empQry.setNamedParameter("periodstartDate", empCatgryPeriod.getStartDate());
+            empQry.setNamedParameter("periodendDate", empCatgryPeriod.getEndDate());
+            empQry.setNamedParameter("misscatPerId", empCatgryPeriod.getId());
+            if (employee != null) {
+              empQry.setNamedParameter("employeeId", employee.getId());
+            }
+            if (empQry != null) {
+              empList = empQry.list();
+              if (empList.size() > 0) {
+                for (EhcmEmpPerInfo emp : empList) {
+                  misCatEmployee = OBProvider.getInstance().get(EHCMMiscatEmployee.class);
+                  misCatEmployee.setClient(empCatgryPeriod.getClient());
+                  misCatEmployee.setOrganization(empCatgryPeriod.getOrganization());
+                  misCatEmployee.setCreatedBy(user);
+                  misCatEmployee.setCreationDate(new java.util.Date());
+                  misCatEmployee.setUpdated(new java.util.Date());
+                  misCatEmployee.setUpdatedBy(user);
+                  misCatEmployee.setEmployee(emp);
+                  misCatEmployee.setEhcmMiscatPeriod(empCatgryPeriod);
+                  OBDal.getInstance().save(misCatEmployee);
+                }
+              }
+            }
+          }
+        }
+      }
+      return true;
+    } catch (Exception e) {
+      LOG.error("Exception in addNewEmployeesToAllPeriodGreaterThanOfEmpStartDate: ", e);
+      OBDal.getInstance().rollbackAndClose();
+      return false;
+    } finally {
+    }
+  }
+
+  public List<EHCMMisCatPeriod> getAllMissionCatPeriodListForEmployeeBasOnStrtDate(
+      EhcmEmpPerInfo person, EHCMMissionCategory missionCategory) {
+    List<EHCMMisCatPeriod> empMiscatPeriodList = new ArrayList<EHCMMisCatPeriod>();
+
+    try {
+      OBContext.setAdminMode();
+      OBQuery<EHCMMisCatPeriod> missCatPeriodQry = OBDal.getInstance().createQuery(
+          EHCMMisCatPeriod.class, " as e where e.ehcmMissionCategory.id=:missionCategoryId "
+              + " and (  startdate >=:empStartDate   or enddate >=:empStartDate    ) ");
+      missCatPeriodQry.setNamedParameter("missionCategoryId", missionCategory.getId());
+      missCatPeriodQry.setNamedParameter("empStartDate", person.getStartDate());
+      empMiscatPeriodList = missCatPeriodQry.list();
+      if (empMiscatPeriodList.size() > 0) {
+        return empMiscatPeriodList;
+      }
+    } catch (Exception e) {
+      LOG.error("Exception in addNewEmployeesToRecentPeriod: ", e);
+      OBDal.getInstance().rollbackAndClose();
+      return empMiscatPeriodList;
+    } finally {
+    }
+    return empMiscatPeriodList;
   }
 
   /**

@@ -58,6 +58,8 @@ import sa.elm.ob.hcm.EmploymentInfo;
 import sa.elm.ob.hcm.Jobs;
 import sa.elm.ob.hcm.ehcmgrade;
 import sa.elm.ob.hcm.ehcmgradeclass;
+import sa.elm.ob.hcm.ehcmgraderatelines;
+import sa.elm.ob.hcm.ehcmpayscaleline;
 import sa.elm.ob.hcm.dto.payroll.BankDetailsDTO;
 import sa.elm.ob.hcm.dto.payroll.EmploymentGroupDTO;
 import sa.elm.ob.hcm.dto.payroll.GenericPayrollDTO;
@@ -2181,6 +2183,9 @@ public class PayrollBaseProcess extends DalBaseProcess {
       boolean isBaseCalculation, boolean isfullValueCalculation, EHCMElmttypeDef payrollElement) {
     BigDecimal totalAbsPaymentValue = BigDecimal.ZERO;
     BigDecimal totalScholarshipDeductionValue = BigDecimal.ZERO;
+    BigDecimal totalSuspensionDeductionValue = BigDecimal.ZERO;
+    BigDecimal suspensionDeduction = BigDecimal.ZERO;
+    BigDecimal scholarshipDeduction = BigDecimal.ZERO;
     try {
       // Employee Grade
       payRollComponents.put("EMP_GRADE",
@@ -2196,6 +2201,10 @@ public class PayrollBaseProcess extends DalBaseProcess {
             processingDays, differenceDays, payrollEndDate);
 
         log.info("payscale ==> " + payscale);
+
+        // Get Payscale list applicable in the duration
+        List<ehcmpayscaleline> payscaleList = PayrollBaseProcessDAO
+            .getApplicablePayScaleList(employment, startDate, endDate, processingDays);
 
         // absence calculation for payscale
         if (employment != null && payrollElement.getBaseProcess().equals("E")
@@ -2213,21 +2222,49 @@ public class PayrollBaseProcess extends DalBaseProcess {
           BigDecimal minScholdays = new BigDecimal(deduConfig.getMinimumScholarshipDays());
           BigDecimal scholDedPercentage = deduConfig.getDeductionPercentage();
           if (dedElement.getId().equalsIgnoreCase(payrollElement.getId())) {
-            BigDecimal scholarshipValue = PayrollBaseProcessDAO.calculateScholarshipDeductionValue(
-                employment, startDate, endDate, processingDays, differenceDays, payrollEndDate,
-                payrollElement, minScholdays);
+            for (ehcmpayscaleline payscaleObj : payscaleList) {
+              BigDecimal suspensionValue = PayrollBaseProcessDAO.calculateScholarshipDeductionValue(
+                  employment, payscaleObj.getStartDate(), payscaleObj.getEndDate(),
+                  payscaleObj.getAmount(), minScholdays);
+              totalScholarshipDeductionValue = totalScholarshipDeductionValue.add(suspensionValue);
+              log.info("totalScholarshipDeductionValue ==> " + totalScholarshipDeductionValue);
+            }
 
             // Apply Percentage accoding to config
-            totalScholarshipDeductionValue = scholarshipValue
-                .multiply(scholDedPercentage.divide(new BigDecimal("100")));
-            log.info("totalScholarshipDeductionValue ==> " + totalScholarshipDeductionValue);
+            if (totalScholarshipDeductionValue.compareTo(BigDecimal.ZERO) > 0) {
+              BigDecimal scholarshipDedPercent = scholDedPercentage.divide(new BigDecimal("100"));
+              scholarshipDeduction = totalScholarshipDeductionValue.multiply(scholarshipDedPercent);
+            }
+          }
+        }
+
+        // Suspension Deduction
+        if (payrollElement.getBaseProcess().equals("E")
+            && payrollElement.getElementClassification().equalsIgnoreCase("ER")
+            && payrollElement.getElementSource().equals("PS")) {
+          for (ehcmpayscaleline payscaleObj : payscaleList) {
+            BigDecimal suspensionValue = PayrollBaseProcessDAO.calculateSuspensionValue(employment,
+                payscaleObj.getStartDate(), payscaleObj.getEndDate(), payscaleObj.getAmount());
+            totalSuspensionDeductionValue = totalSuspensionDeductionValue.add(suspensionValue);
+            log.info("totalSuspensionDeductionValue ==> " + totalSuspensionDeductionValue);
+          }
+
+          if (totalSuspensionDeductionValue.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal suspensionDedPercent = new BigDecimal("50").divide(new BigDecimal("100"));
+            suspensionDeduction = totalSuspensionDeductionValue.multiply(suspensionDedPercent);
           }
         }
 
       }
+
       if (!isfullValueCalculation) {
-        BigDecimal payScaleAfterDeduction = payscale
-            .subtract((totalAbsPaymentValue.add(totalScholarshipDeductionValue)));
+        log.info("totalAbsPaymentValue " + totalAbsPaymentValue);
+        log.info("scholarshipDeduction " + scholarshipDeduction);
+        log.info("suspensionDeduction " + suspensionDeduction);
+        BigDecimal totaldeductions = totalAbsPaymentValue.add(scholarshipDeduction)
+            .add(suspensionDeduction);
+        log.info("totaldeductions " + totaldeductions);
+        BigDecimal payScaleAfterDeduction = payscale.subtract(totaldeductions);
         log.info("payScaleAfterDeduction ==> " + payScaleAfterDeduction);
         payRollComponents.put("PAYSALGS", payScaleAfterDeduction);
       } else {
@@ -2247,6 +2284,8 @@ public class PayrollBaseProcess extends DalBaseProcess {
       Date payrollEndDate, boolean isBaseCalculation, boolean isfullValueCalculation,
       EmploymentInfo employment) {
     BigDecimal totalAbsPaymentValue = BigDecimal.ZERO;
+    BigDecimal totalSuspensionDeductionValue = BigDecimal.ZERO;
+    BigDecimal suspensionDeduction = BigDecimal.ZERO;
     try {
       // Grade Rate
       if (typDef.getElementSource() != null && typDef.getElementSource().equalsIgnoreCase("GR")) {
@@ -2259,6 +2298,10 @@ public class PayrollBaseProcess extends DalBaseProcess {
           gradeRate = PayrollBaseProcessDAO.getGradeRateValue(typDef, typDef.getGradeRate(), grade,
               startDate, endDate, processingDays, differenceDays, payrollEndDate);
 
+          // Get Graderate list applicable in the duration
+          List<ehcmgraderatelines> gradeRateList = PayrollBaseProcessDAO.getApplicableGradeRateList(
+              typDef, typDef.getGradeRate(), grade, startDate, endDate, processingDays);
+
           // absence calculation for grade rates
           if (employment != null && typDef.getBaseProcess().equals("E")
               && typDef.getElementSource().equals("GR")) {
@@ -2266,9 +2309,28 @@ public class PayrollBaseProcess extends DalBaseProcess {
                 typDef, typDef.getGradeRate(), employment, grade, startDate, endDate,
                 processingDays, differenceDays, payrollEndDate, isBaseCalculation);
           }
+
+          if (typDef.getBaseProcess().equals("E")
+              && typDef.getElementClassification().equalsIgnoreCase("ER")
+              && typDef.getElementSource().equals("GR")) {
+            for (ehcmgraderatelines gradeRateObj : gradeRateList) {
+              BigDecimal suspensionValue = PayrollBaseProcessDAO.calculateSuspensionValue(
+                  employment, gradeRateObj.getStartDate(), gradeRateObj.getEndDate(),
+                  gradeRateObj.getSearchKey());
+              totalSuspensionDeductionValue = totalSuspensionDeductionValue.add(suspensionValue);
+              log.info("totalSuspensionDeductionValue ==> " + totalSuspensionDeductionValue);
+            }
+
+            if (totalSuspensionDeductionValue.compareTo(BigDecimal.ZERO) > 0) {
+              BigDecimal suspensionDedPercent = new BigDecimal("50").divide(new BigDecimal("100"));
+              suspensionDeduction = totalSuspensionDeductionValue.multiply(suspensionDedPercent);
+            }
+          }
+
         }
         if (!isfullValueCalculation) {
-          payRollComponents.put("GRADERATE", gradeRate.subtract(totalAbsPaymentValue));
+          BigDecimal totalGradeRateDeductions = totalAbsPaymentValue.add(suspensionDeduction);
+          payRollComponents.put("GRADERATE", gradeRate.subtract(totalGradeRateDeductions));
         } else {
           payRollComponents.put("GRADERATE", gradeRate);
         }

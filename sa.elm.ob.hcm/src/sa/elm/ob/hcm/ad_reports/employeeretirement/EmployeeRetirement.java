@@ -224,25 +224,6 @@ public class EmployeeRetirement extends HttpSecureAppServlet {
 
         String inpEndDateH = dateYearFormat.format(AddedDate);
 
-        /*
-         * System.out.println("inpEmpId-------------------------------->>>>>>>" + inpEmpId);
-         * System.out.println("inpDeptId-------------------------------->>>>>>>" + inpDeptId);
-         * System.out.println("inpEmpTypeId-------------------------------->>>>>>>" + inpEmpTypeId);
-         * System.out .println("inpEmpGradeFromId-------------------------->>>>>>>" +
-         * inpEmpGradeFromId);
-         * System.out.println("inpEmpGradeToId---------------------------->>>>>>>" +
-         * inpEmpGradeToId); System.out.println("inpLineManagerId-------------------------->>>>>>>"
-         * + inpLineManagerId);
-         * System.out.println("inpGenderId------------------------------->>>>>>>" + inpGenderId);
-         * 
-         * System.out.println("inpEndDateH------------------------------->>>>>>>" + inpEndDateH);
-         */
-        /*
-         * System.out.println("client id-------------------------------->>>>>>>" +
-         * vars.getClient()); System.out.println("DateTemp-------------------------------->>>>>>>" +
-         * DateTemp);
-         */
-
         String inpEndDate = inpEndDateH;
         /*
          * String departmentName = ""; String deptListId = "";
@@ -251,8 +232,6 @@ public class EmployeeRetirement extends HttpSecureAppServlet {
         inpEndDate = sa.elm.ob.hcm.util.UtilityDAO.convertToGregorian_tochar(inpEndDate);
         String inpCurrentDate = sa.elm.ob.hcm.util.UtilityDAO
             .convertToGregorian_tochar(request.getParameter("inpEndDateH"));
-        // System.out.println("inpCurrentDate------------------------------->>>>>>>" +
-        // inpCurrentDate);
 
         // Department Name && childDept
 
@@ -263,7 +242,7 @@ public class EmployeeRetirement extends HttpSecureAppServlet {
         log4j.debug("inpEmpGradeToId>" + inpEmpGradeToId);
         log4j.debug("inpLineManagerId>" + inpLineManagerId);
         log4j.debug("inpGenderId>" + inpGenderId);
-        log4j.debug("inpEndDate>" + inpEndDate);
+        // log4j.debug("inpEndDate>" + inpEndDate);
         log4j.debug("inpEndDateH>" + inpEndDateH);
         log4j.debug("inpCurrentDate>" + inpCurrentDate);
         log4j.debug("inpClientId>" + vars.getClient());

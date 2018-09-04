@@ -65,6 +65,15 @@ public class EndofEmployment implements Process {
       // check Issued or not
       if (!termination.isSueDecision()) {
 
+        if (termination.getOriginalDecisionsNo() != null
+            && !termination.getOriginalDecisionsNo().isSueDecision()) {
+          obError.setType("Error");
+          obError.setTitle("Error");
+          obError.setMessage(OBMessageUtils.messageBD("EHCM_SecOrgDecNo_NotProcessed"));
+          bundle.setResult(obError);
+          return;
+        }
+
         // checking decision overlap
         if (termination.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CREATE)
             || (termination.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_UPDATE))) {
@@ -323,6 +332,10 @@ public class EndofEmployment implements Process {
               ehcmempstatus.setEnabled(false);
               ehcmempstatus.setEhcmEmpPerinfo(terminationView.getEhcmEmpPerinfo());
               ehcmempstatus.setDecisionno(termination.getDecisionNo());
+              if (termination.getLetterNo() != null)
+                ehcmempstatus.setMcsletterno(termination.getLetterNo());
+              if (termination.getLetterDate() != null)
+                ehcmempstatus.setMcsletterdate(termination.getLetterDate());
               ehcmempstatus.setEhcmEmpTermination(termination);
 
               // ehcmempstatus.setStartDate(dao.convertGregorian(termination.getTerminationDate()
@@ -388,6 +401,8 @@ public class EndofEmployment implements Process {
                 employeestatus.setDecisionno(termination.getDecisionNo());
                 employeestatus.setStartDate(termination.getTerminationDate());
                 employeestatus.setStatus("TE");
+                employeestatus.setMcsletterno(termination.getLetterNo());
+                employeestatus.setMcsletterdate(termination.getLetterDate());
                 // ehcmempstatus.setEhcmEmpTermination(termination);
                 employeestatus.setEhcmEmpTermination(termination);
                 OBDal.getInstance().save(employeestatus);
@@ -453,7 +468,6 @@ public class EndofEmployment implements Process {
             empinfo.setEndDate(null);
             empinfo.setEnabled(true);
             empinfo.setAlertStatus("ACT");
-            empinfo.setEhcmEmpTransfer(null);
             OBDal.getInstance().save(empinfo);
             OBDal.getInstance().flush();
 

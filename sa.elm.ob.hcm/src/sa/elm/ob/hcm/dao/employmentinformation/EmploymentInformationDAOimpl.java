@@ -22,6 +22,7 @@ import sa.elm.ob.hcm.dao.profile.EmployeeProfileDAO;
 import sa.elm.ob.hcm.dto.employment.CertificationsDTO;
 import sa.elm.ob.hcm.dto.employment.QualificationsDTO;
 import sa.elm.ob.hcm.properties.Resource;
+import sa.elm.ob.hcm.selfservice.dao.lookup.LookUpDAO;
 import sa.elm.ob.hcm.selfservice.exceptions.BusinessException;
 import sa.elm.ob.hcm.selfservice.exceptions.SystemException;
 import sa.elm.ob.hcm.selfservice.security.SecurityUtils;
@@ -38,6 +39,9 @@ public class EmploymentInformationDAOimpl implements EmploymentInformationDAO {
 
   @Autowired
   EmployeeProfileDAO employeeProfileDAO;
+
+  @Autowired
+  LookUpDAO lookUpDAO;
 
   @Override
   public List<ehcmpreviouservice> getAllPreviousEmploymentInformationByUsername(String username)
@@ -97,7 +101,8 @@ public class EmploymentInformationDAOimpl implements EmploymentInformationDAO {
       qualificationOB.setUpdatedBy(employeeOB.getUpdatedBy());
       qualificationOB.setCreationDate(new Date());
       qualificationOB.setEhcmEmpPerinfo(employeeOB);
-      qualificationOB.setEdulevel(qualificationsDTO.getEducationLevel());
+      qualificationOB.setLookupEducationLevel(
+          lookUpDAO.findSubLookupByCode(qualificationsDTO.getEducationLevel()));
       qualificationOB.setDegree(qualificationsDTO.getDegree());
       qualificationOB.setLocation(qualificationsDTO.getLocation());
       qualificationOB.setLicensesub(qualificationsDTO.getMajor());

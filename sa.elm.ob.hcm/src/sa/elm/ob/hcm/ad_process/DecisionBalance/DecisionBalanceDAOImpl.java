@@ -22,6 +22,7 @@ import sa.elm.ob.hcm.EHCMEMPLeaveBlockLn;
 import sa.elm.ob.hcm.EHCMEmpLeave;
 import sa.elm.ob.hcm.EHCMEmpLeaveBlock;
 import sa.elm.ob.hcm.EHCMEmpLeaveln;
+import sa.elm.ob.hcm.EHCMMiscatEmployee;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EhcmPayrollReportConfig;
 import sa.elm.ob.hcm.ad_process.Constants;
@@ -51,7 +52,7 @@ public class DecisionBalanceDAOImpl implements DecisionBalanceDAO {
       if (decisionBalanceHeader != null) {
         decBalanceList = decisionBalanceHeader.getEhcmDecisionBalanceList();
         for (DecisionBalance decisionBalanceEmp : decBalanceList) {
-          if (decisionBalanceEmp.getBalance() != 0) {
+          if (decisionBalanceEmp.getBalance().compareTo(BigDecimal.ZERO) != 0) {
 
             // all paid leaves
             if (absenceType == null) {
@@ -64,20 +65,22 @@ public class DecisionBalanceDAOImpl implements DecisionBalanceDAO {
               startDate = decisionBalanceEmp.getEmployee().getHiredate();
             }
 
-            result = leaveCalculationDAO.getStartDateAndEndDate(startDate, absenceType,
-                decisionBalanceEmp.getEmployee().getId());
-
             OBQuery<EHCMEmpLeave> empLeaveQry = OBDal.getInstance().createQuery(EHCMEmpLeave.class,
                 " as e where e.ehcmEmpPerinfo.id =:employeeId  and e.absenceType.id=:absenceTypeId "
-                    + " and e.ehcmEmpPerinfo.hiredate between e.startDate and e.endDate");
+                    + " and :hiredate between e.startDate and e.endDate");
 
             empLeaveQry.setNamedParameter("employeeId", decisionBalanceEmp.getEmployee().getId());
             empLeaveQry.setNamedParameter("absenceTypeId", absenceType.getId());
+            empLeaveQry.setNamedParameter("hiredate", startDate);
             empLeaveList = empLeaveQry.list();
             if (empLeaveList.size() > 0) {
-
+              result = leaveCalculationDAO.getStartDateAndEndDate(
+                  empLeaveList.get(0).getStartDate(), absenceType,
+                  decisionBalanceEmp.getEmployee().getId());
               InsertEmpLeaveLn(absenceType, decisionBalanceEmp, empLeaveList.get(0), result);
             } else {
+              result = leaveCalculationDAO.getStartDateAndEndDate(startDate, absenceType,
+                  decisionBalanceEmp.getEmployee().getId());
               InsertEmpLeave(absenceType, decisionBalanceEmp, result);
             }
           }
@@ -108,7 +111,7 @@ public class DecisionBalanceDAOImpl implements DecisionBalanceDAO {
       if (decisionBalanceHeader != null) {
         decBalanceList = decisionBalanceHeader.getEhcmDecisionBalanceList();
         for (DecisionBalance decisionBalanceEmp : decBalanceList) {
-          if (decisionBalanceEmp.getBalance() != 0) {
+          if (decisionBalanceEmp.getBalance().compareTo(BigDecimal.ZERO) != 0) {
 
             hireYearEndDate = getHireYearLastDate(decisionBalanceEmp.getEmployee().getHiredate());
 
@@ -225,10 +228,6 @@ public class DecisionBalanceDAOImpl implements DecisionBalanceDAO {
     EHCMEmpLeaveln leaveln = null;
     String hql = "";
     List<EHCMEmpLeaveBlock> levBlockList = null;
-    String hijiblockStartDate = null;
-    String hijiFiveYrEndDate = null;
-    String GregFiveYrEndDate = null;
-    Date endDate = null;
     try {
       leave = empleave;
       leaveln = OBProvider.getInstance().get(EHCMEmpLeaveln.class);
@@ -240,10 +239,14 @@ public class DecisionBalanceDAOImpl implements DecisionBalanceDAO {
       leaveln.setUpdated(new java.util.Date());
       leaveln.setUpdatedBy(OBContext.getOBContext().getUser());
       leaveln.setEhcmEmpLeave(leave);
-      leaveln.setLeavedays(BigDecimal.valueOf(decisionBalanceEmp.getBalance()));
+      leaveln.setLeavedays(decisionBalanceEmp.getBalance());
 
       if (result != null) {
-        leaveln.setStartDate(yearFormat.parse(result.getString("startdate")));
+        if (decisionBalanceEmp.getBlockStartdate() != null) {
+          leaveln.setStartDate(decisionBalanceEmp.getBlockStartdate());
+        } else {
+          leaveln.setStartDate(yearFormat.parse(result.getString("startdate")));
+        }
         leaveln.setEndDate(yearFormat.parse(result.getString("enddate")));
       }
 
@@ -376,9 +379,13 @@ public class DecisionBalanceDAOImpl implements DecisionBalanceDAO {
       lvblkln.setEhcmAbsenceAttendance(null);
       lvblkln.setEhcmDecisionBalance(decisionBalanceEmp);
       lvblkln.setEhcmEmpLeaveblock(header);
-      lvblkln.setLeavedays(BigDecimal.valueOf(decisionBalanceEmp.getBalance()));
+      lvblkln.setLeavedays(decisionBalanceEmp.getBalance());
       if (result != null) {
-        lvblkln.setStartDate(yearFormat.parse(result.getString("startdate")));
+        if (decisionBalanceEmp.getBlockStartdate() != null) {
+          lvblkln.setStartDate(decisionBalanceEmp.getBlockStartdate());
+        } else {
+          lvblkln.setStartDate(yearFormat.parse(result.getString("startdate")));
+        }
         lvblkln.setEndDate(yearFormat.parse(result.getString("enddate")));
       }
       log4j.debug("lev blokc line :" + header.getId());
@@ -448,6 +455,77 @@ public class DecisionBalanceDAOImpl implements DecisionBalanceDAO {
       log4j.error("Exception in getMaxEndDate" + e);
     }
     return endDate;
+  }
+
+  public void businessMission(String missioncategoryID, String employeeID, Date hiredate,
+      BigDecimal usedDays_initial_balance, DecisionBalance decisionbalanceLine) {
+
+    OBQuery<EHCMMiscatEmployee> missionEmployeeObj = OBDal.getInstance().createQuery(
+        EHCMMiscatEmployee.class,
+        " as a  join a.ehcmMiscatPeriod b "
+            + " join b.ehcmMissionCategory c  where c.id=:PmissioncategoryID and "
+            + " :Phiredate between  b.startDate and b.endDate and a.employee.id =:PemployeeID");
+
+    missionEmployeeObj.setNamedParameter("PmissioncategoryID", missioncategoryID);
+    missionEmployeeObj.setNamedParameter("Phiredate", hiredate);
+    missionEmployeeObj.setNamedParameter("PemployeeID", employeeID);
+
+    if (missionEmployeeObj.list().size() > 0) {
+      EHCMMiscatEmployee missionEmployeeListObj = missionEmployeeObj.list().get(0);
+      long usedDays = missionEmployeeListObj.getUseddays();
+      missionEmployeeListObj.setUseddays(usedDays + (usedDays_initial_balance.longValue()));
+      missionEmployeeListObj.setEhcmDecisionBalance(decisionbalanceLine);
+
+    }
+
+  }
+
+  @Override
+  public Boolean checkUniqueConstraintForDecisionBalLine(DecisionBalance decisionBalance) {
+    Boolean checkUniqueConstraintFailForDecisionBalLine = false;
+    List<DecisionBalance> decisionBalanceList = null;
+    String hql = "";
+    // int A = 0;
+    try {
+
+      if (decisionBalance.getDecisionType().equals("BM"))
+        hql = " and e.ehcmMissionCategory.id=:missionCategoryId ";
+
+      if (decisionBalance.getDecisionType().equals("APLB"))
+        hql = " and e.absenceType.id=:absenceTypeId ";
+
+      if (decisionBalance.getAbsenceType() != null && decisionBalance.getAbsenceType().isSubtype())
+        hql += " and e.subType.id=:subTypeId ";
+
+      OBQuery<DecisionBalance> decisionBalQry = OBDal.getInstance().createQuery(
+          DecisionBalance.class,
+          " as e where e.employee.id=:employeeId and e.decisionType=:decisionType and e.client.id=:clientId  and e.id<>:currentId "
+              + hql);
+
+      decisionBalQry.setNamedParameter("employeeId", decisionBalance.getEmployee().getId());
+      decisionBalQry.setNamedParameter("decisionType", decisionBalance.getDecisionType());
+      decisionBalQry.setNamedParameter("clientId", decisionBalance.getClient().getId());
+      decisionBalQry.setNamedParameter("currentId", decisionBalance.getId());
+
+      if (decisionBalance.getDecisionType().equals("BM"))
+        decisionBalQry.setNamedParameter("missionCategoryId",
+            decisionBalance.getEhcmMissionCategory().getId());
+
+      if (decisionBalance.getDecisionType().equals("APLB"))
+        decisionBalQry.setNamedParameter("absenceTypeId", decisionBalance.getAbsenceType().getId());
+
+      if (decisionBalance.getAbsenceType() != null && decisionBalance.getAbsenceType().isSubtype())
+        decisionBalQry.setNamedParameter("subTypeId", decisionBalance.getSubType().getId());
+
+      decisionBalanceList = decisionBalQry.list();
+      if (decisionBalanceList.size() > 0) {
+        checkUniqueConstraintFailForDecisionBalLine = true;
+      }
+
+    } catch (Exception e) {
+      log4j.error("Exception in checkUniqueConstraintForDecisionBalLine" + e);
+    }
+    return checkUniqueConstraintFailForDecisionBalLine;
   }
 
 }

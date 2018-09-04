@@ -774,8 +774,10 @@ function setTabClass(tab, type) {
 }
 function reloadTab(tab) {
     if (tab == 'EMP') {
-        submitCommandForm('DEFAULT', true, null, contextPath + '/sa.elm.ob.hcm.ad_forms.employee.header/Employee', '_self', null, true);
-        return false;
+       /*  submitCommandForm('DEFAULT', true, null, contextPath + '/sa.elm.ob.hcm.ad_forms.employee.header/Employee', '_self', null, true);
+        return false; */
+        document.frmMain.action = '<%=request.getContextPath()%>/sa.elm.ob.hcm.ad_forms.employee.header/Employee?inpAction=EditView';
+        document.frmMain.submit();
     }
     else if (tab == 'EMPQUAL') {
         var url=""; 

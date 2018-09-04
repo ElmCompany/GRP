@@ -22,8 +22,8 @@ import sa.elm.ob.utility.util.Utility;
 public class AssetAjax extends HttpSecureAppServlet {
   private static final long serialVersionUID = 1L;
 
-  public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException,
-      ServletException {
+  public void doPost(HttpServletRequest request, HttpServletResponse response)
+      throws IOException, ServletException {
     VariablesSecureApp vars = new VariablesSecureApp(request);
     Connection con = null;
     AssetDAO dao = null;
@@ -31,7 +31,8 @@ public class AssetAjax extends HttpSecureAppServlet {
       con = getConnection();
       // commonDAO = new CommonDAO(con);
       dao = new AssetDAO(con);
-      String action = (request.getParameter("action") == null ? "" : request.getParameter("action"));
+      String action = (request.getParameter("action") == null ? ""
+          : request.getParameter("action"));
       if (action.equals("GetAssetList")) {
         String employeeId = request.getParameter("inpEmployeeId");
         String AssetId = request.getParameter("inpAssetId");
@@ -40,6 +41,8 @@ public class AssetAjax extends HttpSecureAppServlet {
         AssetVO assetVO = new AssetVO();
 
         if (searchFlag != null && searchFlag.equals("true")) {
+          if (!StringUtils.isEmpty(request.getParameter("documentNo")))
+            assetVO.setDocumentno(request.getParameter("documentNo").replace("'", "''"));
           if (!StringUtils.isEmpty(request.getParameter("name")))
             assetVO.setAssetname(request.getParameter("name").replace("'", "''"));
           if (!StringUtils.isEmpty(request.getParameter("letterNo")))
@@ -84,6 +87,8 @@ public class AssetAjax extends HttpSecureAppServlet {
             assetVO = (AssetVO) list.get(i);
             xmlData.append("<row id='" + assetVO.getAssetId() + "'>");
             // xmlData.append("<cell><![CDATA[" + qualVO.getEstablishment() + "]]></cell>");
+            xmlData.append(
+                "<cell><![CDATA[" + Utility.nullToEmpty(assetVO.getDocumentno()) + "]]></cell>");
             xmlData.append("<cell><![CDATA[" + assetVO.getAssetname() + "]]></cell>");
             xmlData.append("<cell><![CDATA[" + assetVO.getStartdate() + "]]></cell>");
             xmlData.append("<cell><![CDATA[" + assetVO.getEnddate() + "]]></cell>");
@@ -96,8 +101,8 @@ public class AssetAjax extends HttpSecureAppServlet {
             xmlData.append("</row>");
           }
         } else
-          xmlData.append("<page>" + 0 + "</page><total>" + 0 + "</total><records>" + 0
-              + "</records>");
+          xmlData
+              .append("<page>" + 0 + "</page><total>" + 0 + "</total><records>" + 0 + "</records>");
         xmlData.append("</rows>");
         response.getWriter().write(xmlData.toString());
       } else if (action.equals("DeleteAsset")) {
@@ -121,8 +126,8 @@ public class AssetAjax extends HttpSecureAppServlet {
     }
   }
 
-  public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException,
-      ServletException {
+  public void doGet(HttpServletRequest request, HttpServletResponse response)
+      throws IOException, ServletException {
     doPost(request, response);
   }
 

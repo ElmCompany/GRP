@@ -2128,21 +2128,22 @@ public class UtilityDAO {
     }
   }
 
-  public static int getbalanceDaysInYear(String EmployeeId, String DecisionType) {
-    int totalYearDays = 0;
+  public static BigDecimal getbalanceDaysInYear(String EmployeeId, String DecisionType) {
+    BigDecimal totalYearDays = BigDecimal.ZERO;
     List<DecisionBalance> decbalance = new ArrayList<DecisionBalance>();
     try {
       OBQuery<DecisionBalance> decisionbalance = OBDal.getInstance().createQuery(
           DecisionBalance.class,
-          " as e where e.employee.id=:employeeId and e.decisionType =:decisonType and ehcmDeciBalHdr.alertStatus = 'C' ");
+          " as e where e.employee.id=:employeeId and e.decisionType =:decisonType and ehcmDeciBalHdr.alertStatus = 'CO' ");
       decisionbalance.setNamedParameter("employeeId", EmployeeId);
       decisionbalance.setNamedParameter("decisonType", DecisionType);
 
       decbalance = decisionbalance.list();
       if (decbalance.size() > 0) {
         DecisionBalance secondmentbalance = decbalance.get(0);
-        if (secondmentbalance.getBalance() > 0 && !secondmentbalance.getBalance().equals(null)) {
-          totalYearDays = (int) ((secondmentbalance.getBalance()) * Constants.NoOfDaysInYear);
+        if (secondmentbalance.getBalance().compareTo(BigDecimal.ZERO) > 0) {
+          totalYearDays = (secondmentbalance.getBalance()
+              .multiply(new BigDecimal(Constants.NoOfDaysInYear)));
           return totalYearDays;
         }
       }
