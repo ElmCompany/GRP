@@ -23,6 +23,7 @@ import sa.elm.ob.hcm.EHCMEmployeeStatusV;
 import sa.elm.ob.hcm.EHCMScholarshipSummary;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EmploymentInfo;
+import sa.elm.ob.hcm.ad_callouts.common.UpdateEmpDetailsInCallouts;
 import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
 import sa.elm.ob.hcm.ad_process.empScholarshipTraining.EmpScholarshipTrainingDAO;
 import sa.elm.ob.hcm.ad_process.empScholarshipTraining.EmpScholarshipTrainingDAOImpl;
@@ -80,6 +81,7 @@ public class ScholarshipTrainingCallout extends SimpleCallout {
     BigDecimal amt = new BigDecimal(0);
     EmpScholarshipTrainingDAO empScholarshipTrainingDAOImpl = new EmpScholarshipTrainingDAOImpl();
     try {
+      UpdateEmpDetailsInCallouts callouts = new UpdateEmpDetailsInCallouts();
       EmploymentInfo empinfo = Utility.getActiveEmployInfo(employeeId);
       EHCMScholarshipSummary scholarshipSummary = empScholarshipTrainingDAOImpl
           .getActiveScholarshipSummary(employeeId, inporiginalDecisionNo);
@@ -91,48 +93,51 @@ public class ScholarshipTrainingCallout extends SimpleCallout {
           startdate = empinfo.getStartDate();
       }
 
-      if (lastfieldChanged.equals("inpehcmEmpPerinfoId") && StringUtils.isNotEmpty(employeeId)) {
-
-        /* get Employee Details by using employeeId */
-        EhcmEmpPerInfo employee = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
-        info.addResult("inpempName", employee.getArabicfullname());
-        EHCMEmployeeStatusV employeeStatus = OBDal.getInstance().get(EHCMEmployeeStatusV.class,
-            employeeId);
-        if (employeeStatus != null)
-          info.addResult("inpempStatus", employeeStatus.getStatusvalue());
-        else
-          info.addResult("inpempStatus", "");
-        info.addResult("inpehcmGradeclassId", employee.getGradeClass().getId());
-        info.addResult("inpempType", employee.getEhcmActiontype().getPersonType());
-        if (employee.getHiredate() != null) {
-          info.addResult("inphireDate",
-              (UtilityDAO.convertTohijriDate(dateFormat.format(employee.getHiredate()))));
-        }
-        if (empinfo != null) {
-          info.addResult("inpdepartmentId", empinfo.getPosition().getDepartment().getId());
-          if (empinfo.getPosition() != null && empinfo.getPosition().getSection() != null) {
-            info.addResult("inpsectionId", empinfo.getPosition().getSection().getId());
-          } else {
-            info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Section_ID').setValue('')");
+      if (lastfieldChanged.equals("inpehcmEmpPerinfoId")) {
+        if (StringUtils.isNotEmpty(employeeId)) {
+          /* get Employee Details by using employeeId */
+          EhcmEmpPerInfo employee = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
+          info.addResult("inpempName", employee.getArabicfullname());
+          EHCMEmployeeStatusV employeeStatus = OBDal.getInstance().get(EHCMEmployeeStatusV.class,
+              employeeId);
+          if (employeeStatus != null)
+            info.addResult("inpempStatus", employeeStatus.getStatusvalue());
+          else
+            info.addResult("inpempStatus", "");
+          info.addResult("inpehcmGradeclassId", employee.getGradeClass().getId());
+          info.addResult("inpempType", employee.getEhcmActiontype().getPersonType());
+          if (employee.getHiredate() != null) {
+            info.addResult("inphireDate",
+                (UtilityDAO.convertTohijriDate(dateFormat.format(employee.getHiredate()))));
           }
-          info.addResult("inpehcmGradeId", empinfo.getGrade().getId());
-          info.addResult("inpehcmPositionId", empinfo.getPosition().getId());
-          info.addResult("inpjobTitle", empinfo.getPosition().getJOBName().getJOBTitle());
-          info.addResult("inpemploymentgrade", empinfo.getEmploymentgrade().getId());
-          info.addResult("inpassignedDept", empinfo.getSECDeptName());
+          if (empinfo != null) {
+            info.addResult("inpdepartmentId", empinfo.getPosition().getDepartment().getId());
+            if (empinfo.getPosition() != null && empinfo.getPosition().getSection() != null) {
+              info.addResult("inpsectionId", empinfo.getPosition().getSection().getId());
+            } else {
+              info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Section_ID').setValue('')");
+            }
+            info.addResult("inpehcmGradeId", empinfo.getGrade().getId());
+            info.addResult("inpehcmPositionId", empinfo.getPosition().getId());
+            info.addResult("inpjobTitle", empinfo.getPosition().getJOBName().getJOBTitle());
+            info.addResult("inpemploymentgrade", empinfo.getEmploymentgrade().getId());
+            info.addResult("inpassignedDept", empinfo.getSECDeptName());
+          }
+
+          /*
+           * if(empinfo.getStartDate() != null) { info.addResult("inpstartdate",
+           * UtilityDAO.convertTohijriDate(dateFormat.format(startdate)));
+           * info.addResult("inpenddate",
+           * UtilityDAO.convertTohijriDate(dateFormat.format(startdate))); }
+           */
+          info.addResult("inpdecisionType", DecisionTypeConstants.DECISION_TYPE_CREATE);
+          info.addResult("JSEXECUTE",
+              "form.getFieldFromColumnName('Original_Decision_No').setValue('')");
+          info.addResult("inpcanceldate", null);
+        } else {
+          callouts.SetEmpDetailsNull(info);
+          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Assigned_Dept').setValue('')");
         }
-
-        /*
-         * if(empinfo.getStartDate() != null) { info.addResult("inpstartdate",
-         * UtilityDAO.convertTohijriDate(dateFormat.format(startdate)));
-         * info.addResult("inpenddate",
-         * UtilityDAO.convertTohijriDate(dateFormat.format(startdate))); }
-         */
-        info.addResult("inpdecisionType", DecisionTypeConstants.DECISION_TYPE_CREATE);
-        info.addResult("JSEXECUTE",
-            "form.getFieldFromColumnName('Original_Decision_No').setValue('')");
-        info.addResult("inpcanceldate", null);
-
       }
       if (lastfieldChanged.equals("inpscholarshipType")) {
         EHCMDeflookupsTypeLn scholarshiptypeObj = OBDal.getInstance()
@@ -336,7 +341,9 @@ public class ScholarshipTrainingCallout extends SimpleCallout {
         info.addResult("inpmissionDays", noofday);
 
       }
-    } catch (Exception e) {
+    } catch (
+
+    Exception e) {
       e.printStackTrace();
       log4j.error("Exception in ScholarshipTrainingCallout  :", e);
       info.addResult("ERROR", OBMessageUtils.messageBD("HB_INTERNAL_ERROR"));

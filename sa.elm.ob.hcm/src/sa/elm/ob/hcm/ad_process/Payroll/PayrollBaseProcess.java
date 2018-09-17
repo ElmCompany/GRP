@@ -14,6 +14,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hibernate.Session;
@@ -100,7 +101,6 @@ public class PayrollBaseProcess extends DalBaseProcess {
       boolean hasMinorError = false;
       final Session session = OBDal.getInstance().getSession();
       // Parameters
-      // int a = 0;
       OBContext.setAdminMode(true);
       String payrollProcessHdrId = (String) bundle.getParams().get("Ehcm_Payroll_Process_Hdr_ID");
       final String clientId = (String) bundle.getContext().getClient();
@@ -307,6 +307,12 @@ public class PayrollBaseProcess extends DalBaseProcess {
                                               .equalsIgnoreCase("DE")) {
                                             isDeduction = true;
                                           }
+                                          // method to form loop for secondment.
+                                          JSONArray secondmentJSON = PayrollBaseProcessDAO
+                                              .getSecondmentDetails(elementGroup, payrollElement,
+                                                  empPerInfo, elementOverLappingStartDate,
+                                                  elementOverLappingEndDate);
+
                                           // base process
                                           if (payrollElement.getBaseProcess()
                                               .equalsIgnoreCase("E")) {
@@ -315,244 +321,295 @@ public class PayrollBaseProcess extends DalBaseProcess {
                                             int employmentCount = 0;
                                             int allowanceCount = 0;
 
-                                            // Fetching employments for an employee
-                                            List<EmploymentInfo> employmentList = PayrollBaseProcessDAO
-                                                .getEmploymentsOfEmployee(empPerInfo,
-                                                    elementOverLappingDBStartDate,
-                                                    elementOverLappingDBEndDate);
+                                            // secondment iteration
+                                            if (secondmentJSON.length() > 0) {
+                                              for (int j = 0; j < secondmentJSON.length(); j++) {
+                                                JSONObject secondment = secondmentJSON
+                                                    .getJSONObject(j);
+                                                String startDate = secondment
+                                                    .getString("STARTDATE");
+                                                String endDate = secondment.getString("ENDDATE");
+                                                Date secPeriodStartDate = dateFormat
+                                                    .parse(startDate);
+                                                Date secPeriodEndDate = dateFormat.parse(endDate);
+                                                String elmGrp = secondment.getString("ELMGRP");
 
-                                            for (EmploymentInfo employment : employmentList) {
-                                              if (!errorFlagMinor) {
-                                                employmentCount++;
+                                                boolean isElementEligible = PayrollBaseProcessDAO
+                                                    .isElementInElementGrp(elmGrp, payrollElement);
+                                                String secOverLappingDBStartDate = sa.elm.ob.utility.util.Utility
+                                                    .formatDate(secPeriodStartDate);
+                                                String secOverLappingDBEndDate = sa.elm.ob.utility.util.Utility
+                                                    .formatDate(secPeriodEndDate);
 
-                                                BigDecimal totalEmploymentValue = BigDecimal.ZERO;
+                                                // is element available in element group of
+                                                // secondmant.
+                                                if (isElementEligible) {
+                                                  // Fetching employments for an employee
+                                                  List<EmploymentInfo> employmentList = PayrollBaseProcessDAO
+                                                      .getEmploymentsOfEmployee(empPerInfo,
+                                                          secOverLappingDBStartDate,
+                                                          secOverLappingDBEndDate);
 
-                                                // Employment Details
-                                                EhcmPosition position = employment.getPosition();
-                                                Organization department = employment.getPosition()
-                                                    .getDepartment();
-                                                Jobs job = employment.getPosition().getEhcmJobs();
-                                                ehcmgrade positionGrade = employment.getPosition()
-                                                    .getGrade();
-                                                ehcmgradeclass gradeClass = employment.getPosition()
-                                                    .getGrade().getEhcmGradeclass();
-                                                ehcmgrade grade = employment.getEmploymentgrade();
-                                                EHCMPayrollDefinition payroll = employment
-                                                    .getEhcmPayrollDefinition();
-                                                Date employmentStartDate = dateFormat
-                                                    .parse(employment.getStartDate().toString());
-                                                Date employmentEndDate = employment
-                                                    .getEndDate() != null
-                                                        ? dateFormat.parse(
-                                                            employment.getEndDate().toString())
-                                                        : null;
+                                                  for (EmploymentInfo employment : employmentList) {
+                                                    if (!errorFlagMinor) {
+                                                      employmentCount++;
 
-                                                log.info("Employment ===> " + employmentCount);
-                                                log.info("Grade ===> " + grade.getSearchKey());
-                                                log.info(
-                                                    "Payroll ===> " + payroll.getPayrollName());
+                                                      BigDecimal totalEmploymentValue = BigDecimal.ZERO;
 
-                                                // Applicable Employment Days
-                                                log.info("Applicable Employment Days");
-                                                JSONObject employmentPeriodJSON = getOverlapingDateRange(
-                                                    employmentStartDate, employmentEndDate,
-                                                    elementOverLappingStartDate,
-                                                    elementOverLappingEndDate);
+                                                      // Employment Details
+                                                      EhcmPosition position = employment
+                                                          .getPosition();
+                                                      Organization department = employment
+                                                          .getPosition().getDepartment();
+                                                      Jobs job = employment.getPosition()
+                                                          .getEhcmJobs();
+                                                      ehcmgrade positionGrade = employment
+                                                          .getPosition().getGrade();
+                                                      ehcmgradeclass gradeClass = employment
+                                                          .getPosition().getGrade()
+                                                          .getEhcmGradeclass();
+                                                      ehcmgrade grade = employment
+                                                          .getEmploymentgrade();
+                                                      EHCMPayrollDefinition payroll = employment
+                                                          .getEhcmPayrollDefinition();
+                                                      Date employmentStartDate = dateFormat.parse(
+                                                          employment.getStartDate().toString());
+                                                      Date employmentEndDate = employment
+                                                          .getEndDate() != null ? dateFormat.parse(
+                                                              employment.getEndDate().toString())
+                                                              : null;
 
-                                                if (employmentPeriodJSON != null) {
-                                                  Date employmentOverlappingStartDate = dateFormat
-                                                      .parse(employmentPeriodJSON
-                                                          .getString("startDate"));
-                                                  Date employmentOverlappingEndDate = dateFormat
-                                                      .parse(employmentPeriodJSON
-                                                          .getString("endDate"));
+                                                      log.info(
+                                                          "Employment ===> " + employmentCount);
+                                                      log.info(
+                                                          "Grade ===> " + grade.getSearchKey());
+                                                      log.info("Payroll ===> "
+                                                          + payroll.getPayrollName());
 
-                                                  String employmentOverlappingDBStartDate = sa.elm.ob.utility.util.Utility
-                                                      .formatDate(employmentOverlappingStartDate);
-                                                  String employmentOverlappingDBEndDate = sa.elm.ob.utility.util.Utility
-                                                      .formatDate(employmentOverlappingEndDate);
+                                                      // Applicable Employment Days
+                                                      log.info("Applicable Employment Days");
+                                                      JSONObject employmentPeriodJSON = getOverlapingDateRange(
+                                                          employmentStartDate, employmentEndDate,
+                                                          secPeriodStartDate, secPeriodEndDate);
 
-                                                  EHCMEligbltyCriteria eligiblity = PayrollBaseProcessDAO
-                                                      .getElementEligiblityForEmployment(
-                                                          payrollElement, position, department, job,
-                                                          positionGrade, gradeClass, payroll,
-                                                          employmentOverlappingDBStartDate,
-                                                          employmentOverlappingDBEndDate);
+                                                      if (employmentPeriodJSON != null) {
+                                                        Date employmentOverlappingStartDate = dateFormat
+                                                            .parse(employmentPeriodJSON
+                                                                .getString("startDate"));
+                                                        Date employmentOverlappingEndDate = dateFormat
+                                                            .parse(employmentPeriodJSON
+                                                                .getString("endDate"));
 
-                                                  if (eligiblity != null) {
+                                                        String employmentOverlappingDBStartDate = sa.elm.ob.utility.util.Utility
+                                                            .formatDate(
+                                                                employmentOverlappingStartDate);
+                                                        String employmentOverlappingDBEndDate = sa.elm.ob.utility.util.Utility
+                                                            .formatDate(
+                                                                employmentOverlappingEndDate);
 
-                                                    // Eligiblity Details
-                                                    Date eligiblityStartDate = dateFormat.parse(
-                                                        eligiblity.getStartDate().toString());
-                                                    Date eligiblityEndDate = eligiblity
-                                                        .getEndDate() != null
-                                                            ? dateFormat.parse(
-                                                                eligiblity.getEndDate().toString())
-                                                            : null;
+                                                        EHCMEligbltyCriteria eligiblity = PayrollBaseProcessDAO
+                                                            .getElementEligiblityForEmployment(
+                                                                payrollElement, position,
+                                                                department, job, positionGrade,
+                                                                gradeClass, payroll,
+                                                                employmentOverlappingDBStartDate,
+                                                                employmentOverlappingDBEndDate);
 
-                                                    // Applicable Employment Days
-                                                    log.info("Applicable Eligiblity Days");
-                                                    JSONObject eligiblityPeriodJSON = getOverlapingDateRange(
-                                                        eligiblityStartDate, eligiblityEndDate,
-                                                        employmentOverlappingStartDate,
-                                                        employmentOverlappingEndDate);
+                                                        if (eligiblity != null) {
 
-                                                    if (eligiblityPeriodJSON != null) {
-                                                      Date eligiblityOverlappingStartDate = dateFormat
-                                                          .parse(eligiblityPeriodJSON
-                                                              .getString("startDate"));
-                                                      Date eligiblityOverlappingEndDate = dateFormat
-                                                          .parse(eligiblityPeriodJSON
-                                                              .getString("endDate"));
-                                                      String eligiblityOverlappingDBStartDate = sa.elm.ob.utility.util.Utility
-                                                          .formatDate(
-                                                              eligiblityOverlappingStartDate);
-                                                      String eligiblityOverlappingDBEndDate = sa.elm.ob.utility.util.Utility
-                                                          .formatDate(eligiblityOverlappingEndDate);
+                                                          // Eligiblity Details
+                                                          Date eligiblityStartDate = dateFormat
+                                                              .parse(eligiblity.getStartDate()
+                                                                  .toString());
+                                                          Date eligiblityEndDate = eligiblity
+                                                              .getEndDate() != null
+                                                                  ? dateFormat.parse(eligiblity
+                                                                      .getEndDate().toString())
+                                                                  : null;
 
-                                                      absPaymentStartDate = eligiblityOverlappingStartDate;
-                                                      absPaymentEndDate = eligiblityOverlappingEndDate;
-                                                      absEmploymentPeriodJSON = eligiblityPeriodJSON;
-                                                      BigDecimal value = BigDecimal.ZERO;
+                                                          // Applicable Employment Days
+                                                          log.info("Applicable Eligiblity Days");
+                                                          JSONObject eligiblityPeriodJSON = getOverlapingDateRange(
+                                                              eligiblityStartDate,
+                                                              eligiblityEndDate,
+                                                              employmentOverlappingStartDate,
+                                                              employmentOverlappingEndDate);
 
-                                                      // Check Extend Process for Validation
-                                                      if (payrollElement
-                                                          .getExtendProcess() != null) {
-                                                        if (payrollElement.getExtendProcess()
-                                                            .equalsIgnoreCase("AD")) {
+                                                          if (eligiblityPeriodJSON != null) {
+                                                            Date eligiblityOverlappingStartDate = dateFormat
+                                                                .parse(eligiblityPeriodJSON
+                                                                    .getString("startDate"));
+                                                            Date eligiblityOverlappingEndDate = dateFormat
+                                                                .parse(eligiblityPeriodJSON
+                                                                    .getString("endDate"));
+                                                            String eligiblityOverlappingDBStartDate = sa.elm.ob.utility.util.Utility
+                                                                .formatDate(
+                                                                    eligiblityOverlappingStartDate);
+                                                            String eligiblityOverlappingDBEndDate = sa.elm.ob.utility.util.Utility
+                                                                .formatDate(
+                                                                    eligiblityOverlappingEndDate);
 
-                                                          List<EHCMBenefitAllowance> allowanceDecisionList = PayrollBaseProcessDAO
-                                                              .getAllowanceDecisionForEmployee(
-                                                                  empPerInfo, payrollElement,
-                                                                  eligiblityOverlappingDBStartDate,
-                                                                  eligiblityOverlappingDBEndDate);
+                                                            absPaymentStartDate = eligiblityOverlappingStartDate;
+                                                            absPaymentEndDate = eligiblityOverlappingEndDate;
+                                                            absEmploymentPeriodJSON = eligiblityPeriodJSON;
+                                                            BigDecimal value = BigDecimal.ZERO;
 
-                                                          for (EHCMBenefitAllowance allowancDecision : allowanceDecisionList) {
-                                                            if (!errorFlagMinor) {
-                                                              allowanceCount++;
+                                                            // Check Extend Process for Validation
+                                                            if (payrollElement
+                                                                .getExtendProcess() != null) {
+                                                              if (payrollElement.getExtendProcess()
+                                                                  .equalsIgnoreCase("AD")) {
 
-                                                              log.info("allowanceDecision "
-                                                                  + allowanceCount);
+                                                                List<EHCMBenefitAllowance> allowanceDecisionList = PayrollBaseProcessDAO
+                                                                    .getAllowanceDecisionForEmployee(
+                                                                        empPerInfo, payrollElement,
+                                                                        eligiblityOverlappingDBStartDate,
+                                                                        eligiblityOverlappingDBEndDate);
 
-                                                              // Allowance Details
-                                                              Date allowanceStartDate = dateFormat
-                                                                  .parse(allowancDecision
-                                                                      .getStartDate().toString());
-                                                              Date allowanceEndDate = allowancDecision
-                                                                  .getEndDate() != null ? dateFormat
-                                                                      .parse(allowancDecision
-                                                                          .getEndDate().toString())
-                                                                      : null;
+                                                                for (EHCMBenefitAllowance allowancDecision : allowanceDecisionList) {
+                                                                  if (!errorFlagMinor) {
+                                                                    allowanceCount++;
 
-                                                              // Applicable Allowance Days
-                                                              log.info("Applicable Allowance Days");
-                                                              JSONObject allowancePeriodJSON = getOverlapingDateRange(
-                                                                  allowanceStartDate,
-                                                                  allowanceEndDate,
-                                                                  eligiblityOverlappingStartDate,
-                                                                  eligiblityOverlappingEndDate);
+                                                                    log.info("allowanceDecision "
+                                                                        + allowanceCount);
 
-                                                              if (allowancePeriodJSON != null) {
-                                                                Date allowanceOverlappingStartDate = dateFormat
-                                                                    .parse(allowancePeriodJSON
-                                                                        .getString("startDate"));
-                                                                Date allowanceOverlappingEndDate = dateFormat
-                                                                    .parse(allowancePeriodJSON
-                                                                        .getString("endDate"));
+                                                                    // Allowance Details
+                                                                    Date allowanceStartDate = dateFormat
+                                                                        .parse(allowancDecision
+                                                                            .getStartDate()
+                                                                            .toString());
+                                                                    Date allowanceEndDate = allowancDecision
+                                                                        .getEndDate() != null
+                                                                            ? dateFormat.parse(
+                                                                                allowancDecision
+                                                                                    .getEndDate()
+                                                                                    .toString())
+                                                                            : null;
 
-                                                                value = calculateEmploymentBasedValue(
-                                                                    payrollElement, employment,
-                                                                    allowanceOverlappingStartDate,
-                                                                    allowanceOverlappingEndDate,
-                                                                    processingDays, differenceDays,
-                                                                    periodEndDate, false, false);
+                                                                    // Applicable Allowance Days
+                                                                    log.info(
+                                                                        "Applicable Allowance Days");
+                                                                    JSONObject allowancePeriodJSON = getOverlapingDateRange(
+                                                                        allowanceStartDate,
+                                                                        allowanceEndDate,
+                                                                        eligiblityOverlappingStartDate,
+                                                                        eligiblityOverlappingEndDate);
 
-                                                                // Sum up value to total value
-                                                                totalEmploymentValue = totalEmploymentValue
-                                                                    .add(value);
+                                                                    if (allowancePeriodJSON != null) {
+                                                                      Date allowanceOverlappingStartDate = dateFormat
+                                                                          .parse(allowancePeriodJSON
+                                                                              .getString(
+                                                                                  "startDate"));
+                                                                      Date allowanceOverlappingEndDate = dateFormat
+                                                                          .parse(allowancePeriodJSON
+                                                                              .getString(
+                                                                                  "endDate"));
 
-                                                                // Base Value
-                                                                if (!errorFlagMinor
-                                                                    && payrollElement.getType()
-                                                                        .equalsIgnoreCase("REC")
-                                                                    && employmentCount == employmentList
-                                                                        .size()
-                                                                    && allowanceCount == allowanceDecisionList
-                                                                        .size()) {
-                                                                  employmentBaseValue = calculateEmploymentBasedValue(
-                                                                      payrollElement, employment,
-                                                                      allowanceOverlappingStartDate,
-                                                                      allowanceOverlappingEndDate,
-                                                                      processingDays,
-                                                                      differenceDays, periodEndDate,
-                                                                      true, false);
+                                                                      value = calculateEmploymentBasedValue(
+                                                                          payrollElement,
+                                                                          employment,
+                                                                          allowanceOverlappingStartDate,
+                                                                          allowanceOverlappingEndDate,
+                                                                          processingDays,
+                                                                          differenceDays,
+                                                                          periodEndDate, false,
+                                                                          false);
+
+                                                                      // Sum up value to total value
+                                                                      totalEmploymentValue = totalEmploymentValue
+                                                                          .add(value);
+
+                                                                      // Base Value
+                                                                      if (!errorFlagMinor
+                                                                          && payrollElement
+                                                                              .getType()
+                                                                              .equalsIgnoreCase(
+                                                                                  "REC")
+                                                                          && employmentCount == employmentList
+                                                                              .size()
+                                                                          && allowanceCount == allowanceDecisionList
+                                                                              .size()) {
+                                                                        employmentBaseValue = calculateEmploymentBasedValue(
+                                                                            payrollElement,
+                                                                            employment,
+                                                                            allowanceOverlappingStartDate,
+                                                                            allowanceOverlappingEndDate,
+                                                                            processingDays,
+                                                                            differenceDays,
+                                                                            periodEndDate, true,
+                                                                            false);
+                                                                      }
+
+                                                                    } else {
+                                                                      break;
+                                                                    }
+
+                                                                  } else {
+                                                                    break;
+                                                                  }
                                                                 }
+                                                              }
+                                                            } else {
+                                                              value = calculateEmploymentBasedValue(
+                                                                  payrollElement, employment,
+                                                                  eligiblityOverlappingStartDate,
+                                                                  eligiblityOverlappingEndDate,
+                                                                  processingDays, differenceDays,
+                                                                  periodEndDate, false, false);
 
-                                                              } else {
-                                                                break;
+                                                              // added elementid for calculate the
+                                                              // absence
+                                                              // payment
+                                                              // value
+                                                              if (employmentCount == 1) {
+                                                                PayrollBaseProcess.absPaymentComponents
+                                                                    .put("elementId",
+                                                                        payrollElement.getId());
                                                               }
 
-                                                            } else {
-                                                              break;
+                                                              // Sum up value to total value
+                                                              totalEmploymentValue = totalEmploymentValue
+                                                                  .add(value);
+
+                                                              // Base Value
+                                                              if (!errorFlagMinor
+                                                                  && payrollElement.getType()
+                                                                      .equalsIgnoreCase("REC")
+                                                                  && employmentCount == employmentList
+                                                                      .size()) {
+                                                                employmentBaseValue = calculateEmploymentBasedValue(
+                                                                    payrollElement, employment,
+                                                                    eligiblityOverlappingStartDate,
+                                                                    eligiblityOverlappingEndDate,
+                                                                    processingDays, differenceDays,
+                                                                    periodEndDate, true, false);
+                                                              }
                                                             }
+                                                          } else {
+                                                            break;
                                                           }
                                                         }
                                                       } else {
-                                                        value = calculateEmploymentBasedValue(
-                                                            payrollElement, employment,
-                                                            eligiblityOverlappingStartDate,
-                                                            eligiblityOverlappingEndDate,
-                                                            processingDays, differenceDays,
-                                                            periodEndDate, false, false);
+                                                        break;
+                                                      }
 
-                                                        // added elementid for calculate the absence
-                                                        // payment
-                                                        // value
-                                                        if (employmentCount == 1) {
-                                                          PayrollBaseProcess.absPaymentComponents
-                                                              .put("elementId",
-                                                                  payrollElement.getId());
-                                                        }
+                                                      //// ****
 
-                                                        // Sum up value to total value
-                                                        totalEmploymentValue = totalEmploymentValue
-                                                            .add(value);
-
-                                                        // Base Value
-                                                        if (!errorFlagMinor
-                                                            && payrollElement.getType()
-                                                                .equalsIgnoreCase("REC")
-                                                            && employmentCount == employmentList
-                                                                .size()) {
-                                                          employmentBaseValue = calculateEmploymentBasedValue(
-                                                              payrollElement, employment,
-                                                              eligiblityOverlappingStartDate,
-                                                              eligiblityOverlappingEndDate,
-                                                              processingDays, differenceDays,
-                                                              periodEndDate, true, false);
-                                                        }
+                                                      if (!errorFlagMinor) {
+                                                        addValueToMap(payrollElement,
+                                                            employmentBaseValue,
+                                                            totalEmploymentValue, isDeduction, "E",
+                                                            null);
+                                                      } else {
+                                                        break;
                                                       }
                                                     } else {
                                                       break;
                                                     }
                                                   }
-                                                } else {
-                                                  break;
                                                 }
-
-                                                //// ****
-
-                                                if (!errorFlagMinor) {
-                                                  addValueToMap(payrollElement, employmentBaseValue,
-                                                      totalEmploymentValue, isDeduction, "E", null);
-                                                } else {
-                                                  break;
-                                                }
-                                              } else {
-                                                break;
                                               }
                                             }
-
                                             // Remove employment based pre-defined elements
                                             removeEmploymentBasedPreDefElements();
 
@@ -637,311 +694,363 @@ public class PayrollBaseProcess extends DalBaseProcess {
                                             BigDecimal allowanceBaseValue = BigDecimal.ZERO;
                                             int allowanceCount = 0;
                                             int employmentCount = 0;
+                                            // secondment iteration
+                                            if (secondmentJSON.length() > 0) {
+                                              for (int j = 0; j < secondmentJSON.length(); j++) {
+                                                JSONObject secondment = secondmentJSON
+                                                    .getJSONObject(j);
+                                                String startDate = secondment
+                                                    .getString("STARTDATE");
+                                                String endDate = secondment.getString("ENDDATE");
+                                                Date secPeriodStartDate = dateFormat
+                                                    .parse(startDate);
+                                                Date secPeriodEndDate = dateFormat.parse(endDate);
+                                                String elmGrp = secondment.getString("ELMGRP");
 
-                                            // Fetching allowance decision for an employee and
-                                            // element
-                                            List<EHCMBenefitAllowance> allowanceDecisionList = PayrollBaseProcessDAO
-                                                .getAllowanceDecisionForEmployee(empPerInfo,
-                                                    payrollElement, elementOverLappingDBStartDate,
-                                                    elementOverLappingDBEndDate);
+                                                boolean isElementEligible = PayrollBaseProcessDAO
+                                                    .isElementInElementGrp(elmGrp, payrollElement);
+                                                String secOverLappingDBStartDate = sa.elm.ob.utility.util.Utility
+                                                    .formatDate(secPeriodStartDate);
+                                                String secOverLappingDBEndDate = sa.elm.ob.utility.util.Utility
+                                                    .formatDate(secPeriodEndDate);
 
-                                            for (EHCMBenefitAllowance allowancDecision : allowanceDecisionList) {
-                                              if (!errorFlagMinor) {
-                                                allowanceCount++;
-                                                BigDecimal totalAllowanceValue = BigDecimal.ZERO;
-                                                log.info("Allowance ===> " + allowanceCount);
+                                                // is element available in element group of
+                                                // secondmant.
+                                                if (isElementEligible) {
 
-                                                // Allowance Details
-                                                Date allowanceStartDate = dateFormat.parse(
-                                                    allowancDecision.getStartDate().toString());
-                                                Date allowanceEndDate = allowancDecision
-                                                    .getEndDate() != null ? dateFormat.parse(
-                                                        allowancDecision.getEndDate().toString())
-                                                        : null;
+                                                  // Fetching allowance decision for an employee and
+                                                  // element
+                                                  List<EHCMBenefitAllowance> allowanceDecisionList = PayrollBaseProcessDAO
+                                                      .getAllowanceDecisionForEmployee(empPerInfo,
+                                                          payrollElement, secOverLappingDBStartDate,
+                                                          secOverLappingDBEndDate);
 
-                                                log.info("Applicable Allowance Days");
-                                                JSONObject allowancePeriodJSON = getOverlapingDateRange(
-                                                    allowanceStartDate, allowanceEndDate,
-                                                    elementOverLappingStartDate,
-                                                    elementOverLappingEndDate);
-
-                                                if (allowancePeriodJSON != null) {
-                                                  Date allowanceOverlappingStartDate = dateFormat
-                                                      .parse(allowancePeriodJSON
-                                                          .getString("startDate"));
-                                                  Date allowanceOverlappingEndDate = dateFormat
-                                                      .parse(
-                                                          allowancePeriodJSON.getString("endDate"));
-                                                  String allowanceOverlappingDBStartDate = sa.elm.ob.utility.util.Utility
-                                                      .formatDate(allowanceOverlappingStartDate);
-                                                  String allowanceOverlappingDBEndDate = sa.elm.ob.utility.util.Utility
-                                                      .formatDate(allowanceOverlappingEndDate);
-
-                                                  // Employment Details
-                                                  List<EmploymentInfo> employmentList = PayrollBaseProcessDAO
-                                                      .getEmploymentsOfEmployee(empPerInfo,
-                                                          allowanceOverlappingDBStartDate,
-                                                          allowanceOverlappingDBEndDate);
-
-                                                  for (EmploymentInfo employment : employmentList) {
+                                                  for (EHCMBenefitAllowance allowancDecision : allowanceDecisionList) {
                                                     if (!errorFlagMinor) {
-                                                      allowanceComponents = new JSONObject();
-                                                      employmentCount++;
-                                                      log.info(
-                                                          "Employment ===> " + employmentCount);
+                                                      allowanceCount++;
+                                                      BigDecimal totalAllowanceValue = BigDecimal.ZERO;
+                                                      log.info("Allowance ===> " + allowanceCount);
 
-                                                      // Employment Details
-                                                      EhcmPosition position = employment
-                                                          .getPosition();
-                                                      Organization department = employment
-                                                          .getPosition().getDepartment();
-                                                      Jobs job = employment.getPosition()
-                                                          .getEhcmJobs();
-                                                      ehcmgrade positionGrade = employment
-                                                          .getPosition().getGrade();
-                                                      ehcmgradeclass gradeClass = employment
-                                                          .getPosition().getGrade()
-                                                          .getEhcmGradeclass();
-                                                      ehcmgrade grade = employment
-                                                          .getEmploymentgrade();
-                                                      EHCMPayrollDefinition payroll = employment
-                                                          .getEhcmPayrollDefinition();
-                                                      Date employmentStartDate = dateFormat.parse(
-                                                          employment.getStartDate().toString());
-                                                      Date employmentEndDate = employment
-                                                          .getEndDate() != null ? dateFormat.parse(
-                                                              employment.getEndDate().toString())
+                                                      // Allowance Details
+                                                      Date allowanceStartDate = dateFormat
+                                                          .parse(allowancDecision.getStartDate()
+                                                              .toString());
+                                                      Date allowanceEndDate = allowancDecision
+                                                          .getEndDate() != null
+                                                              ? dateFormat.parse(allowancDecision
+                                                                  .getEndDate().toString())
                                                               : null;
 
-                                                      // Applicable Employment Days
-                                                      log.info("Applicable Employment Days");
-                                                      JSONObject employmentPeriodJSON = getOverlapingDateRange(
-                                                          employmentStartDate, employmentEndDate,
-                                                          allowanceOverlappingStartDate,
-                                                          allowanceOverlappingEndDate);
+                                                      log.info("Applicable Allowance Days");
+                                                      JSONObject allowancePeriodJSON = getOverlapingDateRange(
+                                                          allowanceStartDate, allowanceEndDate,
+                                                          secPeriodStartDate, secPeriodEndDate);
 
-                                                      if (employmentPeriodJSON != null) {
-                                                        Date employmentOverlappingStartDate = dateFormat
-                                                            .parse(employmentPeriodJSON
+                                                      if (allowancePeriodJSON != null) {
+                                                        Date allowanceOverlappingStartDate = dateFormat
+                                                            .parse(allowancePeriodJSON
                                                                 .getString("startDate"));
-                                                        Date employmentOverlappingEndDate = dateFormat
-                                                            .parse(employmentPeriodJSON
+                                                        Date allowanceOverlappingEndDate = dateFormat
+                                                            .parse(allowancePeriodJSON
                                                                 .getString("endDate"));
-                                                        String employmentOverlappingDBStartDate = sa.elm.ob.utility.util.Utility
+                                                        String allowanceOverlappingDBStartDate = sa.elm.ob.utility.util.Utility
                                                             .formatDate(
-                                                                employmentOverlappingStartDate);
-                                                        String employmentOverlappingDBEndDate = sa.elm.ob.utility.util.Utility
+                                                                allowanceOverlappingStartDate);
+                                                        String allowanceOverlappingDBEndDate = sa.elm.ob.utility.util.Utility
                                                             .formatDate(
-                                                                employmentOverlappingEndDate);
+                                                                allowanceOverlappingEndDate);
 
-                                                        EHCMEligbltyCriteria eligiblity = PayrollBaseProcessDAO
-                                                            .getElementEligiblityForEmployment(
-                                                                payrollElement, position,
-                                                                department, job, positionGrade,
-                                                                gradeClass, payroll,
-                                                                employmentOverlappingDBStartDate,
-                                                                employmentOverlappingDBEndDate);
+                                                        // Employment Details
+                                                        List<EmploymentInfo> employmentList = PayrollBaseProcessDAO
+                                                            .getEmploymentsOfEmployee(empPerInfo,
+                                                                allowanceOverlappingDBStartDate,
+                                                                allowanceOverlappingDBEndDate);
 
-                                                        if (eligiblity != null) {
-                                                          // Eligiblity Details
-                                                          Date eligiblityStartDate = dateFormat
-                                                              .parse(eligiblity.getStartDate()
-                                                                  .toString());
-                                                          Date eligiblityEndDate = eligiblity
-                                                              .getEndDate() != null
-                                                                  ? dateFormat.parse(eligiblity
-                                                                      .getEndDate().toString())
-                                                                  : null;
+                                                        for (EmploymentInfo employment : employmentList) {
+                                                          if (!errorFlagMinor) {
+                                                            allowanceComponents = new JSONObject();
+                                                            employmentCount++;
+                                                            log.info("Employment ===> "
+                                                                + employmentCount);
 
-                                                          log.info("Applicable Eligiblity Days");
-                                                          JSONObject eligiblityPeriodJSON = getOverlapingDateRange(
-                                                              eligiblityStartDate,
-                                                              eligiblityEndDate,
-                                                              employmentOverlappingStartDate,
-                                                              employmentOverlappingEndDate);
+                                                            // Employment Details
+                                                            EhcmPosition position = employment
+                                                                .getPosition();
+                                                            Organization department = employment
+                                                                .getPosition().getDepartment();
+                                                            Jobs job = employment.getPosition()
+                                                                .getEhcmJobs();
+                                                            ehcmgrade positionGrade = employment
+                                                                .getPosition().getGrade();
+                                                            ehcmgradeclass gradeClass = employment
+                                                                .getPosition().getGrade()
+                                                                .getEhcmGradeclass();
+                                                            ehcmgrade grade = employment
+                                                                .getEmploymentgrade();
+                                                            EHCMPayrollDefinition payroll = employment
+                                                                .getEhcmPayrollDefinition();
+                                                            Date employmentStartDate = dateFormat
+                                                                .parse(employment.getStartDate()
+                                                                    .toString());
+                                                            Date employmentEndDate = employment
+                                                                .getEndDate() != null
+                                                                    ? dateFormat.parse(employment
+                                                                        .getEndDate().toString())
+                                                                    : null;
 
-                                                          if (eligiblityPeriodJSON != null) {
-                                                            Date eligiblityOverlappingStartDate = dateFormat
-                                                                .parse(eligiblityPeriodJSON
-                                                                    .getString("startDate"));
-                                                            Date eligiblityOverlappingEndDate = dateFormat
-                                                                .parse(eligiblityPeriodJSON
-                                                                    .getString("endDate"));
+                                                            // Applicable Employment Days
+                                                            log.info("Applicable Employment Days");
+                                                            JSONObject employmentPeriodJSON = getOverlapingDateRange(
+                                                                employmentStartDate,
+                                                                employmentEndDate,
+                                                                allowanceOverlappingStartDate,
+                                                                allowanceOverlappingEndDate);
 
-                                                            // Calculate allowance value
-                                                            BigDecimal days = new BigDecimal(
-                                                                eligiblityPeriodJSON
-                                                                    .getLong("days"));
-                                                            BigDecimal value = BigDecimal.ZERO;
-                                                            if (allowancDecision.getValueType()
-                                                                .equalsIgnoreCase(
-                                                                    PayrollConstants.ALLOWANCE_FIXEDAMOUNT)) {
-                                                              BigDecimal perDayFixedAmt = allowancDecision
-                                                                  .getFixedAmount()
-                                                                  .divide(processingDays, 6,
-                                                                      BigDecimal.ROUND_HALF_UP);
-                                                              value = perDayFixedAmt.multiply(days);
+                                                            if (employmentPeriodJSON != null) {
+                                                              Date employmentOverlappingStartDate = dateFormat
+                                                                  .parse(employmentPeriodJSON
+                                                                      .getString("startDate"));
+                                                              Date employmentOverlappingEndDate = dateFormat
+                                                                  .parse(employmentPeriodJSON
+                                                                      .getString("endDate"));
+                                                              String employmentOverlappingDBStartDate = sa.elm.ob.utility.util.Utility
+                                                                  .formatDate(
+                                                                      employmentOverlappingStartDate);
+                                                              String employmentOverlappingDBEndDate = sa.elm.ob.utility.util.Utility
+                                                                  .formatDate(
+                                                                      employmentOverlappingEndDate);
 
-                                                              // absence calculation
-                                                              allowanceComponents
-                                                                  .put("isFixedAmount", true);
-                                                              allowanceComponents.put("fixedAmount",
-                                                                  allowancDecision
-                                                                      .getFixedAmount());
-                                                              allowanceComponents.put(
-                                                                  "perDayFixedAmt", perDayFixedAmt);
+                                                              EHCMEligbltyCriteria eligiblity = PayrollBaseProcessDAO
+                                                                  .getElementEligiblityForEmployment(
+                                                                      payrollElement, position,
+                                                                      department, job,
+                                                                      positionGrade, gradeClass,
+                                                                      payroll,
+                                                                      employmentOverlappingDBStartDate,
+                                                                      employmentOverlappingDBEndDate);
 
-                                                              // Base Value
-                                                              if (!errorFlagMinor
-                                                                  && payrollElement.getType()
-                                                                      .equalsIgnoreCase("REC")
-                                                                  && allowanceCount == allowanceDecisionList
-                                                                      .size()
-                                                                  && employmentCount == employmentList
-                                                                      .size()) {
-                                                                allowanceBaseValue = perDayFixedAmt
-                                                                    .multiply(processingDays);
-                                                              }
-                                                            } else if (allowancDecision
-                                                                .getValueType().equalsIgnoreCase(
-                                                                    PayrollConstants.ALLOWANCE_PERCENTAGE)) {
-                                                              BigDecimal percent = allowancDecision
-                                                                  .getPercentage().divide(
-                                                                      PayrollConstants.PERCENTAGE_MAXIMUM,
-                                                                      6, BigDecimal.ROUND_HALF_UP);
+                                                              if (eligiblity != null) {
+                                                                // Eligiblity Details
+                                                                Date eligiblityStartDate = dateFormat
+                                                                    .parse(eligiblity.getStartDate()
+                                                                        .toString());
+                                                                Date eligiblityEndDate = eligiblity
+                                                                    .getEndDate() != null
+                                                                        ? dateFormat.parse(
+                                                                            eligiblity.getEndDate()
+                                                                                .toString())
+                                                                        : null;
 
-                                                              // absence calculation
-                                                              allowanceComponents
-                                                                  .put("isFixedAmount", false);
-                                                              allowanceComponents.put("percent",
-                                                                  percent);
+                                                                log.info(
+                                                                    "Applicable Eligiblity Days");
+                                                                JSONObject eligiblityPeriodJSON = getOverlapingDateRange(
+                                                                    eligiblityStartDate,
+                                                                    eligiblityEndDate,
+                                                                    employmentOverlappingStartDate,
+                                                                    employmentOverlappingEndDate);
 
-                                                              if (allowancDecision.getCategory()
-                                                                  .equalsIgnoreCase(
-                                                                      PayrollConstants.ALLOWANCE_PERCENT_BASIC)) {
-                                                                BigDecimal payscale = PayrollBaseProcessDAO
-                                                                    .getPayScaleValue(employment,
-                                                                        eligiblityOverlappingStartDate,
-                                                                        eligiblityOverlappingEndDate,
-                                                                        processingDays,
-                                                                        differenceDays,
-                                                                        periodEndDate);
-                                                                value = payscale.multiply(percent);
+                                                                if (eligiblityPeriodJSON != null) {
+                                                                  Date eligiblityOverlappingStartDate = dateFormat
+                                                                      .parse(eligiblityPeriodJSON
+                                                                          .getString("startDate"));
+                                                                  Date eligiblityOverlappingEndDate = dateFormat
+                                                                      .parse(eligiblityPeriodJSON
+                                                                          .getString("endDate"));
 
-                                                                // absence calculation
-                                                                allowanceComponents
-                                                                    .put("isPercentBasic", true);
-                                                                allowanceComponents.put("payscale",
-                                                                    payscale);
+                                                                  // Calculate allowance value
+                                                                  BigDecimal days = new BigDecimal(
+                                                                      eligiblityPeriodJSON
+                                                                          .getLong("days"));
+                                                                  BigDecimal value = BigDecimal.ZERO;
+                                                                  if (allowancDecision
+                                                                      .getValueType()
+                                                                      .equalsIgnoreCase(
+                                                                          PayrollConstants.ALLOWANCE_FIXEDAMOUNT)) {
+                                                                    BigDecimal perDayFixedAmt = allowancDecision
+                                                                        .getFixedAmount()
+                                                                        .divide(processingDays, 6,
+                                                                            BigDecimal.ROUND_HALF_UP);
+                                                                    value = perDayFixedAmt
+                                                                        .multiply(days);
 
-                                                                // Base Value
-                                                                if (!errorFlagMinor
-                                                                    && payrollElement.getType()
-                                                                        .equalsIgnoreCase("REC")
-                                                                    && allowanceCount == allowanceDecisionList
-                                                                        .size()
-                                                                    && employmentCount == employmentList
-                                                                        .size()) {
-                                                                  BigDecimal latestPayscale = PayrollBaseProcessDAO
-                                                                      .getLatestPayScaleValueInEmployment(
+                                                                    // absence calculation
+                                                                    allowanceComponents
+                                                                        .put("isFixedAmount", true);
+                                                                    allowanceComponents.put(
+                                                                        "fixedAmount",
+                                                                        allowancDecision
+                                                                            .getFixedAmount());
+                                                                    allowanceComponents.put(
+                                                                        "perDayFixedAmt",
+                                                                        perDayFixedAmt);
+
+                                                                    // Base Value
+                                                                    if (!errorFlagMinor
+                                                                        && payrollElement.getType()
+                                                                            .equalsIgnoreCase("REC")
+                                                                        && allowanceCount == allowanceDecisionList
+                                                                            .size()
+                                                                        && employmentCount == employmentList
+                                                                            .size()) {
+                                                                      allowanceBaseValue = perDayFixedAmt
+                                                                          .multiply(processingDays);
+                                                                    }
+                                                                  } else if (allowancDecision
+                                                                      .getValueType()
+                                                                      .equalsIgnoreCase(
+                                                                          PayrollConstants.ALLOWANCE_PERCENTAGE)) {
+                                                                    BigDecimal percent = allowancDecision
+                                                                        .getPercentage().divide(
+                                                                            PayrollConstants.PERCENTAGE_MAXIMUM,
+                                                                            6,
+                                                                            BigDecimal.ROUND_HALF_UP);
+
+                                                                    // absence calculation
+                                                                    allowanceComponents.put(
+                                                                        "isFixedAmount", false);
+                                                                    allowanceComponents
+                                                                        .put("percent", percent);
+
+                                                                    if (allowancDecision
+                                                                        .getCategory()
+                                                                        .equalsIgnoreCase(
+                                                                            PayrollConstants.ALLOWANCE_PERCENT_BASIC)) {
+                                                                      BigDecimal payscale = PayrollBaseProcessDAO
+                                                                          .getPayScaleValue(
+                                                                              employment,
+                                                                              eligiblityOverlappingStartDate,
+                                                                              eligiblityOverlappingEndDate,
+                                                                              processingDays,
+                                                                              differenceDays,
+                                                                              periodEndDate);
+                                                                      value = payscale
+                                                                          .multiply(percent);
+
+                                                                      // absence calculation
+                                                                      allowanceComponents.put(
+                                                                          "isPercentBasic", true);
+                                                                      allowanceComponents.put(
+                                                                          "payscale", payscale);
+
+                                                                      // Base Value
+                                                                      if (!errorFlagMinor
+                                                                          && payrollElement
+                                                                              .getType()
+                                                                              .equalsIgnoreCase(
+                                                                                  "REC")
+                                                                          && allowanceCount == allowanceDecisionList
+                                                                              .size()
+                                                                          && employmentCount == employmentList
+                                                                              .size()) {
+                                                                        BigDecimal latestPayscale = PayrollBaseProcessDAO
+                                                                            .getLatestPayScaleValueInEmployment(
+                                                                                employment,
+                                                                                eligiblityOverlappingStartDate,
+                                                                                eligiblityOverlappingEndDate);
+                                                                        allowanceBaseValue = latestPayscale
+                                                                            .multiply(percent);
+                                                                      }
+                                                                    } else if (allowancDecision
+                                                                        .getCategory()
+                                                                        .equalsIgnoreCase(
+                                                                            PayrollConstants.ALLOWANCE_PERCENT_FIRSTSTEPGRADE)) {
+                                                                      BigDecimal firstStepGradeVal = PayrollBaseProcessDAO
+                                                                          .getFirstStepGradeValue(
+                                                                              employment,
+                                                                              eligiblityOverlappingStartDate,
+                                                                              eligiblityOverlappingEndDate,
+                                                                              processingDays,
+                                                                              differenceDays,
+                                                                              periodEndDate);
+                                                                      value = firstStepGradeVal
+                                                                          .multiply(percent);
+
+                                                                      // absence calculation
+                                                                      allowanceComponents.put(
+                                                                          "isPercentBasic", false);
+                                                                      allowanceComponents.put(
+                                                                          "firstStepGradeVal",
+                                                                          firstStepGradeVal);
+
+                                                                      // Base Value
+                                                                      if (!errorFlagMinor
+                                                                          && payrollElement
+                                                                              .getType()
+                                                                              .equalsIgnoreCase(
+                                                                                  "REC")
+                                                                          && allowanceCount == allowanceDecisionList
+                                                                              .size()
+                                                                          && employmentCount == employmentList
+                                                                              .size()) {
+                                                                        BigDecimal latestFirstStepGradeVal = PayrollBaseProcessDAO
+                                                                            .getLatestFirstStepGradeValue(
+                                                                                employment,
+                                                                                eligiblityOverlappingStartDate,
+                                                                                eligiblityOverlappingEndDate);
+                                                                        allowanceBaseValue = latestFirstStepGradeVal
+                                                                            .multiply(percent);
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                  totalAllowanceValue = totalAllowanceValue
+                                                                      .add(value);
+
+                                                                  if (employmentCount == 1) {
+                                                                    PayrollBaseProcess.absPaymentComponents
+                                                                        .put("elementId",
+                                                                            payrollElement.getId());
+                                                                  }
+
+                                                                  PayrollBaseProcessDAO
+                                                                      .calculateAbsenceDeductedValueForAllowance(
                                                                           employment,
                                                                           eligiblityOverlappingStartDate,
-                                                                          eligiblityOverlappingEndDate);
-                                                                  allowanceBaseValue = latestPayscale
-                                                                      .multiply(percent);
-                                                                }
-                                                              } else if (allowancDecision
-                                                                  .getCategory().equalsIgnoreCase(
-                                                                      PayrollConstants.ALLOWANCE_PERCENT_FIRSTSTEPGRADE)) {
-                                                                BigDecimal firstStepGradeVal = PayrollBaseProcessDAO
-                                                                    .getFirstStepGradeValue(
-                                                                        employment,
-                                                                        eligiblityOverlappingStartDate,
-                                                                        eligiblityOverlappingEndDate,
-                                                                        processingDays,
-                                                                        differenceDays,
-                                                                        periodEndDate);
-                                                                value = firstStepGradeVal
-                                                                    .multiply(percent);
+                                                                          eligiblityOverlappingEndDate,
+                                                                          processingDays,
+                                                                          differenceDays,
+                                                                          periodEndDate, false,
+                                                                          allowancDecision,
+                                                                          allowanceComponents,
+                                                                          payrollElement,
+                                                                          new BigDecimal(
+                                                                              eligiblityPeriodJSON
+                                                                                  .getLong(
+                                                                                      "days")));
 
-                                                                // absence calculation
-                                                                allowanceComponents
-                                                                    .put("isPercentBasic", false);
-                                                                allowanceComponents.put(
-                                                                    "firstStepGradeVal",
-                                                                    firstStepGradeVal);
-
-                                                                // Base Value
-                                                                if (!errorFlagMinor
-                                                                    && payrollElement.getType()
-                                                                        .equalsIgnoreCase("REC")
-                                                                    && allowanceCount == allowanceDecisionList
-                                                                        .size()
-                                                                    && employmentCount == employmentList
-                                                                        .size()) {
-                                                                  BigDecimal latestFirstStepGradeVal = PayrollBaseProcessDAO
-                                                                      .getLatestFirstStepGradeValue(
-                                                                          employment,
-                                                                          eligiblityOverlappingStartDate,
-                                                                          eligiblityOverlappingEndDate);
-                                                                  allowanceBaseValue = latestFirstStepGradeVal
-                                                                      .multiply(percent);
+                                                                } else {
+                                                                  break;
                                                                 }
                                                               }
-                                                            }
-                                                            totalAllowanceValue = totalAllowanceValue
-                                                                .add(value);
-
-                                                            if (employmentCount == 1) {
-                                                              PayrollBaseProcess.absPaymentComponents
-                                                                  .put("elementId",
-                                                                      payrollElement.getId());
+                                                            } else {
+                                                              break;
                                                             }
 
-                                                            PayrollBaseProcessDAO
-                                                                .calculateAbsenceDeductedValueForAllowance(
-                                                                    employment,
-                                                                    eligiblityOverlappingStartDate,
-                                                                    eligiblityOverlappingEndDate,
-                                                                    processingDays, differenceDays,
-                                                                    periodEndDate, false,
-                                                                    allowancDecision,
-                                                                    allowanceComponents,
-                                                                    payrollElement,
-                                                                    new BigDecimal(
-                                                                        eligiblityPeriodJSON
-                                                                            .getLong("days")));
+                                                            //// ****
 
                                                           } else {
                                                             break;
                                                           }
                                                         }
+
+                                                        if (!errorFlagMinor) {
+
+                                                          addValueToMap(payrollElement,
+                                                              allowanceBaseValue,
+                                                              totalAllowanceValue, isDeduction,
+                                                              "AD", allowancDecision);
+                                                        } else {
+                                                          break;
+                                                        }
+
                                                       } else {
                                                         break;
                                                       }
-
-                                                      //// ****
 
                                                     } else {
                                                       break;
                                                     }
                                                   }
-
-                                                  if (!errorFlagMinor) {
-
-                                                    addValueToMap(payrollElement,
-                                                        allowanceBaseValue, totalAllowanceValue,
-                                                        isDeduction, "AD", allowancDecision);
-                                                  } else {
-                                                    break;
-                                                  }
-
-                                                } else {
-                                                  break;
                                                 }
-
-                                              } else {
-                                                break;
                                               }
                                             }
                                           } else if (payrollElement.getBaseProcess()
@@ -1020,6 +1129,7 @@ public class PayrollBaseProcess extends DalBaseProcess {
                                             log.info("Getting Loan deduction for Employee: "
                                                 + empPerInfo.getName() + " Allowance Element : "
                                                 + payrollElement.getName());
+                                            BigDecimal totalInstallAmount = BigDecimal.ZERO;
                                             BigDecimal installAmount = BigDecimal.ZERO;
                                             BigDecimal diffAmt = BigDecimal.ZERO;
 
@@ -1047,32 +1157,56 @@ public class PayrollBaseProcess extends DalBaseProcess {
                                                       installAmount = loanList.getRemamount();
                                                     }
 
-                                                    // insert loan payment history.
-                                                    // if same payroll process then check amount
-                                                    // diff
-                                                    // else
-                                                    // insert new history
-                                                    EhcmLoanHistory loanHistory = PayrollBaseProcessDAO
-                                                        .getLoanhistoryObj(loanList,
-                                                            payrollProcessLne);
-                                                    if (loanHistory != null) {
-                                                      if (loanHistory.getAmount()
-                                                          .compareTo(installAmount) != 0) {
-                                                        loanHistory.setAmount(installAmount);
-                                                        OBDal.getInstance().save(loanHistory);
-                                                      }
-                                                    } else {
-                                                      PayrollBaseProcessDAO.insertLoanHistory(
-                                                          loanList, payrollProcessLne,
-                                                          installAmount);
+                                                    boolean skipLoanDeduction = false;
+                                                    log.info("installAmount ==> " + installAmount);
+                                                    BigDecimal totalEarnings = totalPayLineBasic
+                                                        .add(totalPayLineAllowance);
+                                                    BigDecimal totalDeductions = totalPayLineDeduction
+                                                        .add(totalInstallAmount);
+                                                    BigDecimal totalEarningBalance = totalEarnings
+                                                        .subtract(totalDeductions);
+                                                    log.info("totalEarnings ==> " + totalEarnings);
+                                                    log.info(
+                                                        "totalDeduction ==> " + totalDeductions);
+
+                                                    if (totalEarningBalance
+                                                        .compareTo(installAmount) < 1) {
+                                                      // installAmount = totalEarningBalance;
+                                                      skipLoanDeduction = true;
                                                     }
 
-                                                    if (!errorFlagMinor) {
-                                                      addValueToMap(payrollElement, BigDecimal.ZERO,
-                                                          installAmount, isDeduction, "LA",
-                                                          loanList);
-                                                    } else {
-                                                      break;
+                                                    log.info("skipLoanDeduction ===> "
+                                                        + skipLoanDeduction);
+                                                    if (!skipLoanDeduction) {
+                                                      // insert loan payment history.
+                                                      // if same payroll process then check amount
+                                                      // diff
+                                                      // else
+                                                      // insert new history
+                                                      EhcmLoanHistory loanHistory = PayrollBaseProcessDAO
+                                                          .getLoanhistoryObj(loanList,
+                                                              payrollProcessLne);
+                                                      if (loanHistory != null) {
+                                                        if (loanHistory.getAmount()
+                                                            .compareTo(installAmount) != 0) {
+                                                          loanHistory.setAmount(installAmount);
+                                                          OBDal.getInstance().save(loanHistory);
+                                                        }
+                                                      } else {
+                                                        PayrollBaseProcessDAO.insertLoanHistory(
+                                                            loanList, payrollProcessLne,
+                                                            installAmount);
+                                                      }
+
+                                                      if (!errorFlagMinor) {
+                                                        totalInstallAmount = totalInstallAmount
+                                                            .add(installAmount);
+                                                        addValueToMap(payrollElement,
+                                                            BigDecimal.ZERO, installAmount,
+                                                            isDeduction, "LA", loanList);
+                                                      } else {
+                                                        break;
+                                                      }
                                                     }
                                                   }
                                                 } else {
@@ -1394,329 +1528,383 @@ public class PayrollBaseProcess extends DalBaseProcess {
                                             }
                                             log.info("scholarshipAllowanceDays ==> "
                                                 + scholarshipAllowanceDays);
+                                            // secondment iteration
+                                            if (secondmentJSON.length() > 0) {
+                                              for (int j = 0; j < secondmentJSON.length(); j++) {
+                                                JSONObject secondment = secondmentJSON
+                                                    .getJSONObject(j);
+                                                String startDate = secondment
+                                                    .getString("STARTDATE");
+                                                String endDate = secondment.getString("ENDDATE");
+                                                Date secPeriodStartDate = dateFormat
+                                                    .parse(startDate);
+                                                Date secPeriodEndDate = dateFormat.parse(endDate);
+                                                String elmGrp = secondment.getString("ELMGRP");
 
-                                            // Get Scholarship Business List
-                                            List<EHCMEmpScholarship> scholarshipList = PayrollBaseProcessDAO
-                                                .getScholarshipBusinessForEmployee(empPerInfo,
-                                                    elementOverLappingDBStartDate,
-                                                    elementOverLappingDBEndDate,
-                                                    scholarshipAllowanceDays);
+                                                boolean isElementEligible = PayrollBaseProcessDAO
+                                                    .isElementInElementGrp(elmGrp, payrollElement);
+                                                String secOverLappingDBStartDate = sa.elm.ob.utility.util.Utility
+                                                    .formatDate(secPeriodStartDate);
+                                                String secOverLappingDBEndDate = sa.elm.ob.utility.util.Utility
+                                                    .formatDate(secPeriodEndDate);
 
-                                            for (EHCMEmpScholarship scholarship : scholarshipList) {
-                                              if (!errorFlagMinor) {
-                                                scholarshipBusinessCount++;
-                                                log.info("scholarshipBusiness ===> "
-                                                    + scholarshipBusinessCount);
+                                                // is element available in element group of
+                                                // secondmant.
+                                                if (isElementEligible) {
 
-                                                // Scholarship Details
-                                                EhcmPosition position = scholarship.getPosition();
-                                                Organization department = scholarship.getPosition()
-                                                    .getDepartment();
-                                                Jobs job = scholarship.getPosition().getEhcmJobs();
-                                                ehcmgrade positionGrade = scholarship.getPosition()
-                                                    .getGrade();
-                                                ehcmgradeclass gradeClass = scholarship
-                                                    .getPosition().getGrade().getEhcmGradeclass();
-                                                ehcmgrade grade = scholarship.getEmploymentGrade();
-                                                Date scholarshipStartDate = dateFormat
-                                                    .parse(scholarship.getStartDate().toString());
-                                                Date scholarshipEndDate = scholarship
-                                                    .getEndDate() != null
-                                                        ? dateFormat.parse(
-                                                            scholarship.getEndDate().toString())
-                                                        : null;
-                                                BigDecimal scholarshipDays = BigDecimal.ZERO;
-                                                if (scholarship.getNoofdays() != null) {
-                                                  scholarshipDays = new BigDecimal(
-                                                      scholarship.getNoofdays());
-                                                }
-                                                log.info("Scholarship Days ==> " + scholarshipDays);
+                                                  // Get Scholarship Business List
+                                                  List<EHCMEmpScholarship> scholarshipList = PayrollBaseProcessDAO
+                                                      .getScholarshipBusinessForEmployee(empPerInfo,
+                                                          secOverLappingDBStartDate,
+                                                          secOverLappingDBEndDate,
+                                                          scholarshipAllowanceDays);
 
-                                                // Calculate Scholarship Business Start Date
-                                                Calendar c = Calendar.getInstance();
-                                                c.setTime(scholarshipStartDate);
-                                                c.add(Calendar.DAY_OF_MONTH,
-                                                    scholarshipAllowanceDays.intValue());
-                                                Date scholarshipBusinessStartDate = c.getTime();
-                                                log.info("Scholarship Start Date ==> "
-                                                    + scholarshipStartDate);
-                                                log.info("Scholarship Business Start Date ==> "
-                                                    + scholarshipBusinessStartDate);
-                                                Date scholarshipBusinessEndDate = scholarshipEndDate;
+                                                  for (EHCMEmpScholarship scholarship : scholarshipList) {
+                                                    if (!errorFlagMinor) {
+                                                      scholarshipBusinessCount++;
+                                                      log.info("scholarshipBusiness ===> "
+                                                          + scholarshipBusinessCount);
 
-                                                log.info("Applicable Scholarship Dates ");
-                                                JSONObject scholarshipPeriodJSON = getOverlapingDateRange(
-                                                    scholarshipStartDate, scholarshipEndDate,
-                                                    elementOverLappingStartDate,
-                                                    elementOverLappingEndDate);
+                                                      // Scholarship Details
+                                                      EhcmPosition position = scholarship
+                                                          .getPosition();
+                                                      Organization department = scholarship
+                                                          .getPosition().getDepartment();
+                                                      Jobs job = scholarship.getPosition()
+                                                          .getEhcmJobs();
+                                                      ehcmgrade positionGrade = scholarship
+                                                          .getPosition().getGrade();
+                                                      ehcmgradeclass gradeClass = scholarship
+                                                          .getPosition().getGrade()
+                                                          .getEhcmGradeclass();
+                                                      ehcmgrade grade = scholarship
+                                                          .getEmploymentGrade();
+                                                      Date scholarshipStartDate = dateFormat.parse(
+                                                          scholarship.getStartDate().toString());
+                                                      Date scholarshipEndDate = scholarship
+                                                          .getEndDate() != null ? dateFormat.parse(
+                                                              scholarship.getEndDate().toString())
+                                                              : null;
+                                                      BigDecimal scholarshipDays = BigDecimal.ZERO;
+                                                      if (scholarship.getNoofdays() != null) {
+                                                        scholarshipDays = new BigDecimal(
+                                                            scholarship.getNoofdays());
+                                                      }
+                                                      log.info("Scholarship Days ==> "
+                                                          + scholarshipDays);
 
-                                                if (scholarshipPeriodJSON != null) {
-                                                  Date scholarshipOverlappingStartDate = dateFormat
-                                                      .parse(scholarshipPeriodJSON
-                                                          .getString("startDate"));
-                                                  Date scholarshipOverlappingEndDate = dateFormat
-                                                      .parse(scholarshipPeriodJSON
-                                                          .getString("endDate"));
-                                                  String scholarshipeOverlappingDBStartDate = sa.elm.ob.utility.util.Utility
-                                                      .formatDate(scholarshipOverlappingStartDate);
-                                                  String scholarshipOverlappingDBEndDate = sa.elm.ob.utility.util.Utility
-                                                      .formatDate(scholarshipOverlappingEndDate);
+                                                      // Calculate Scholarship Business Start Date
+                                                      Calendar c = Calendar.getInstance();
+                                                      c.setTime(scholarshipStartDate);
+                                                      c.add(Calendar.DAY_OF_MONTH,
+                                                          scholarshipAllowanceDays.intValue());
+                                                      Date scholarshipBusinessStartDate = c
+                                                          .getTime();
+                                                      log.info("Scholarship Start Date ==> "
+                                                          + scholarshipStartDate);
+                                                      log.info(
+                                                          "Scholarship Business Start Date ==> "
+                                                              + scholarshipBusinessStartDate);
+                                                      Date scholarshipBusinessEndDate = scholarshipEndDate;
 
-                                                  // Check Scholarship Dates in current month has
-                                                  // Scholarship Business
-                                                  if (isElementValidForPeriod(
-                                                      scholarshipBusinessStartDate,
-                                                      scholarshipBusinessEndDate,
-                                                      scholarshipOverlappingStartDate,
-                                                      scholarshipOverlappingEndDate)) {
+                                                      log.info("Applicable Scholarship Dates ");
+                                                      JSONObject scholarshipPeriodJSON = getOverlapingDateRange(
+                                                          scholarshipStartDate, scholarshipEndDate,
+                                                          secPeriodStartDate, secPeriodEndDate);
 
-                                                    BigDecimal scholarshipBusinessValue = BigDecimal.ZERO;
+                                                      if (scholarshipPeriodJSON != null) {
+                                                        Date scholarshipOverlappingStartDate = dateFormat
+                                                            .parse(scholarshipPeriodJSON
+                                                                .getString("startDate"));
+                                                        Date scholarshipOverlappingEndDate = dateFormat
+                                                            .parse(scholarshipPeriodJSON
+                                                                .getString("endDate"));
+                                                        String scholarshipeOverlappingDBStartDate = sa.elm.ob.utility.util.Utility
+                                                            .formatDate(
+                                                                scholarshipOverlappingStartDate);
+                                                        String scholarshipOverlappingDBEndDate = sa.elm.ob.utility.util.Utility
+                                                            .formatDate(
+                                                                scholarshipOverlappingEndDate);
 
-                                                    log.info(
-                                                        "Applicable Scholarship Business Dates ");
-                                                    JSONObject scholarshipBusinessPeriodJSON = getOverlapingDateRange(
-                                                        scholarshipBusinessStartDate,
-                                                        scholarshipBusinessEndDate,
-                                                        scholarshipOverlappingStartDate,
-                                                        scholarshipOverlappingEndDate);
+                                                        // Check Scholarship Dates in current month
+                                                        // has
+                                                        // Scholarship Business
+                                                        if (isElementValidForPeriod(
+                                                            scholarshipBusinessStartDate,
+                                                            scholarshipBusinessEndDate,
+                                                            scholarshipOverlappingStartDate,
+                                                            scholarshipOverlappingEndDate)) {
 
-                                                    if (scholarshipBusinessPeriodJSON != null) {
-                                                      Date scholarshipBusinessOverlappingStartDate = dateFormat
-                                                          .parse(scholarshipBusinessPeriodJSON
-                                                              .getString("startDate"));
-                                                      Date scholarshipBusinessOverlappingEndDate = dateFormat
-                                                          .parse(scholarshipBusinessPeriodJSON
-                                                              .getString("endDate"));
-                                                      String scholarshipBusinessOverlappingDBStartDate = sa.elm.ob.utility.util.Utility
-                                                          .formatDate(
-                                                              scholarshipBusinessOverlappingStartDate);
-                                                      String scholarshipBusinessOverlappingDBEndDate = sa.elm.ob.utility.util.Utility
-                                                          .formatDate(
-                                                              scholarshipBusinessOverlappingEndDate);
+                                                          BigDecimal scholarshipBusinessValue = BigDecimal.ZERO;
 
-                                                      // Check element eligibility
-                                                      EHCMEligbltyCriteria eligiblity = PayrollBaseProcessDAO
-                                                          .getElementEligiblityForEmployment(
-                                                              payrollElement, position, department,
-                                                              job, positionGrade, gradeClass, null,
-                                                              scholarshipBusinessOverlappingDBStartDate,
-                                                              scholarshipBusinessOverlappingDBEndDate);
+                                                          log.info(
+                                                              "Applicable Scholarship Business Dates ");
+                                                          JSONObject scholarshipBusinessPeriodJSON = getOverlapingDateRange(
+                                                              scholarshipBusinessStartDate,
+                                                              scholarshipBusinessEndDate,
+                                                              scholarshipOverlappingStartDate,
+                                                              scholarshipOverlappingEndDate);
 
-                                                      if (eligiblity != null) {
-                                                        // Eligiblity Details
-                                                        Date eligiblityStartDate = dateFormat.parse(
-                                                            eligiblity.getStartDate().toString());
-                                                        Date eligiblityEndDate = eligiblity
-                                                            .getEndDate() != null
-                                                                ? dateFormat.parse(eligiblity
-                                                                    .getEndDate().toString())
-                                                                : null;
+                                                          if (scholarshipBusinessPeriodJSON != null) {
+                                                            Date scholarshipBusinessOverlappingStartDate = dateFormat
+                                                                .parse(scholarshipBusinessPeriodJSON
+                                                                    .getString("startDate"));
+                                                            Date scholarshipBusinessOverlappingEndDate = dateFormat
+                                                                .parse(scholarshipBusinessPeriodJSON
+                                                                    .getString("endDate"));
+                                                            String scholarshipBusinessOverlappingDBStartDate = sa.elm.ob.utility.util.Utility
+                                                                .formatDate(
+                                                                    scholarshipBusinessOverlappingStartDate);
+                                                            String scholarshipBusinessOverlappingDBEndDate = sa.elm.ob.utility.util.Utility
+                                                                .formatDate(
+                                                                    scholarshipBusinessOverlappingEndDate);
 
-                                                        log.info("Applicable Eligibility Days");
-                                                        JSONObject eligiblityPeriodJSON = getOverlapingDateRange(
-                                                            eligiblityStartDate, eligiblityEndDate,
-                                                            scholarshipBusinessOverlappingStartDate,
-                                                            scholarshipBusinessOverlappingEndDate);
+                                                            // Check element eligibility
+                                                            EHCMEligbltyCriteria eligiblity = PayrollBaseProcessDAO
+                                                                .getElementEligiblityForEmployment(
+                                                                    payrollElement, position,
+                                                                    department, job, positionGrade,
+                                                                    gradeClass, null,
+                                                                    scholarshipBusinessOverlappingDBStartDate,
+                                                                    scholarshipBusinessOverlappingDBEndDate);
 
-                                                        if (eligiblityPeriodJSON != null) {
-                                                          Date eligiblityOverlappingStartDate = dateFormat
-                                                              .parse(eligiblityPeriodJSON
-                                                                  .getString("startDate"));
-                                                          Date eligiblityOverlappingEndDate = dateFormat
-                                                              .parse(eligiblityPeriodJSON
-                                                                  .getString("endDate"));
+                                                            if (eligiblity != null) {
+                                                              // Eligiblity Details
+                                                              Date eligiblityStartDate = dateFormat
+                                                                  .parse(eligiblity.getStartDate()
+                                                                      .toString());
+                                                              Date eligiblityEndDate = eligiblity
+                                                                  .getEndDate() != null
+                                                                      ? dateFormat.parse(eligiblity
+                                                                          .getEndDate().toString())
+                                                                      : null;
 
-                                                          // Set Scholarship Based Element Value
-                                                          if (scholarship.getCity()
-                                                              .getEhcmScholarshipCtgy() != null) {
-                                                            payRollComponents.put(
-                                                                PayrollConstants.SCHOLARSHIP_COUNTRY_CTGRY,
-                                                                "'" + scholarship.getCity()
-                                                                    .getEhcmScholarshipCtgy()
-                                                                    + "'");
-                                                            payRollComponents.put(
-                                                                PayrollConstants.SCHOLARSHIP_DAYS,
-                                                                scholarshipDays);
-                                                          } else {
-                                                            errorFlagMinor = true;
-                                                            errorMessage = "Scholarship Country Category is not configured for city "
-                                                                + scholarship.getCity().getName();
-                                                            break;
-                                                          }
-
-                                                          // Check the employee is married
-                                                          if (empPerInfo.getMarialstatus()
-                                                              .equalsIgnoreCase("M")) {
-
-                                                            Date marriedDate = dateFormat
-                                                                .parse(empPerInfo.getMarrieddate()
-                                                                    .toString());
-
-                                                            if (isMarriedInDuration(marriedDate,
-                                                                eligiblityOverlappingStartDate,
-                                                                eligiblityOverlappingEndDate)) {
-                                                              // Married in current period
-                                                              Date startDateBeforeMarriage = eligiblityOverlappingStartDate;
-                                                              c.setTime(marriedDate);
-                                                              c.add(Calendar.DAY_OF_MONTH, -1);
-                                                              Date endDateBeforeMarriage = c
-                                                                  .getTime();
-                                                              Date startDateAfterMarriage = marriedDate;
-                                                              Date endDateAfterMarriage = eligiblityOverlappingEndDate;
-                                                              log.info("Married Date ==> "
-                                                                  + marriedDate);
                                                               log.info(
-                                                                  "startDate Before Marriage ==> "
-                                                                      + startDateBeforeMarriage);
-                                                              log.info(
-                                                                  "EndDate Before Marriage ==> "
-                                                                      + endDateBeforeMarriage);
-                                                              log.info(
-                                                                  "startDate After Marriage ==> "
-                                                                      + startDateAfterMarriage);
-                                                              log.info("endDate After Marriage ==> "
-                                                                  + endDateAfterMarriage);
+                                                                  "Applicable Eligibility Days");
+                                                              JSONObject eligiblityPeriodJSON = getOverlapingDateRange(
+                                                                  eligiblityStartDate,
+                                                                  eligiblityEndDate,
+                                                                  scholarshipBusinessOverlappingStartDate,
+                                                                  scholarshipBusinessOverlappingEndDate);
 
-                                                              // Before Marriage Calculation
-                                                              payRollComponents.put(
-                                                                  PayrollConstants.EMP_MARRIED,
-                                                                  "'N'");
-                                                              payRollComponents.put(
-                                                                  PayrollConstants.EMP_NOOFCHILDS,
-                                                                  0);
-                                                              BigDecimal scholarshipBusinessValue_BeforeMrrg = PayrollBaseProcessDAO
-                                                                  .calculateElementValue(
-                                                                      payrollElement, grade,
-                                                                      startDateBeforeMarriage,
-                                                                      endDateBeforeMarriage,
-                                                                      processingDays,
-                                                                      differenceDays, periodEndDate,
-                                                                      false, null);
+                                                              if (eligiblityPeriodJSON != null) {
+                                                                Date eligiblityOverlappingStartDate = dateFormat
+                                                                    .parse(eligiblityPeriodJSON
+                                                                        .getString("startDate"));
+                                                                Date eligiblityOverlappingEndDate = dateFormat
+                                                                    .parse(eligiblityPeriodJSON
+                                                                        .getString("endDate"));
 
-                                                              // After Marriage Calculation
-                                                              int noOfChild = PayrollBaseProcessDAO
-                                                                  .getNoOfChildrens(empPerInfo);
+                                                                // Set Scholarship Based Element
+                                                                // Value
+                                                                if (scholarship.getCity()
+                                                                    .getEhcmScholarshipCtgy() != null) {
+                                                                  payRollComponents.put(
+                                                                      PayrollConstants.SCHOLARSHIP_COUNTRY_CTGRY,
+                                                                      "'" + scholarship.getCity()
+                                                                          .getEhcmScholarshipCtgy()
+                                                                          + "'");
+                                                                  payRollComponents.put(
+                                                                      PayrollConstants.SCHOLARSHIP_DAYS,
+                                                                      scholarshipDays);
+                                                                } else {
+                                                                  errorFlagMinor = true;
+                                                                  errorMessage = "Scholarship Country Category is not configured for city "
+                                                                      + scholarship.getCity()
+                                                                          .getName();
+                                                                  break;
+                                                                }
 
-                                                              if (!errorFlagMinor) {
-                                                                payRollComponents.put(
-                                                                    PayrollConstants.EMP_MARRIED,
-                                                                    "'Y'");
-                                                                payRollComponents.put(
-                                                                    PayrollConstants.EMP_NOOFCHILDS,
-                                                                    noOfChild);
-                                                                BigDecimal scholarshipBusinessValue_AfterMrrg = PayrollBaseProcessDAO
-                                                                    .calculateElementValue(
-                                                                        payrollElement, grade,
-                                                                        startDateAfterMarriage,
-                                                                        endDateAfterMarriage,
-                                                                        processingDays,
-                                                                        differenceDays,
-                                                                        periodEndDate, false, null);
+                                                                // Check the employee is married
+                                                                if (empPerInfo.getMarialstatus()
+                                                                    .equalsIgnoreCase("M")) {
 
-                                                                scholarshipBusinessValue = scholarshipBusinessValue_BeforeMrrg
-                                                                    .add(
-                                                                        scholarshipBusinessValue_AfterMrrg);
+                                                                  Date marriedDate = dateFormat
+                                                                      .parse(empPerInfo
+                                                                          .getMarrieddate()
+                                                                          .toString());
 
-                                                                log.info(
-                                                                    "Scholarship married in Current ==> "
-                                                                        + scholarshipBusinessValue);
-                                                              }
-
-                                                            } else if (isMarriedInFuture(
-                                                                marriedDate,
-                                                                eligiblityOverlappingEndDate)) {
-                                                              // Married in future date
-                                                              payRollComponents.put(
-                                                                  PayrollConstants.EMP_MARRIED,
-                                                                  "'N'");
-                                                              payRollComponents.put(
-                                                                  PayrollConstants.EMP_NOOFCHILDS,
-                                                                  0);
-
-                                                              scholarshipBusinessValue = PayrollBaseProcessDAO
-                                                                  .calculateElementValue(
-                                                                      payrollElement, grade,
+                                                                  if (isMarriedInDuration(
+                                                                      marriedDate,
                                                                       eligiblityOverlappingStartDate,
-                                                                      eligiblityOverlappingEndDate,
-                                                                      processingDays,
-                                                                      differenceDays, periodEndDate,
-                                                                      false, null);
+                                                                      eligiblityOverlappingEndDate)) {
+                                                                    // Married in current period
+                                                                    Date startDateBeforeMarriage = eligiblityOverlappingStartDate;
+                                                                    c.setTime(marriedDate);
+                                                                    c.add(Calendar.DAY_OF_MONTH,
+                                                                        -1);
+                                                                    Date endDateBeforeMarriage = c
+                                                                        .getTime();
+                                                                    Date startDateAfterMarriage = marriedDate;
+                                                                    Date endDateAfterMarriage = eligiblityOverlappingEndDate;
+                                                                    log.info("Married Date ==> "
+                                                                        + marriedDate);
+                                                                    log.info(
+                                                                        "startDate Before Marriage ==> "
+                                                                            + startDateBeforeMarriage);
+                                                                    log.info(
+                                                                        "EndDate Before Marriage ==> "
+                                                                            + endDateBeforeMarriage);
+                                                                    log.info(
+                                                                        "startDate After Marriage ==> "
+                                                                            + startDateAfterMarriage);
+                                                                    log.info(
+                                                                        "endDate After Marriage ==> "
+                                                                            + endDateAfterMarriage);
 
-                                                              log.info(
-                                                                  "Scholarship married in future ==> "
-                                                                      + scholarshipBusinessValue);
-                                                            } else {
-                                                              // Married Already
-                                                              int noOfChild = PayrollBaseProcessDAO
-                                                                  .getNoOfChildrens(empPerInfo);
+                                                                    // Before Marriage Calculation
+                                                                    payRollComponents.put(
+                                                                        PayrollConstants.EMP_MARRIED,
+                                                                        "'N'");
+                                                                    payRollComponents.put(
+                                                                        PayrollConstants.EMP_NOOFCHILDS,
+                                                                        0);
+                                                                    BigDecimal scholarshipBusinessValue_BeforeMrrg = PayrollBaseProcessDAO
+                                                                        .calculateElementValue(
+                                                                            payrollElement, grade,
+                                                                            startDateBeforeMarriage,
+                                                                            endDateBeforeMarriage,
+                                                                            processingDays,
+                                                                            differenceDays,
+                                                                            periodEndDate, false,
+                                                                            null);
 
-                                                              if (!errorFlagMinor) {
-                                                                payRollComponents.put(
-                                                                    PayrollConstants.EMP_MARRIED,
-                                                                    "'Y'");
-                                                                payRollComponents.put(
-                                                                    PayrollConstants.EMP_NOOFCHILDS,
-                                                                    noOfChild);
+                                                                    // After Marriage Calculation
+                                                                    int noOfChild = PayrollBaseProcessDAO
+                                                                        .getNoOfChildrens(
+                                                                            empPerInfo);
 
-                                                                scholarshipBusinessValue = PayrollBaseProcessDAO
-                                                                    .calculateElementValue(
-                                                                        payrollElement, grade,
-                                                                        eligiblityOverlappingStartDate,
-                                                                        eligiblityOverlappingEndDate,
-                                                                        processingDays,
-                                                                        differenceDays,
-                                                                        periodEndDate, false, null);
+                                                                    if (!errorFlagMinor) {
+                                                                      payRollComponents.put(
+                                                                          PayrollConstants.EMP_MARRIED,
+                                                                          "'Y'");
+                                                                      payRollComponents.put(
+                                                                          PayrollConstants.EMP_NOOFCHILDS,
+                                                                          noOfChild);
+                                                                      BigDecimal scholarshipBusinessValue_AfterMrrg = PayrollBaseProcessDAO
+                                                                          .calculateElementValue(
+                                                                              payrollElement, grade,
+                                                                              startDateAfterMarriage,
+                                                                              endDateAfterMarriage,
+                                                                              processingDays,
+                                                                              differenceDays,
+                                                                              periodEndDate, false,
+                                                                              null);
 
-                                                                log.info(
-                                                                    "Scholarship married already ==> "
-                                                                        + scholarshipBusinessValue);
+                                                                      scholarshipBusinessValue = scholarshipBusinessValue_BeforeMrrg
+                                                                          .add(
+                                                                              scholarshipBusinessValue_AfterMrrg);
+
+                                                                      log.info(
+                                                                          "Scholarship married in Current ==> "
+                                                                              + scholarshipBusinessValue);
+                                                                    }
+
+                                                                  } else if (isMarriedInFuture(
+                                                                      marriedDate,
+                                                                      eligiblityOverlappingEndDate)) {
+                                                                    // Married in future date
+                                                                    payRollComponents.put(
+                                                                        PayrollConstants.EMP_MARRIED,
+                                                                        "'N'");
+                                                                    payRollComponents.put(
+                                                                        PayrollConstants.EMP_NOOFCHILDS,
+                                                                        0);
+
+                                                                    scholarshipBusinessValue = PayrollBaseProcessDAO
+                                                                        .calculateElementValue(
+                                                                            payrollElement, grade,
+                                                                            eligiblityOverlappingStartDate,
+                                                                            eligiblityOverlappingEndDate,
+                                                                            processingDays,
+                                                                            differenceDays,
+                                                                            periodEndDate, false,
+                                                                            null);
+
+                                                                    log.info(
+                                                                        "Scholarship married in future ==> "
+                                                                            + scholarshipBusinessValue);
+                                                                  } else {
+                                                                    // Married Already
+                                                                    int noOfChild = PayrollBaseProcessDAO
+                                                                        .getNoOfChildrens(
+                                                                            empPerInfo);
+
+                                                                    if (!errorFlagMinor) {
+                                                                      payRollComponents.put(
+                                                                          PayrollConstants.EMP_MARRIED,
+                                                                          "'Y'");
+                                                                      payRollComponents.put(
+                                                                          PayrollConstants.EMP_NOOFCHILDS,
+                                                                          noOfChild);
+
+                                                                      scholarshipBusinessValue = PayrollBaseProcessDAO
+                                                                          .calculateElementValue(
+                                                                              payrollElement, grade,
+                                                                              eligiblityOverlappingStartDate,
+                                                                              eligiblityOverlappingEndDate,
+                                                                              processingDays,
+                                                                              differenceDays,
+                                                                              periodEndDate, false,
+                                                                              null);
+
+                                                                      log.info(
+                                                                          "Scholarship married already ==> "
+                                                                              + scholarshipBusinessValue);
+                                                                    }
+                                                                  }
+
+                                                                } else {
+                                                                  // Not Married
+                                                                  payRollComponents.put(
+                                                                      PayrollConstants.EMP_MARRIED,
+                                                                      "'N'");
+                                                                  payRollComponents.put(
+                                                                      PayrollConstants.EMP_NOOFCHILDS,
+                                                                      0);
+
+                                                                  // Calculating element value by
+                                                                  // applying
+                                                                  // formula
+                                                                  scholarshipBusinessValue = PayrollBaseProcessDAO
+                                                                      .calculateElementValue(
+                                                                          payrollElement, grade,
+                                                                          eligiblityOverlappingStartDate,
+                                                                          eligiblityOverlappingEndDate,
+                                                                          processingDays,
+                                                                          differenceDays,
+                                                                          periodEndDate, false,
+                                                                          null);
+
+                                                                  log.info(
+                                                                      "Scholarship for unmarried ==> "
+                                                                          + scholarshipBusinessValue);
+
+                                                                }
+
                                                               }
                                                             }
 
-                                                          } else {
-                                                            // Not Married
-                                                            payRollComponents.put(
-                                                                PayrollConstants.EMP_MARRIED,
-                                                                "'N'");
-                                                            payRollComponents.put(
-                                                                PayrollConstants.EMP_NOOFCHILDS, 0);
-
-                                                            // Calculating element value by applying
-                                                            // formula
-                                                            scholarshipBusinessValue = PayrollBaseProcessDAO
-                                                                .calculateElementValue(
-                                                                    payrollElement, grade,
-                                                                    eligiblityOverlappingStartDate,
-                                                                    eligiblityOverlappingEndDate,
-                                                                    processingDays, differenceDays,
-                                                                    periodEndDate, false, null);
-
-                                                            log.info(
-                                                                "Scholarship for unmarried ==> "
-                                                                    + scholarshipBusinessValue);
+                                                            // Add calculated value to map
+                                                            if (!errorFlagMinor) {
+                                                              addValueToMap(payrollElement,
+                                                                  BigDecimal.ZERO,
+                                                                  scholarshipBusinessValue,
+                                                                  isDeduction, "SBA", scholarship);
+                                                            } else {
+                                                              break;
+                                                            }
 
                                                           }
 
                                                         }
                                                       }
 
-                                                      // Add calculated value to map
-                                                      if (!errorFlagMinor) {
-                                                        addValueToMap(payrollElement,
-                                                            BigDecimal.ZERO,
-                                                            scholarshipBusinessValue, isDeduction,
-                                                            "SBA", scholarship);
-                                                      } else {
-                                                        break;
-                                                      }
-
+                                                    } else {
+                                                      break;
                                                     }
-
                                                   }
                                                 }
-
-                                              } else {
-                                                break;
                                               }
                                             }
 
@@ -1768,6 +1956,13 @@ public class PayrollBaseProcess extends DalBaseProcess {
                                 payrollProcessLne
                                     .setNetSalary((totalPayLineBasic.add(totalPayLineAllowance))
                                         .subtract(totalPayLineDeduction.add(totalPayLinePension)));
+
+                                if (payrollProcessLne.getNetSalary()
+                                    .compareTo(BigDecimal.ZERO) < 0) {
+                                  errorFlagMinor = true;
+                                  errorMessage = "Net Salary is negative for the employee "
+                                      + empPerInfo.getName();
+                                }
 
                                 // Set Bank Details
                                 GenericPayrollDTO genericBankDTO = new GenericPayrollDTO();
@@ -1953,57 +2148,74 @@ public class PayrollBaseProcess extends DalBaseProcess {
         // If Multiple Entries Allows do not sum
         if (payrollElement.getType().equalsIgnoreCase("NREC")
             && payrollElement.isMultipleEntries()) {
-          EHCMEarnDeductElm earnDedElm = new EHCMEarnDeductElm();
-          earnDedElm.setId(SequenceIdData.getUUID());
-          earnDedElm.setBaseValue(baseValue);
-          earnDedElm.setCalculatedValue(calculatedValue);
-          earnDedElm.setDeduction(isDeduction);
-          if (absPaymentComponents.has("totalAbsPaymentValue")) {
-            earnDedElm.setAbsencevalue(
-                new BigDecimal(absPaymentComponents.getString("totalAbsPaymentValue")));
+          boolean recordExist = false;
+          EHCMEarnDeductElm existElement = null;
+          // for secondment -->for same record processed twice(partial time period) then should not
+          // be two lines in element.
+          if (type.equals("SBA") || type.equals("AD")) {
+            for (EHCMEarnDeductElm elmnt : earnDedElmList) {
+              if (type.equals("AD")
+                  && elmnt.getBenefitsAndAllowance() == (EHCMBenefitAllowance) referenceObj) {
+                recordExist = true;
+                existElement = elmnt;
+                break;
+              }
+              if (type.equals("SBA")
+                  && elmnt.getEhcmEmpScholarship() == (EHCMEmpScholarship) referenceObj) {
+                recordExist = true;
+                existElement = elmnt;
+                break;
+              }
+            }
           }
-          if (type.equals("LA")) {
-            earnDedElm.setEhcmLoanTransaction((EHCMLoanTransaction) referenceObj);
-          } else if (type.equals("DA")) {
-            earnDedElm.setEhcmDisciplineAction((EhcmDisciplineAction) referenceObj);
-          } else if (type.equals("BM")) {
-            earnDedElm.setBusinessMission((EHCMEmpBusinessMission) referenceObj);
-          } else if (type.equals("OT")) {
-            earnDedElm.setEhcmEmpOvertime((EhcmEmployeeOvertime) referenceObj);
-          } else if (type.equals("SA") || type.equals("SBA")) {
-            earnDedElm.setEhcmEmpScholarship((EHCMEmpScholarship) referenceObj);
-          } else if (type.equals("AD")) {
-            earnDedElm.setBenefitsAndAllowance((EHCMBenefitAllowance) referenceObj);
-          } else if (type.equals("TO")) {
-            earnDedElm.setTicketOrders((EHCMticketordertransaction) referenceObj);
-          }
-          earnDedElmList.add(earnDedElm);
-          elementValueMap.put(payrollElement.getId(), earnDedElmList);
+          if (recordExist) {
+            int elmPosition = earnDedElmList.indexOf(existElement);
+            existElement.setCalculatedValue(existElement.getCalculatedValue().add(calculatedValue));
+            if (absPaymentComponents.has("totalAbsPaymentValue")) {
+              existElement.setAbsencevalue(existElement.getAbsencevalue()
+                  .add(new BigDecimal(absPaymentComponents.getString("totalAbsPaymentValue"))));
+            }
+            earnDedElmList.set(elmPosition, existElement);
+            elementValueMap.put(payrollElement.getId(), earnDedElmList);
 
-          // add element refernce
-          EHCMEarnDeductElmRef earnDedElmRef = new EHCMEarnDeductElmRef();
-          earnDedElmRef.setElementDetails(earnDedElm);
-          earnDedElmRef.setBaseValue(baseValue);
-          earnDedElmRef.setCalculatedValue(calculatedValue);
-          earnDedElmRef.setDeduction(isDeduction);
-          if (type.equals("LA")) {
-            earnDedElmRef.setEhcmLoanTransaction((EHCMLoanTransaction) referenceObj);
-          } else if (type.equals("DA")) {
-            earnDedElmRef.setEhcmDisciplineAction((EhcmDisciplineAction) referenceObj);
-          } else if (type.equals("BM")) {
-            earnDedElmRef.setBusinessMission((EHCMEmpBusinessMission) referenceObj);
-          } else if (type.equals("OT")) {
-            earnDedElmRef.setOvertimeTransaction((EhcmEmployeeOvertime) referenceObj);
-          } else if (type.equals("SA") || type.equals("SBA")) {
-            earnDedElmRef.setEhcmEmpScholarship((EHCMEmpScholarship) referenceObj);
-          } else if (type.equals("AD")) {
-            earnDedElmRef.setBenefitsAndAllowance((EHCMBenefitAllowance) referenceObj);
-          } else if (type.equals("TO")) {
-            earnDedElmRef.setTicketOrders((EHCMticketordertransaction) referenceObj);
-          }
+            // update element refernce values
+            earnDedElmRefList = elementRefMap.get(existElement.getId());
+            // if reference already exist then add value
+            isElementRefExst(earnDedElmRefList, type, calculatedValue, referenceObj);
+          } else {
+            EHCMEarnDeductElm earnDedElm = new EHCMEarnDeductElm();
+            earnDedElm.setId(SequenceIdData.getUUID());
+            earnDedElm.setBaseValue(baseValue);
+            earnDedElm.setCalculatedValue(calculatedValue);
+            earnDedElm.setDeduction(isDeduction);
+            if (absPaymentComponents.has("totalAbsPaymentValue")) {
+              earnDedElm.setAbsencevalue(
+                  new BigDecimal(absPaymentComponents.getString("totalAbsPaymentValue")));
+            }
+            if (type.equals("LA")) {
+              earnDedElm.setEhcmLoanTransaction((EHCMLoanTransaction) referenceObj);
+            } else if (type.equals("DA")) {
+              earnDedElm.setEhcmDisciplineAction((EhcmDisciplineAction) referenceObj);
+            } else if (type.equals("BM")) {
+              earnDedElm.setBusinessMission((EHCMEmpBusinessMission) referenceObj);
+            } else if (type.equals("OT")) {
+              earnDedElm.setEhcmEmpOvertime((EhcmEmployeeOvertime) referenceObj);
+            } else if (type.equals("SA") || type.equals("SBA")) {
+              earnDedElm.setEhcmEmpScholarship((EHCMEmpScholarship) referenceObj);
+            } else if (type.equals("AD")) {
+              earnDedElm.setBenefitsAndAllowance((EHCMBenefitAllowance) referenceObj);
+            } else if (type.equals("TO")) {
+              earnDedElm.setTicketOrders((EHCMticketordertransaction) referenceObj);
+            }
+            earnDedElmList.add(earnDedElm);
+            elementValueMap.put(payrollElement.getId(), earnDedElmList);
 
-          earnDedElmRefList.add(earnDedElmRef);
-          elementRefMap.put(earnDedElm.getId(), earnDedElmRefList);
+            // add element refernce
+            EHCMEarnDeductElmRef earnDedElmRef = insertElementRef(earnDedElm, baseValue,
+                calculatedValue, isDeduction, type, referenceObj);
+            earnDedElmRefList.add(earnDedElmRef);
+            elementRefMap.put(earnDedElm.getId(), earnDedElmRefList);
+          }
 
         } else {
           EHCMEarnDeductElm earnDedElm = earnDedElmList.get(0);
@@ -2033,29 +2245,18 @@ public class PayrollBaseProcess extends DalBaseProcess {
           earnDedElmList.set(0, earnDedElm);
           elementValueMap.put(payrollElement.getId(), earnDedElmList);
 
+          boolean refExist = false;
           // add element refernce
-          EHCMEarnDeductElmRef earnDedElmRef = new EHCMEarnDeductElmRef();
-          earnDedElmRef.setElementDetails(earnDedElm);
-          earnDedElmRef.setBaseValue(baseValue);
-          earnDedElmRef.setCalculatedValue(calculatedValue);
-          earnDedElmRef.setDeduction(isDeduction);
-          if (type.equals("LA")) {
-            earnDedElmRef.setEhcmLoanTransaction((EHCMLoanTransaction) referenceObj);
-          } else if (type.equals("DA")) {
-            earnDedElmRef.setEhcmDisciplineAction((EhcmDisciplineAction) referenceObj);
-          } else if (type.equals("BM")) {
-            earnDedElmRef.setBusinessMission((EHCMEmpBusinessMission) referenceObj);
-          } else if (type.equals("OT")) {
-            earnDedElmRef.setOvertimeTransaction((EhcmEmployeeOvertime) referenceObj);
-          } else if (type.equals("SA") || type.equals("SBA")) {
-            earnDedElmRef.setEhcmEmpScholarship((EHCMEmpScholarship) referenceObj);
-          } else if (type.equals("AD")) {
-            earnDedElmRef.setBenefitsAndAllowance((EHCMBenefitAllowance) referenceObj);
-          } else if (type.equals("TO")) {
-            earnDedElmRef.setTicketOrders((EHCMticketordertransaction) referenceObj);
-          }
           earnDedElmRefList = elementRefMap.get(earnDedElm.getId());
-          earnDedElmRefList.add(earnDedElmRef);
+          // if reference already exist then add value
+          refExist = isElementRefExst(earnDedElmRefList, type, calculatedValue, referenceObj);
+          if (!refExist) {
+            // add element refernce
+            EHCMEarnDeductElmRef earnDedElmRef = insertElementRef(earnDedElm, baseValue,
+                calculatedValue, isDeduction, type, referenceObj);
+            earnDedElmRefList = elementRefMap.get(earnDedElm.getId());
+            earnDedElmRefList.add(earnDedElmRef);
+          }
 
         }
       } else {
@@ -2089,29 +2290,10 @@ public class PayrollBaseProcess extends DalBaseProcess {
 
         // add element refernce
         List<EHCMEarnDeductElmRef> earnDedElmRefList = new ArrayList<EHCMEarnDeductElmRef>();
-        EHCMEarnDeductElmRef earnDedElmRef = new EHCMEarnDeductElmRef();
-        earnDedElmRef.setElementDetails(earnDedElm);
-        earnDedElmRef.setBaseValue(baseValue);
-        earnDedElmRef.setCalculatedValue(calculatedValue);
-        earnDedElmRef.setDeduction(isDeduction);
-        if (type.equals("LA")) {
-          earnDedElmRef.setEhcmLoanTransaction((EHCMLoanTransaction) referenceObj);
-        } else if (type.equals("DA")) {
-          earnDedElmRef.setEhcmDisciplineAction((EhcmDisciplineAction) referenceObj);
-        } else if (type.equals("BM")) {
-          earnDedElmRef.setBusinessMission((EHCMEmpBusinessMission) referenceObj);
-        } else if (type.equals("OT")) {
-          earnDedElmRef.setOvertimeTransaction((EhcmEmployeeOvertime) referenceObj);
-        } else if (type.equals("SA") || type.equals("SBA")) {
-          earnDedElmRef.setEhcmEmpScholarship((EHCMEmpScholarship) referenceObj);
-        } else if (type.equals("AD")) {
-          earnDedElmRef.setBenefitsAndAllowance((EHCMBenefitAllowance) referenceObj);
-        } else if (type.equals("TO")) {
-          earnDedElmRef.setTicketOrders((EHCMticketordertransaction) referenceObj);
-        }
+        EHCMEarnDeductElmRef earnDedElmRef = insertElementRef(earnDedElm, baseValue,
+            calculatedValue, isDeduction, type, referenceObj);
         earnDedElmRefList.add(earnDedElmRef);
         elementRefMap.put(earnDedElm.getId(), earnDedElmRefList);
-
       }
     } catch (Exception cebv) {
       log.error("Error in PayrollProcess.java : addValueToMap() ");
@@ -2225,7 +2407,7 @@ public class PayrollBaseProcess extends DalBaseProcess {
             for (ehcmpayscaleline payscaleObj : payscaleList) {
               BigDecimal suspensionValue = PayrollBaseProcessDAO.calculateScholarshipDeductionValue(
                   employment, payscaleObj.getStartDate(), payscaleObj.getEndDate(),
-                  payscaleObj.getAmount(), minScholdays);
+                  payscaleObj.getAmount(), minScholdays, differenceDays, payrollEndDate);
               totalScholarshipDeductionValue = totalScholarshipDeductionValue.add(suspensionValue);
               log.info("totalScholarshipDeductionValue ==> " + totalScholarshipDeductionValue);
             }
@@ -2244,7 +2426,8 @@ public class PayrollBaseProcess extends DalBaseProcess {
             && payrollElement.getElementSource().equals("PS")) {
           for (ehcmpayscaleline payscaleObj : payscaleList) {
             BigDecimal suspensionValue = PayrollBaseProcessDAO.calculateSuspensionValue(employment,
-                payscaleObj.getStartDate(), payscaleObj.getEndDate(), payscaleObj.getAmount());
+                payscaleObj.getStartDate(), payscaleObj.getEndDate(), payscaleObj.getAmount(),
+                differenceDays, payrollEndDate);
             totalSuspensionDeductionValue = totalSuspensionDeductionValue.add(suspensionValue);
             log.info("totalSuspensionDeductionValue ==> " + totalSuspensionDeductionValue);
           }
@@ -2310,13 +2493,14 @@ public class PayrollBaseProcess extends DalBaseProcess {
                 processingDays, differenceDays, payrollEndDate, isBaseCalculation);
           }
 
+          // Suspension Deduction
           if (typDef.getBaseProcess().equals("E")
               && typDef.getElementClassification().equalsIgnoreCase("ER")
               && typDef.getElementSource().equals("GR")) {
             for (ehcmgraderatelines gradeRateObj : gradeRateList) {
               BigDecimal suspensionValue = PayrollBaseProcessDAO.calculateSuspensionValue(
                   employment, gradeRateObj.getStartDate(), gradeRateObj.getEndDate(),
-                  gradeRateObj.getSearchKey());
+                  gradeRateObj.getSearchKey(), differenceDays, payrollEndDate);
               totalSuspensionDeductionValue = totalSuspensionDeductionValue.add(suspensionValue);
               log.info("totalSuspensionDeductionValue ==> " + totalSuspensionDeductionValue);
             }
@@ -2541,7 +2725,6 @@ public class PayrollBaseProcess extends DalBaseProcess {
           if (payrollElement != null) {
             String elementType = payrollElement.getEhcmElementCatgry().getType();
             if (elementType.equalsIgnoreCase(PayrollConstants.BASIC_ELEMENTCTGRY_TYPE)) {
-
               totalPayLineBasic = totalPayLineBasic.add(value);
             } else if (elementType.equalsIgnoreCase(PayrollConstants.ALLOWANCE_ELEMENTCTGRY_TYPE)
                 || elementType.equalsIgnoreCase(PayrollConstants.OTHER_ELEMENTCTGRY_TYPE)) {
@@ -2620,5 +2803,90 @@ public class PayrollBaseProcess extends DalBaseProcess {
       marriedInFuture = true;
     }
     return marriedInFuture;
+  }
+
+  /**
+   * Method to create reference obj for element.
+   * 
+   * @param earnDedElm
+   * @param baseValue
+   * @param calculatedValue
+   * @param isDeduction
+   * @param type
+   * @param referenceObj
+   * @return
+   */
+  private static EHCMEarnDeductElmRef insertElementRef(EHCMEarnDeductElm earnDedElm,
+      BigDecimal baseValue, BigDecimal calculatedValue, boolean isDeduction, String type,
+      Object referenceObj) {
+    try {
+      EHCMEarnDeductElmRef earnDedElmRef = new EHCMEarnDeductElmRef();
+      earnDedElmRef.setElementDetails(earnDedElm);
+      earnDedElmRef.setBaseValue(baseValue);
+      earnDedElmRef.setCalculatedValue(calculatedValue);
+      earnDedElmRef.setDeduction(isDeduction);
+      if (type.equals("LA")) {
+        earnDedElmRef.setEhcmLoanTransaction((EHCMLoanTransaction) referenceObj);
+      } else if (type.equals("DA")) {
+        earnDedElmRef.setEhcmDisciplineAction((EhcmDisciplineAction) referenceObj);
+      } else if (type.equals("BM")) {
+        earnDedElmRef.setBusinessMission((EHCMEmpBusinessMission) referenceObj);
+      } else if (type.equals("OT")) {
+        earnDedElmRef.setOvertimeTransaction((EhcmEmployeeOvertime) referenceObj);
+      } else if (type.equals("SA") || type.equals("SBA")) {
+        earnDedElmRef.setEhcmEmpScholarship((EHCMEmpScholarship) referenceObj);
+      } else if (type.equals("AD")) {
+        earnDedElmRef.setBenefitsAndAllowance((EHCMBenefitAllowance) referenceObj);
+      } else if (type.equals("TO")) {
+        earnDedElmRef.setTicketOrders((EHCMticketordertransaction) referenceObj);
+      }
+      return earnDedElmRef;
+    } catch (Exception e) {
+      log.error("Error in PayrollProcess.java : EHCMEarnDeductElmRef() ");
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
+   * if element reference exist then add value in same reference
+   * 
+   * @param earnDedElmRefList
+   * @param type
+   * @param calculatedValue
+   * @param referenceObj
+   * @return
+   */
+  private static boolean isElementRefExst(List<EHCMEarnDeductElmRef> earnDedElmRefList, String type,
+      BigDecimal calculatedValue, Object referenceObj) {
+    boolean refExist = false;
+    try {
+      for (EHCMEarnDeductElmRef elemref : earnDedElmRefList) {
+        if (type.equals("SBA")) {
+          EHCMEmpScholarship scObj = elemref.getEhcmEmpScholarship();
+          if (scObj == (EHCMEmpScholarship) referenceObj) {
+            elemref.setCalculatedValue(elemref.getCalculatedValue().add(calculatedValue));
+            int elemRefPos = earnDedElmRefList.indexOf(elemref);
+            earnDedElmRefList.set(elemRefPos, elemref);
+            refExist = true;
+            break;
+          }
+        } else if (type.equals("AD")) {
+          EHCMBenefitAllowance baObj = elemref.getBenefitsAndAllowance();
+          if (baObj == (EHCMBenefitAllowance) referenceObj) {
+            elemref.setCalculatedValue(elemref.getCalculatedValue().add(calculatedValue));
+            int elemRefPos = earnDedElmRefList.indexOf(elemref);
+            earnDedElmRefList.set(elemRefPos, elemref);
+            refExist = true;
+            break;
+          }
+        }
+      }
+      return refExist;
+    } catch (Exception e) {
+      log.error("Error in PayrollProcess.java : isElementRefExst() ");
+      e.printStackTrace();
+    }
+    return refExist;
   }
 }

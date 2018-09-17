@@ -13,6 +13,7 @@ import com.itextpdf.text.log.LoggerFactory;
 
 import sa.elm.ob.hcm.EhcmChangeBank;
 import sa.elm.ob.hcm.EhcmChangeBankV;
+import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
 
 /**
  * change bank process to process and reactivate the record.
@@ -32,6 +33,16 @@ public class ChangeBankProcess implements Process {
     OBError obError = new OBError();
     try {
       OBContext.setAdminMode(true);
+      // check whether the employee is suspended or not
+      if (changebank.getEmployee().getEmploymentStatus()
+          .equals(DecisionTypeConstants.EMPLOYMENTSTATUS_SUSPENDED)) {
+        obError.setType("Error");
+        obError.setTitle("Error");
+        obError.setMessage(OBMessageUtils.messageBD("EHCM_emplo_suspend"));
+        bundle.setResult(obError);
+        return;
+      }
+
       if (!changebank.isBankclearancedone()) {
         obError.setType("Error");
         obError.setTitle("Error");

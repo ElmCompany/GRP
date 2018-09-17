@@ -73,6 +73,15 @@ public class AbsenceIssueDecision implements Process {
     Boolean checkExtendAbsTypeLevIsTakenBefIssue = false;
     try {
       OBContext.setAdminMode(true);
+      // check whether the employee is suspended or not
+      if (absence.getEhcmEmpPerinfo().getEmploymentStatus()
+          .equals(DecisionTypeConstants.EMPLOYMENTSTATUS_SUSPENDED)) {
+        obError.setType("Error");
+        obError.setTitle("Error");
+        obError.setMessage(OBMessageUtils.messageBD("EHCM_emplo_suspend"));
+        bundle.setResult(obError);
+        return;
+      }
 
       // check current original decision no is issued or not
       if (absence.getOriginalDecisionNo() != null) {

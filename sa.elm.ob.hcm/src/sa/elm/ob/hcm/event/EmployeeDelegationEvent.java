@@ -99,7 +99,7 @@ public class EmployeeDelegationEvent extends EntityPersistenceEventObserver {
               || !event.getCurrentState(endDate).equals(event.getPreviousState(endDate)))) {
 
         String delegationQry = "select e.id from Ehcm_Emp_Delegation as e"
-            + " where e.ehcmEmpPerinfo.id=:employee and e.enabled='Y' and e.newPosition.id=:newposition and e.decisionStatus!='UP' "
+            + " where e.enabled='Y' and e.newPosition.id=:newposition "
             + " and ((to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:fromdate,'dd-MM-yyyy') "
             + " and to_date(to_char(coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:todate,'dd-MM-yyyy')) "
             + " or (to_date(to_char( coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')) ,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:fromdate,'dd-MM-yyyy') "
@@ -107,10 +107,10 @@ public class EmployeeDelegationEvent extends EntityPersistenceEventObserver {
 
         Query query = OBDal.getInstance().getSession().createQuery(delegationQry);
         query.setParameter("newposition", delegation.getNewPosition().getId());
-        query.setParameter("employee", delegation.getEhcmEmpPerinfo().getId());
+        // query.setParameter("employee", delegation.getEhcmEmpPerinfo().getId());
         query.setParameter("fromdate", Utility.formatDate(delegation.getStartDate()));
         query.setParameter("todate", Utility.formatDate(delegation.getEndDate()));
-
+        log.debug(query.list().size());
         if (query.list().size() > 0) {
           throw new OBException(OBMessageUtils.messageBD("Ehcm_Delegation_Not_Possible"));
         }
@@ -235,7 +235,7 @@ public class EmployeeDelegationEvent extends EntityPersistenceEventObserver {
       if (delegation.getDecisionType().equals("CR")) {
 
         String delegationQry = "select e.id from Ehcm_Emp_Delegation as e"
-            + " where e.ehcmEmpPerinfo.id=:employee and e.enabled='Y' and e.newPosition.id=:newposition and e.decisionStatus!='UP' "
+            + " where e.enabled='Y' and e.newPosition.id=:newposition"
             + " and ((to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:fromdate,'dd-MM-yyyy') "
             + " and to_date(to_char(coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:todate,'dd-MM-yyyy')) "
             + " or (to_date(to_char( coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')) ,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:fromdate,'dd-MM-yyyy') "
@@ -243,9 +243,10 @@ public class EmployeeDelegationEvent extends EntityPersistenceEventObserver {
 
         Query query = OBDal.getInstance().getSession().createQuery(delegationQry);
         query.setParameter("newposition", delegation.getNewPosition().getId());
-        query.setParameter("employee", delegation.getEhcmEmpPerinfo().getId());
+        // query.setParameter("employee", delegation.getEhcmEmpPerinfo().getId());
         query.setParameter("fromdate", Utility.formatDate(delegation.getStartDate()));
         query.setParameter("todate", Utility.formatDate(delegation.getEndDate()));
+        log.debug(query.list().size());
 
         if (query.list().size() > 0) {
           throw new OBException(OBMessageUtils.messageBD("Ehcm_Delegation_Not_Possible"));

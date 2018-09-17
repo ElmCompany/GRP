@@ -108,4 +108,13 @@ public class LeaveManagementController {
     return new ResponseEntity<Boolean>(rejoinLeaveRequest, HttpStatus.OK);
   }
 
+  @RequestMapping(value = "/extend/submit/{username}/originalDecNo/{origDecNo}", method = RequestMethod.POST)
+  public ResponseEntity<Boolean> submitExtendLeaveRequest(@PathVariable String username,
+      @RequestBody LeaveRequestDTO leaveRequestDTO) throws SystemException, BusinessException {
+
+    Boolean cutoffLeaveRequest = leaveManagementService
+        .createExtendLeaveRequestWithApproval(username, leaveRequestDTO);
+
+    return new ResponseEntity<Boolean>(cutoffLeaveRequest, HttpStatus.OK);
+  }
 }

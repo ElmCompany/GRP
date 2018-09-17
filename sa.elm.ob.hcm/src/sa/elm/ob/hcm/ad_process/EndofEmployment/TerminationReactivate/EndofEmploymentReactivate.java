@@ -86,9 +86,7 @@ public class EndofEmploymentReactivate extends DalBaseProcess {
       }
       if (decisionType.equals(DecisionTypeConstants.DECISION_TYPE_CREATE)) {
         // Remove the employment information record
-        terminationDAOImpl.removeEmploymentRecord(empTerminationId);
-        // Update the enddate for prev record
-        terminationDAOImpl.updateEmploymentRecord(empTerminationId, vars, terminationObj);
+        terminationDAOImpl.removeEmploymentRecord(empTerminationId, vars, terminationObj);
         // Remove the record from ehcm_empstatus table
         terminationDAOImpl.removeEmpStatusRecord(employeeId, empTerminationId);
         // update the employee table
@@ -104,6 +102,10 @@ public class EndofEmploymentReactivate extends DalBaseProcess {
       if (decisionType.equals(DecisionTypeConstants.DECISION_TYPE_UPDATE)) {
         // update termination record in employment table
         terminationDAOImpl.updateTerminationRecord(terminationObj, employmentOldObj, vars);
+
+        // Task No. 6899 : update status table "termination field"
+        final String EmpOldTerminationId = employmentOldObj.getId();
+        terminationDAOImpl.updateEmpStatusRecord(employeeId, employmentOldObj);
 
         // make isactive as true for the old endofemployment
         EHCMEMPTermination oldTermination = employmentOldObj;

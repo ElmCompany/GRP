@@ -161,6 +161,10 @@
         <default><![CDATA[N]]></default>
         <onCreateDefault/>
       </column>
+      <column name="DEPARTMENT_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
       <foreign-key foreignTable="AD_CLIENT" name="EHCM_CB_CLI">
         <reference local="AD_CLIENT_ID" foreign="AD_CLIENT_ID"/>
       </foreign-key>
@@ -175,9 +179,6 @@
       </foreign-key>
       <foreign-key foreignTable="EHCM_EMP_PERINFO" name="EHCM_CH_BANK_EMP">
         <reference local="EHCM_EMP_PERINFO_ID" foreign="EHCM_EMP_PERINFO_ID"/>
-      </foreign-key>
-      <foreign-key foreignTable="AD_ORG" name="EHCM_CHA_BAN_ALLOW_DEP">
-        <reference local="ASSIGNED_DEPT" foreign="AD_ORG_ID"/>
       </foreign-key>
       <foreign-key foreignTable="EHCM_GRADE" name="EHCM_CHAN_BAN_EMPGRADE">
         <reference local="EMPLOYMENTGRADE" foreign="EHCM_GRADE_ID"/>
@@ -208,6 +209,9 @@
       </foreign-key>
       <foreign-key foreignTable="EHCM_PAY_PMT_TYPE_METHOD" name="EHCM_CHANG_PAY_TYPE">
         <reference local="PAYMENT_TYPE" foreign="EHCM_PAY_PMT_TYPE_METHOD_ID"/>
+      </foreign-key>
+      <foreign-key foreignTable="AD_ORG" name="EHCM_CHANGEBANK_DEP">
+        <reference local="DEPARTMENT_ID" foreign="AD_ORG_ID"/>
       </foreign-key>
     </table>
   </database>

@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ContractRenewal" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="NoDataSection" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryWithPageHeaderAndFooter="true" uuid="76689856-243c-49f5-a309-560bf0b7689e">
-	<property name="ireport.zoom" value="0.8250000000000015"/>
+	<property name="ireport.zoom" value="0.8250000000000021"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
+	<property name="net.sf.jasperreports.export.xls.one.page.per.sheet" value="false"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.detect.cell.type" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.white.page.background" value="false"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
 	<parameter name="ToDate" class="java.lang.String"/>
 	<parameter name="inpEmpId" class="java.lang.String"/>
 	<parameter name="inpDepartmentId" class="java.lang.String"/>
@@ -61,32 +68,32 @@ end]]>
 	<title>
 		<band height="95" splitType="Stretch">
 			<staticText>
-				<reportElement x="14" y="53" width="109" height="20" isPrintWhenDetailOverflows="true" forecolor="#138513" uuid="e50252a6-7731-4d73-aff5-f38127891b3f"/>
+				<reportElement x="0" y="20" width="152" height="20" isPrintWhenDetailOverflows="true" forecolor="#138513" uuid="e50252a6-7731-4d73-aff5-f38127891b3f"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="Traditional Arabic"/>
 				</textElement>
 				<text><![CDATA[التاريـــخ : ....../......../...........]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="14" y="73" width="109" height="20" forecolor="#138613" uuid="4a9c5d1c-072c-42a3-86aa-687b0647f047"/>
+				<reportElement x="0" y="40" width="152" height="20" forecolor="#138613" uuid="4a9c5d1c-072c-42a3-86aa-687b0647f047"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="Traditional Arabic"/>
 				</textElement>
 				<text><![CDATA[المرفقـات : ..........................]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="14" y="33" width="109" height="20" isPrintWhenDetailOverflows="true" forecolor="#138513" uuid="dda5bd46-278b-45ee-957c-4f9cbc98cf52"/>
+				<reportElement x="0" y="0" width="152" height="20" isPrintWhenDetailOverflows="true" forecolor="#138513" uuid="dda5bd46-278b-45ee-957c-4f9cbc98cf52"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="Traditional Arabic"/>
 				</textElement>
 				<text><![CDATA[الرقـــــــم : ..........................]]></text>
 			</staticText>
 			<image>
-				<reportElement x="702" y="8" width="100" height="50" uuid="22315da1-1433-4de8-89e4-f37d6b12b548"/>
+				<reportElement x="726" y="0" width="76" height="60" uuid="22315da1-1433-4de8-89e4-f37d6b12b548"/>
 				<imageExpression><![CDATA[org.openbravo.erpCommon.utility.Utility.showImageLogo("yourcompanylegal","")]]></imageExpression>
 			</image>
 			<textField isBlankWhenNull="true">
-				<reportElement x="621" y="68" width="191" height="20" uuid="eb6571bf-e72d-40fb-8696-9a15a0cdfb08"/>
+				<reportElement x="0" y="60" width="802" height="20" uuid="eb6571bf-e72d-40fb-8696-9a15a0cdfb08"/>
 				<textElement textAlignment="Center">
 					<font fontName="Traditional Arabic" size="12"/>
 				</textElement>
@@ -95,23 +102,23 @@ end]]>
 		</band>
 	</title>
 	<pageHeader>
-		<band height="79" splitType="Stretch">
+		<band height="69" splitType="Stretch">
 			<staticText>
-				<reportElement x="253" y="0" width="282" height="39" isPrintWhenDetailOverflows="true" uuid="f165539a-df00-4712-9e13-76073b0c3494"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
+				<reportElement x="0" y="0" width="802" height="39" isPrintWhenDetailOverflows="true" uuid="f165539a-df00-4712-9e13-76073b0c3494"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Traditional Arabic" size="16" isBold="true" isItalic="false"/>
 				</textElement>
 				<text><![CDATA[بيان بمعلومات الموظفين الذين بحاجة لتجديد عقودهم]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="433" y="41" width="33" height="28" isPrintWhenDetailOverflows="true" uuid="562ca61b-6073-4615-af9d-2ed3754a7212"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
+				<reportElement x="447" y="39" width="355" height="30" isPrintWhenDetailOverflows="true" uuid="562ca61b-6073-4615-af9d-2ed3754a7212"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font fontName="Traditional Arabic" size="14" isBold="true"/>
 				</textElement>
 				<text><![CDATA[لتاريخ ]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="333" y="39" width="100" height="28" uuid="ee79df80-0392-44da-92cf-52417882a16c"/>
+				<reportElement x="0" y="39" width="447" height="30" uuid="ee79df80-0392-44da-92cf-52417882a16c"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="Traditional Arabic"/>
 				</textElement>
@@ -122,7 +129,7 @@ end]]>
 	<columnHeader>
 		<band height="99">
 			<staticText>
-				<reportElement mode="Opaque" x="773" y="0" width="18" height="99" isPrintWhenDetailOverflows="true" backcolor="#00F5FF" uuid="a746f38f-20c6-4b85-bf2a-d2a37a0c2668"/>
+				<reportElement mode="Opaque" x="773" y="0" width="29" height="99" isPrintWhenDetailOverflows="true" backcolor="#00F5FF" uuid="a746f38f-20c6-4b85-bf2a-d2a37a0c2668"/>
 				<box>
 					<pen lineWidth="0.75"/>
 					<topPen lineWidth="0.75"/>
@@ -192,7 +199,7 @@ end]]>
 				<text><![CDATA[تاريخ نهاية العقد]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="10" y="0" width="142" height="99" isPrintWhenDetailOverflows="true" backcolor="#00F5FF" uuid="ca31ca35-55fd-40ca-8819-1dbb36fac798"/>
+				<reportElement mode="Opaque" x="0" y="0" width="152" height="99" isPrintWhenDetailOverflows="true" backcolor="#00F5FF" uuid="ca31ca35-55fd-40ca-8819-1dbb36fac798"/>
 				<box>
 					<pen lineWidth="0.75"/>
 					<topPen lineWidth="0.75"/>
@@ -350,7 +357,7 @@ end]]>
 				<textFieldExpression><![CDATA[sa.elm.ob.utility.ad_reports.NumberToWords.ConvertAmountToArabicAmount($F{date}.split("-")[2])]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="10" y="0" width="142" height="140" isPrintWhenDetailOverflows="true" uuid="cf08a564-75b5-4a9d-beb8-0625e4275ff7"/>
+				<reportElement x="0" y="0" width="152" height="140" isPrintWhenDetailOverflows="true" uuid="cf08a564-75b5-4a9d-beb8-0625e4275ff7"/>
 				<box>
 					<pen lineWidth="0.75"/>
 					<topPen lineWidth="0.75"/>
@@ -406,7 +413,7 @@ end]]>
 				<textFieldExpression><![CDATA[$F{nationality}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="773" y="0" width="18" height="140" uuid="050136ea-652e-4577-8a12-7e65c75818e1"/>
+				<reportElement x="773" y="0" width="29" height="140" uuid="050136ea-652e-4577-8a12-7e65c75818e1"/>
 				<box>
 					<pen lineWidth="0.75"/>
 					<topPen lineWidth="0.75"/>
@@ -478,9 +485,9 @@ end]]>
 		</band>
 	</detail>
 	<noData>
-		<band height="50">
+		<band height="25">
 			<staticText>
-				<reportElement x="253" y="14" width="313" height="25" uuid="cfe098eb-cb28-4822-b13b-1c8477ecd7d2"/>
+				<reportElement x="253" y="0" width="313" height="25" uuid="cfe098eb-cb28-4822-b13b-1c8477ecd7d2"/>
 				<box rightPadding="4"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Traditional Arabic Bold" size="14" isBold="true"/>

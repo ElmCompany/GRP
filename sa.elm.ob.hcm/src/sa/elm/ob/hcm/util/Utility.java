@@ -15,6 +15,7 @@ import org.openbravo.model.common.geography.Country;
 
 import sa.elm.ob.hcm.EHCMEmpScholarship;
 import sa.elm.ob.hcm.EHCMEmpSupervisor;
+import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EmploymentInfo;
 
 /**
@@ -238,4 +239,50 @@ public class Utility {
       throws IOException {
     return UtilityDAO.getbalanceDaysInYear(employeeId, DecisionType);
   }
+
+  /**
+   * check decision date is overlapping with recent startdate in employmentinfo
+   * 
+   * @param employeeId
+   * @param startDate
+   * @param clientId
+   * @return
+   * @throws IOException
+   */
+  public static boolean chkOverlapDecisionStartdate(String employeeId, Date startDate,
+      String clientId) throws IOException {
+    return UtilityDAO.chkOverlapDecisionStartdate(employeeId, startDate, clientId);
+  }
+
+  /**
+   * insert active employment info details while doing issue decision in all decision screens if
+   * didnt change anything related to position department grade
+   * 
+   * @param empPerInfo
+   *          - employee object
+   * @param employInfo
+   *          - insert employ info object
+   * @param isExtraStep
+   *          - extra step
+   * @return
+   * @throws Exception
+   */
+  public static EmploymentInfo insertActEmplymntInfoDetailsInIssueDecision(
+      EhcmEmpPerInfo empPerInfo, EmploymentInfo employInfo, boolean isExtraStep, boolean status)
+      throws Exception {
+    return UtilityDAO.insertActEmplymntInfoDetailsInIssueDecision(empPerInfo, employInfo,
+        isExtraStep, status);
+  }
+
+  /**
+   * getting hiring employ info record
+   * 
+   * @param employeeId
+   * @return
+   * @throws Exception
+   */
+  public static EmploymentInfo getHiringEmployInfo(String employeeId) throws Exception {
+    return UtilityDAO.getHiringEmployInfo(employeeId);
+  }
+
 }

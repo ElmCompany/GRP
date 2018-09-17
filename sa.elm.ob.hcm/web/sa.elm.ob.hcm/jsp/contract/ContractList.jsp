@@ -358,6 +358,7 @@ direction='ltr';
 <script type="text/javascript" src="../web/js/ui/jquery.ui.position.js"></script>
 <script type="text/javascript" src="../web/js/ui/jquery.ui.autocomplete.js"></script>
 <script type="text/javascript" src="../web/sa.elm.ob.hcm/js/ContractEmployeeList.js"></script>
+<script type="text/javascript" src="../web/sa.elm.ob.hcm/js/EmployeeList.js"></script>
 <script type="text/javascript" src="../web/sa.elm.ob.utility/js/jquery.plugin.js"></script> 
 <script type="text/javascript" src="../web/sa.elm.ob.utility/js/jquery.calendars.package-2.0.2/jquery.calendars.js"></script> 
 <script type="text/javascript" src="../web/sa.elm.ob.utility/js/jquery.calendars.package-2.0.2/jquery.calendars.ummalqura.js"></script> 

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 
 import sa.elm.ob.hcm.GenericActivitiData;
 import sa.elm.ob.hcm.ad_process.Constants;
-import sa.elm.ob.hcm.dao.activiti.CommonActivitiDAO;
+import sa.elm.ob.hcm.dao.activiti.SelfServiceTransactionDAO;
 import sa.elm.ob.hcm.dto.employment.CertificationsDTO;
 import sa.elm.ob.hcm.dto.employment.QualificationsDTO;
 import sa.elm.ob.hcm.services.employment.EmploymentInformationService;
@@ -36,7 +36,7 @@ public class EmploymentInformationsListner implements TaskListener, ApplicationC
   @Override
   public void notify(DelegateTask delegateTask) {
 
-    CommonActivitiDAO commonActivitiDAO = applicationContext.getBean(CommonActivitiDAO.class);
+    SelfServiceTransactionDAO commonActivitiDAO = applicationContext.getBean(SelfServiceTransactionDAO.class);
 
     TaskEntity taskEntity = (TaskEntity) delegateTask;
     @SuppressWarnings("rawtypes")
@@ -45,7 +45,8 @@ public class EmploymentInformationsListner implements TaskListener, ApplicationC
     if (approved) {
       GenericActivitiData genericActivtiData = commonActivitiDAO
           .findTransactionRecord(variablesMap.get(ActivitiConstants.TARGET_IDENTIFIER).toString());
-      moveTransactionRecordToActualTable(variablesMap.get("userName").toString(),
+      moveTransactionRecordToActualTable(
+          variablesMap.get(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_USERNAME).toString(),
           genericActivtiData);
     }
 

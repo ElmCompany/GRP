@@ -16,9 +16,9 @@ import sa.elm.ob.hcm.EHCMEmpSecondment;
 import sa.elm.ob.hcm.EhcmJoinLeaveDecNoV;
 import sa.elm.ob.hcm.EhcmJoiningWorkRequest;
 import sa.elm.ob.hcm.EmploymentInfo;
-import sa.elm.ob.hcm.ehcmpayscaleline;
 import sa.elm.ob.hcm.ad_process.Constants;
 import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
+import sa.elm.ob.hcm.ad_process.EmpExtendService.DAO.ExtendServiceHandlerDAO;
 import sa.elm.ob.hcm.util.UtilityDAO;
 
 /**
@@ -173,6 +173,9 @@ public class EmpSecondmentReactivateDAOImpl implements EmpSecondmentReactivateDA
           updateJoinWorkRequestOriginalDecisionNo(info, prevEmpinfo);
         }
       }
+      // Update Employment status
+      ExtendServiceHandlerDAO.updateEmpRecord(empSecondment.getEhcmEmpPerinfo().getId(),
+          info.getId());
 
     } catch (Exception e) {
       log.error("Exception deleteEmpInfo in EmpSecondmentReactivateDAOImpl : ", e, e);
@@ -282,7 +285,6 @@ public class EmpSecondmentReactivateDAOImpl implements EmpSecondmentReactivateDA
   public void InsertEmpInfoInCancelCase(EHCMEmpSecondment empSecondment, VariablesSecureApp vars) {
     EmploymentInfo info = null;
     EmploymentInfo newEmployInfo = null;
-    int a = 0;
     try {
       OBContext.setAdminMode();
       info = UtilityDAO.getActiveEmployInfo(empSecondment.getEhcmEmpPerinfo().getId());
@@ -313,6 +315,7 @@ public class EmpSecondmentReactivateDAOImpl implements EmpSecondmentReactivateDA
     Date dateAfter = null;
     int oneMiliSeconds = 1 * 24 * 3600 * 1000;
     String decisionType = null;
+    boolean isExtraStep = false;
     try {
       employInfo = OBProvider.getInstance().get(EmploymentInfo.class);
 
@@ -334,31 +337,8 @@ public class EmpSecondmentReactivateDAOImpl implements EmpSecondmentReactivateDA
 
       } else
         employInfo.setChangereason(DecisionTypeConstants.CHANGEREASON_SECONDMENT);
-
-      employInfo.setDepartmentName(secondment.getDepartmentCode().getName());
-      employInfo.setDeptcode(secondment.getDepartmentCode());
-      employInfo.setGrade(secondment.getGrade());
-      ehcmpayscaleline line = OBDal.getInstance().get(ehcmpayscaleline.class,
-          secondment.getEhcmPayscaleline().getId());
-      employInfo.setEhcmPayscale(line.getEhcmPayscale());
-      employInfo.setEmpcategory(secondment.getEmployeeCategory().getId());
-      employInfo.setEmployeeno(secondment.getEhcmEmpPerinfo().getSearchKey());
-      employInfo.setEhcmPayscaleline(line);
-      employInfo.setEmploymentgrade(secondment.getEmploymentGrade());
-      employInfo.setJobcode(secondment.getPosition().getEhcmJobs());
-      employInfo.setPosition(secondment.getPosition());
-      employInfo.setJobtitle(secondment.getPosition().getJOBName().getJOBTitle());
-      employInfo.setToGovernmentAgency(secondment.getGOVAgency());
-      if (info.getLocation() != null)
-        employInfo.setLocation(info.getLocation());
-      if (info.getEhcmPayrollDefinition() != null)
-        employInfo.setEhcmPayrollDefinition(info.getEhcmPayrollDefinition());
-      if (secondment.getSectionCode() != null) {
-        employInfo.setSectionName(secondment.getSectionCode().getName());
-        employInfo.setSectioncode(secondment.getSectionCode());
-      }
-
-      employInfo.setEhcmEmpPerinfo(secondment.getEhcmEmpPerinfo());
+      UtilityDAO.insertActEmplymntInfoDetailsInIssueDecision(secondment.getEhcmEmpPerinfo(),
+          employInfo, isExtraStep, false);
 
       if (secondment.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CUTOFF)) {
         dateAfter = new Date(secondment.getEndDate().getTime() + oneMiliSeconds);
@@ -374,24 +354,6 @@ public class EmpSecondmentReactivateDAOImpl implements EmpSecondmentReactivateDA
       employInfo.setEhcmEmpSecondment(secondment);
       employInfo.setDecisionNo(secondment.getDecisionNo());
       employInfo.setDecisionDate(secondment.getDecisionDate());
-
-      /* secondary */
-      employInfo.setSecpositionGrade(info.getSecpositionGrade());
-      employInfo.setSecpositionGrade(info.getSecpositionGrade());
-      employInfo.setSecjobno(info.getSecjobno());
-      employInfo.setSecjobcode(info.getSecjobcode());
-      employInfo.setSecjobtitle(info.getSecjobtitle());
-      employInfo.setSECDeptCode(info.getSECDeptCode());
-      employInfo.setSECDeptName(info.getSECDeptName());
-      employInfo.setSECSectionCode(info.getSECSectionCode());
-      employInfo.setSECSectionName(info.getSECSectionName());
-      employInfo.setSECLocation(info.getSECLocation());
-      employInfo.setSECStartdate(info.getSECStartdate());
-      employInfo.setSECEnddate(info.getSECEnddate());
-      employInfo.setSECDecisionNo(info.getSECDecisionNo());
-      employInfo.setSECDecisionDate(info.getSECDecisionDate());
-      employInfo.setSECChangeReason(info.getSECChangeReason());
-      employInfo.setSECEmploymentNumber(info.getSECEmploymentNumber());
 
       OBDal.getInstance().save(employInfo);
       // OBDal.getInstance().flush();
@@ -429,8 +391,7 @@ public class EmpSecondmentReactivateDAOImpl implements EmpSecondmentReactivateDA
   public void updateJoinWorkRequestOriginalDecisionNo(EmploymentInfo empInfo,
       EmploymentInfo prevEmpInfo) throws Exception {
     // TODO Auto-generated method stub
-    List<EmploymentInfo> empInfoList = null;
-    List<EmploymentInfo> previousEmpInfoList = null;
+
     EmploymentInfo employInfoObj = null;
     EmploymentInfo prevEmployInfoObj = null;
     List<EhcmJoiningWorkRequest> joinWorkRequestList = null;

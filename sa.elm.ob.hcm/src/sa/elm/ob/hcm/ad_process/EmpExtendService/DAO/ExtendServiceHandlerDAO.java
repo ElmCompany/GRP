@@ -24,8 +24,10 @@ import sa.elm.ob.hcm.EHCMEmpSecondment;
 import sa.elm.ob.hcm.EHCMEmpSupervisor;
 import sa.elm.ob.hcm.EHCMEmpSupervisorNode;
 import sa.elm.ob.hcm.EHCMEmpTransfer;
+import sa.elm.ob.hcm.EHCMEmpTransferSelf;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EhcmExtendService;
+import sa.elm.ob.hcm.EmployeeSuspension;
 import sa.elm.ob.hcm.EmploymentInfo;
 import sa.elm.ob.hcm.ehcmpayscaleline;
 import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
@@ -123,6 +125,7 @@ public class ExtendServiceHandlerDAO {
     List<EmploymentInfo> empInfoList = new ArrayList<EmploymentInfo>();
     int count = 0;
     EHCMEmpSupervisor supervisorId = null;
+    Boolean isExtraStep = false;
     try {
       OBContext.setAdminMode();
       String enddate = "", startyear = "", startDate = "";
@@ -166,43 +169,14 @@ public class ExtendServiceHandlerDAO {
           employInfo.setChangereason(DecisionTypeConstants.EMPLOYMENTSTATUS_EXTENDSERVICE);
         else
           employInfo.setChangereason(DecisionTypeConstants.EMPLOYMENTSTATUS_EXTENDSERVICE);
-        if (extendServiceProcess.getDepartmentCode() != null)
-          employInfo.setDepartmentName(extendServiceProcess.getDepartmentCode().getName());
-        employInfo.setDeptcode(extendServiceProcess.getDepartmentCode());
-        employInfo.setGrade(extendServiceProcess.getGrade());
-        ehcmpayscaleline line = OBDal.getInstance().get(ehcmpayscaleline.class,
-            extendServiceProcess.getEhcmPayscaleline().getId());
-        employInfo.setEhcmPayscale(line.getEhcmPayscale());
-        employInfo.setEmpcategory(extendServiceProcess.getGradeClassifications().getId());
-        employInfo.setEmployeeno(extendServiceProcess.getEmployee().getSearchKey());
-        employInfo.setEhcmPayscaleline(line);
-        employInfo.setEmploymentgrade(extendServiceProcess.getEmploymentGrade());
-        employInfo.setJobcode(extendServiceProcess.getPosition().getEhcmJobs());
-        employInfo.setPosition(extendServiceProcess.getPosition());
-        employInfo.setJobtitle(extendServiceProcess.getPosition().getJOBName().getJOBTitle());
-        employInfo.setLocation(info.getLocation());
-        if (info.getEhcmPayrollDefinition() != null)
-          employInfo.setEhcmPayrollDefinition(info.getEhcmPayrollDefinition());
-        if (extendServiceProcess.getSectionCode() != null)
-          employInfo.setSectionName(extendServiceProcess.getSectionCode().getName());
-        employInfo.setSectioncode(extendServiceProcess.getSectionCode());
-        employInfo.setEhcmEmpPerinfo(extendServiceProcess.getEmployee());
+        // inserting current active employment info details
+        sa.elm.ob.hcm.util.UtilityDAO.insertActEmplymntInfoDetailsInIssueDecision(
+            extendServiceProcess.getEmployee(), employInfo, isExtraStep, false);
+
         employInfo.setStartDate(extendServiceProcess.getEffectivedate());
-        employInfo.setAlertStatus(DecisionTypeConstants.Status_active);
         employInfo.setEhcmExtendService(extendServiceProcess);
         employInfo.setDecisionNo(extendServiceProcess.getDecisionNo());
         employInfo.setDecisionDate(extendServiceProcess.getDecisionDate());
-        OBQuery<EHCMEmpSupervisorNode> supervisior = OBDal.getInstance().createQuery(
-            EHCMEmpSupervisorNode.class,
-            "  as e where e.ehcmEmpPerinfo.id=:employeeId and e.client.id =:client");
-        supervisior.setNamedParameter("employeeId", extendServiceProcess.getEmployee().getId());
-        supervisior.setNamedParameter("client", extendServiceProcess.getClient().getId());
-        List<EHCMEmpSupervisorNode> node = supervisior.list();
-        if (node.size() > 0) {
-          supervisorId = node.get(0).getEhcmEmpSupervisor();
-          employInfo.setEhcmEmpSupervisor(supervisorId);
-        }
-
         String inpperiod = extendServiceProcess.getExtendPeriod().toString();
         if (!inpperiod.equals("0")) {
           String inpstartdate = UtilityDAO
@@ -217,24 +191,7 @@ public class ExtendServiceHandlerDAO {
         } else {
           employInfo.setEndDate(null);
         }
-        /* secondary */
         LOG.debug("info:" + employInfo.getEndDate());
-        employInfo.setSecpositionGrade(info.getSecpositionGrade());
-        employInfo.setSecpositionGrade(info.getSecpositionGrade());
-        employInfo.setSecjobno(info.getSecjobno());
-        employInfo.setSecjobcode(info.getSecjobcode());
-        employInfo.setSecjobtitle(info.getSecjobtitle());
-        employInfo.setSECDeptCode(info.getSECDeptCode());
-        employInfo.setSECDeptName(info.getSECDeptName());
-        employInfo.setSECSectionCode(info.getSECSectionCode());
-        employInfo.setSECSectionName(info.getSECSectionName());
-        employInfo.setSECLocation(info.getSECLocation());
-        employInfo.setSECStartdate(info.getSECStartdate());
-        employInfo.setSECEnddate(info.getSECEnddate());
-        employInfo.setSECDecisionNo(info.getSECDecisionNo());
-        employInfo.setSECDecisionDate(info.getSECDecisionDate());
-        employInfo.setSECChangeReason(info.getSECChangeReason());
-        employInfo.setSECEmploymentNumber(info.getSECEmploymentNumber());
 
         // Update the enddate for old hiring record.
         if (extendServiceProcess.getDecisionType()
@@ -249,8 +206,8 @@ public class ExtendServiceHandlerDAO {
           empinfo.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
 
           Date startdate = empinfo.getStartDate();
-          dateBefore = new Date(
-              extendServiceProcess.getEffectivedate().getTime() - 1 * 24 * 3600 * 1000);
+          dateBefore = new Date(extendServiceProcess.getEffectivedate().getTime()
+              - DecisionTypeConstants.ONE_DAY_IN_MILISEC);
 
           if (startdate.compareTo(extendServiceProcess.getEffectivedate()) == 0)
             empinfo.setEndDate(empinfo.getStartDate());
@@ -282,8 +239,8 @@ public class ExtendServiceHandlerDAO {
             empinfo.setUpdated(new java.util.Date());
             empinfo.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
             Date startdate = empinfo.getStartDate();
-            Date dateBefore = new Date(
-                extendServiceProcess.getEffectivedate().getTime() - 1 * 24 * 3600 * 1000);
+            Date dateBefore = new Date(extendServiceProcess.getEffectivedate().getTime()
+                - DecisionTypeConstants.ONE_DAY_IN_MILISEC);
             if (startdate.compareTo(extendServiceProcess.getEffectivedate()) == 0)
               empinfo.setEndDate(empinfo.getStartDate());
             else
@@ -312,6 +269,7 @@ public class ExtendServiceHandlerDAO {
       // cancel case
       else if (extendServiceProcess.getDecisionType()
           .equals(DecisionTypeConstants.DECISION_TYPE_CANCEL)) {
+        EmploymentInfo empInfor = null;
         // update the acive flag='Y' and enddate is null for recently update record
         OBQuery<EmploymentInfo> originalemp = OBDal.getInstance().createQuery(EmploymentInfo.class,
             " ehcmEmpPerinfo.id=:employeeId  and (ehcmExtendService.id not in ('"
@@ -332,26 +290,25 @@ public class ExtendServiceHandlerDAO {
           employInfo.setMaxResult(1);
           empInfoList = employInfo.list();
           if (empInfoList.size() > 0) {
-            EmploymentInfo empInfor = empInfoList.get(0);
+            empInfor = empInfoList.get(0);
             OBDal.getInstance().remove(empInfor);
-            OBDal.getInstance().flush();
+            // OBDal.getInstance().flush();
           }
           empinfo.setUpdated(new java.util.Date());
           empinfo.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
           endDate = updateEndDateInEmploymentInfo(extendServiceProcess.getEmployee().getId(),
-              extendServiceProcess.getClient().getId());
+              extendServiceProcess.getClient().getId(), empInfor.getId());
           empinfo.setEndDate(endDate);
           empinfo.setEnabled(true);
           empinfo.setAlertStatus(DecisionTypeConstants.Status_active);
-          empinfo.setEhcmEmpTransfer(null);
           OBDal.getInstance().save(empinfo);
-          OBDal.getInstance().flush();
+          // OBDal.getInstance().flush();
 
           if (empinfo.getEhcmExtendService() != null) {
             EhcmExtendService oldExtendService = empinfo.getEhcmExtendService();
             oldExtendService.setEnabled(true);
             OBDal.getInstance().save(oldExtendService);
-            OBDal.getInstance().flush();
+            // OBDal.getInstance().flush();
           }
         }
         EhcmEmpPerInfo person = OBDal.getInstance().get(EhcmEmpPerInfo.class,
@@ -360,17 +317,17 @@ public class ExtendServiceHandlerDAO {
         person.setEmploymentStatus(DecisionTypeConstants.EMPLOYMENTSTATUS_ACTIVE);
 
         OBDal.getInstance().save(person);
-        OBDal.getInstance().flush();
+        // OBDal.getInstance().flush();
 
         // update old extrastep as inactive
         EhcmExtendService oldExtend = extendServiceProcess.getOriginalDecisionNo();
         oldExtend.setEnabled(false);
         OBDal.getInstance().save(oldExtend);
-        OBDal.getInstance().flush();
+        // OBDal.getInstance().flush();
 
         extendServiceProcess.setEnabled(false);
         OBDal.getInstance().save(extendServiceProcess);
-        OBDal.getInstance().flush();
+        // OBDal.getInstance().flush();
       }
 
       count = 1;
@@ -437,8 +394,8 @@ public class ExtendServiceHandlerDAO {
     ResultSet rs1 = null;
     int age = 0;
     try {
-      sql = " select extract (year from (age('" + dob + "' ,'" + effectiveDate
-          + "'))) as age from dual ";
+      sql = " select extract (year from (age(to_date('" + effectiveDate
+          + "','dd-MM-yyyy') ,to_date('" + dob + "','dd-mm-yyyy') ))) ";
       st = OBDal.getInstance().getConnection().prepareStatement(sql);
       rs1 = st.executeQuery();
       if (rs1.next()) {
@@ -480,6 +437,7 @@ public class ExtendServiceHandlerDAO {
       int endyear = 0;
       Date dateBefore = null;
       Date endDate = null;
+      EmploymentInfo empInfor = null;
 
       OBQuery<EmploymentInfo> originalemp = OBDal.getInstance().createQuery(EmploymentInfo.class,
           " ehcmEmpPerinfo.id=:employeeId and (ehcmExtendService.id not in ('"
@@ -500,10 +458,10 @@ public class ExtendServiceHandlerDAO {
         employInfo.setMaxResult(1);
         empInfoList = employInfo.list();
         if (empInfoList.size() > 0) {
-          EmploymentInfo empInfor = empInfoList.get(0);
+          empInfor = empInfoList.get(0);
           if (extendservice.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CREATE)) {
             OBDal.getInstance().remove(empInfor);
-            OBDal.getInstance().flush();
+
           }
           if (extendservice.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_UPDATE)) {
             empInfor.setStartDate(extendservice.getOriginalDecisionNo().getEffectivedate());
@@ -524,7 +482,7 @@ public class ExtendServiceHandlerDAO {
               empInfor.setEndDate(null);
             }
             OBDal.getInstance().save(empInfor);
-            OBDal.getInstance().flush();
+
           }
         }
         // update enddate for old record
@@ -532,25 +490,24 @@ public class ExtendServiceHandlerDAO {
           empinfo.setUpdated(new java.util.Date());
           empinfo.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
           endDate = updateEndDateInEmploymentInfo(extendservice.getEmployee().getId(),
-              extendservice.getClient().getId());
+              extendservice.getClient().getId(), empInfor.getId());
           empinfo.setEndDate(endDate);
           empinfo.setEnabled(true);
           empinfo.setAlertStatus(DecisionTypeConstants.Status_active);
-          empinfo.setEhcmEmpTransfer(null);
           OBDal.getInstance().save(empinfo);
-          OBDal.getInstance().flush();
+          // OBDal.getInstance().flush();
         }
         if (extendservice.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_UPDATE)) {
           dateBefore = new Date(extendservice.getOriginalDecisionNo().getEffectivedate().getTime()
-              - 1 * 24 * 3600 * 1000);
+              - DecisionTypeConstants.ONE_DAY_IN_MILISEC);
           empinfo.setEndDate(dateBefore);
           OBDal.getInstance().save(empinfo);
-          OBDal.getInstance().flush();
+          // OBDal.getInstance().flush();
         }
 
       }
       // set the employment status in employee
-      updateEmpRecord(extendservice);
+      updateEmpRecord(extendservice.getEmployee().getId(), empInfor.getId());
       /*
        * EhcmEmpPerInfo person = OBDal.getInstance().get(EhcmEmpPerInfo.class,
        * extendservice.getEmployee().getId()); person.setEmploymentStatus("AC");
@@ -645,7 +602,7 @@ public class ExtendServiceHandlerDAO {
       if (empInfoList.size() > 0) {
         info = empInfoList.get(0);
         dateBefore = new Date(extendservice.getOriginalDecisionNo().getEffectivedate().getTime()
-            - 1 * 24 * 3600 * 1000);
+            - DecisionTypeConstants.ONE_DAY_IN_MILISEC);
         info.setEndDate(dateBefore);
         info.setEnabled(false);
         info.setAlertStatus(DecisionTypeConstants.Status_Inactive);
@@ -761,15 +718,16 @@ public class ExtendServiceHandlerDAO {
    * 
    * @param extendofservice
    */
-  public static void updateEmpRecord(EhcmExtendService extendofservice) {
+  public static void updateEmpRecord(String employeeId, String recentEmpInfoId) {
     OBQuery<EmploymentInfo> empInfo = null;
     EmploymentInfo empinfo = null;
     List<EmploymentInfo> employmentInfo = new ArrayList<EmploymentInfo>();
     String employmentStatus = null;
     try {
       empInfo = OBDal.getInstance().createQuery(EmploymentInfo.class,
-          "   ehcmEmpPerinfo.id=:employeeId order by creationDate desc ");
-      empInfo.setNamedParameter("employeeId", extendofservice.getEmployee().getId());
+          "   ehcmEmpPerinfo.id=:employeeId and id <>:recentEmpInfoId order by creationDate desc ");
+      empInfo.setNamedParameter("employeeId", employeeId);
+      empInfo.setNamedParameter("recentEmpInfoId", recentEmpInfoId);
       empInfo.setMaxResult(1);
       employmentInfo = empInfo.list();
       if (employmentInfo.size() > 0) {
@@ -784,8 +742,7 @@ public class ExtendServiceHandlerDAO {
         } else {
           employmentStatus = DecisionTypeConstants.EMPLOYMENTSTATUS_ACTIVE;
         }
-        EhcmEmpPerInfo employee = OBDal.getInstance().get(EhcmEmpPerInfo.class,
-            extendofservice.getEmployee().getId());
+        EhcmEmpPerInfo employee = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
         employee.setEmploymentStatus(employmentStatus);
         OBDal.getInstance().save(employee);
         OBDal.getInstance().flush();
@@ -805,10 +762,78 @@ public class ExtendServiceHandlerDAO {
    * @param clientId
    * @return
    */
-  public static Date updateEndDateInEmploymentInfo(String employeeId, String clientId) {
+  public static Date updateEndDateInEmploymentInfo(String employeeId, String clientId,
+      String recentEmpInfoId) {
     OBQuery<EmploymentInfo> empInfo = null;
     EmploymentInfo empinfo = null;
     Date endDate = null;
+    String enddate = "", startyear = "", startDate = "";
+    int endyear = 0;
+
+    List<EmploymentInfo> employmentInfo = new ArrayList<EmploymentInfo>();
+    try {
+      empInfo = OBDal.getInstance().createQuery(EmploymentInfo.class,
+          "   ehcmEmpPerinfo.id=:employeeId and client.id=:clientId  and id <>:recentEmpInfoId order by creationDate desc ");
+      empInfo.setNamedParameter("employeeId", employeeId);
+      empInfo.setNamedParameter("clientId", clientId);
+      empInfo.setNamedParameter("recentEmpInfoId", recentEmpInfoId);
+      empInfo.setMaxResult(1);
+      employmentInfo = empInfo.list();
+      if (employmentInfo.size() > 0) {
+        empinfo = employmentInfo.get(0);
+        EmploymentInfo empinfoObj = empinfo;
+        if (empinfoObj.getEhcmEmpSecondment() != null) {
+          EHCMEmpSecondment secondment = empinfoObj.getEhcmEmpSecondment();
+          if (secondment.getEndDate() != null) {
+            endDate = secondment.getEndDate();
+          }
+        } else if (empinfoObj.getEhcmEmpTransfer() != null) {
+          EHCMEmpTransfer transfer = empinfoObj.getEhcmEmpTransfer();
+          if (transfer.getEndDate() != null) {
+            endDate = transfer.getEndDate();
+          }
+        } else if (empinfoObj.getEhcmEmpTransferSelf() != null) {
+          EHCMEmpTransferSelf transferself = empinfoObj.getEhcmEmpTransferSelf();
+          if (transferself.getEndDate() != null) {
+            endDate = transferself.getEndDate();
+          }
+        } else if (empinfoObj.getEhcmEmpSuspension() != null) {
+          EmployeeSuspension suspension = empinfoObj.getEhcmEmpSuspension();
+          if (suspension.getSuspensionType().equals("SUE") && suspension.getEndDate() != null) {
+            endDate = suspension.getEndDate();
+          }
+        } else if (empinfoObj.getEhcmExtendService() != null) {
+          EhcmExtendService eos = empinfoObj.getEhcmExtendService();
+          if (eos.getEffectivedate() != null && eos.getExtendPeriod() != null) {
+            String inpperiod = eos.getExtendPeriod().toString();
+            if (!inpperiod.equals("0")) {
+              String inpstartdate = UtilityDAO
+                  .convertTohijriDate(eos.getEffectivedate().toString());
+              startyear = inpstartdate.split("-")[2];
+              startDate = inpstartdate.split("-")[0];
+              endyear = Integer.valueOf(startyear) + Integer.valueOf(inpperiod);
+              enddate = endyear + inpstartdate.split("-")[1] + inpstartdate.split("-")[0];
+              Date Enddate = getOneDayMinusHijiriDate(enddate, eos.getClient().getId());
+              endDate = Enddate;
+            } else {
+              endDate = null;
+            }
+          }
+        }
+
+      }
+    } catch (OBException e) {
+      // TODO Auto-generated catch block
+      LOG.error("Exception in updateEndDateInEmploymentInfo " + e.getMessage());
+      e.printStackTrace();
+    }
+    return endDate;
+
+  }
+
+  public static boolean checkRecentRecordIsEOSInEmpInfo(String employeeId, String clientId) {
+    OBQuery<EmploymentInfo> empInfo = null;
+    EmploymentInfo empinfo = null;
     List<EmploymentInfo> employmentInfo = new ArrayList<EmploymentInfo>();
     try {
       empInfo = OBDal.getInstance().createQuery(EmploymentInfo.class,
@@ -819,28 +844,41 @@ public class ExtendServiceHandlerDAO {
       employmentInfo = empInfo.list();
       if (employmentInfo.size() > 0) {
         empinfo = employmentInfo.get(0);
-        EmploymentInfo empinfoObj = empinfo;
-        if (empinfoObj.getEhcmEmpSecondment() != null) {
-          EHCMEmpSecondment secondment = OBDal.getInstance().get(EHCMEmpSecondment.class,
-              empinfoObj.getEhcmEmpSecondment().getId());
-          if (secondment.getEndDate() != null) {
-            endDate = secondment.getEndDate();
-          }
-        } else if (empinfoObj.getEhcmEmpTransfer() != null) {
-          EHCMEmpTransfer transfer = OBDal.getInstance().get(EHCMEmpTransfer.class,
-              empinfoObj.getEhcmEmpTransfer().getId());
-
-          if (transfer.getEndDate() != null) {
-            endDate = transfer.getEndDate();
-          }
+        if (empinfo.getEhcmExtendService() == null) {
+          return true;
         }
+
       }
     } catch (OBException e) {
       // TODO Auto-generated catch block
-      LOG.error("Exception in updateEndDateInEmploymentInfo " + e.getMessage());
+      LOG.error("Exception in checkRecentRecordIsEOS " + e.getMessage());
       e.printStackTrace();
     }
-    return endDate;
+    return false;
+
+  }
+
+  public static boolean chkOriginalDecisionUsed(String employeeId, String clientId,
+      String originalDecisionId, String ExtendId) {
+    OBQuery<EhcmExtendService> extendService = null;
+    List<EhcmExtendService> EhcmExtendServiceList = new ArrayList<EhcmExtendService>();
+    boolean chkOriginalDecisionUsed = false;
+    try {
+      extendService = OBDal.getInstance().createQuery(EhcmExtendService.class,
+          " as e where e.originalDecisionNo.id in (select originalDecisionNo.id from ehcm_extend_service where employee.id = :employeeId and decisionStatus = 'I' and originalDecisionNo.id = :OriginalDecisionNo) and e.id not in ('"
+              + ExtendId + "')");
+      extendService.setNamedParameter("employeeId", employeeId);
+      extendService.setNamedParameter("OriginalDecisionNo", originalDecisionId);
+      EhcmExtendServiceList = extendService.list();
+      if (EhcmExtendServiceList.size() > 0) {
+        chkOriginalDecisionUsed = true;
+      }
+    } catch (OBException e) {
+      // TODO Auto-generated catch block
+      LOG.error("Exception in chkOriginalDecisionUsed ", e.getMessage());
+      e.printStackTrace();
+    }
+    return chkOriginalDecisionUsed;
 
   }
 }

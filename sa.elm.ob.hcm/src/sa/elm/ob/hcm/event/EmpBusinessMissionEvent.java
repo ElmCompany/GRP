@@ -145,7 +145,7 @@ public class EmpBusinessMissionEvent extends EntityPersistenceEventObserver {
           }
         }
       }
-
+      // Removed the cancel date validation
       // if (!event.getPreviousState(startdate).equals(event.getCurrentState(startdate))
       // || !event.getPreviousState(enddate).equals(event.getCurrentState(enddate))
       // || !event.getPreviousState(decisionType).equals(event.getCurrentState(decisionType))) {
@@ -160,18 +160,18 @@ public class EmpBusinessMissionEvent extends EntityPersistenceEventObserver {
       // }
       // }
       // }
-      if ((event.getCurrentState(canceldate) != null
-          && !event.getCurrentState(canceldate).equals(event.getPreviousState(canceldate)))
-          || !event.getPreviousState(decisionType).equals(event.getCurrentState(decisionType))) {
-        if (empBusinessMission.getDecisionType()
-            .equals(DecisionTypeConstants.DECISION_TYPE_CANCEL)) {
-          if (empBusinessMission.getCancelDate().compareTo(empBusinessMission.getStartDate()) == -1
-              || empBusinessMission.getCancelDate()
-                  .compareTo(empBusinessMission.getStartDate()) == 0) {
-            throw new OBException(OBMessageUtils.messageBD("Ehcm_BusinessMission_CancelDate"));
-          }
-        }
-      }
+      // if ((event.getCurrentState(canceldate) != null
+      // && !event.getCurrentState(canceldate).equals(event.getPreviousState(canceldate)))
+      // || !event.getPreviousState(decisionType).equals(event.getCurrentState(decisionType))) {
+      // if (empBusinessMission.getDecisionType()
+      // .equals(DecisionTypeConstants.DECISION_TYPE_CANCEL)) {
+      // if (empBusinessMission.getCancelDate().compareTo(empBusinessMission.getStartDate()) == -1
+      // || empBusinessMission.getCancelDate()
+      // .compareTo(empBusinessMission.getStartDate()) == 0) {
+      // throw new OBException(OBMessageUtils.messageBD("Ehcm_BusinessMission_CancelDate"));
+      // }
+      // }
+      // }
       if ((event.getCurrentState(enddate) != null
           && !event.getCurrentState(enddate).equals(event.getPreviousState(enddate)))
           || !event.getPreviousState(decisionType).equals(event.getCurrentState(decisionType))) {
@@ -317,14 +317,15 @@ public class EmpBusinessMissionEvent extends EntityPersistenceEventObserver {
       // throw new OBException(OBMessageUtils.messageBD("EHCM_BusMission_StartDate"));
       // }
       // }
-
-      if (empBusinessMission.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CANCEL)) {
-        if (empBusinessMission.getCancelDate().compareTo(empBusinessMission.getStartDate()) == -1
-            || empBusinessMission.getCancelDate()
-                .compareTo(empBusinessMission.getStartDate()) == 0) {
-          throw new OBException(OBMessageUtils.messageBD("Ehcm_BusinessMission_CancelDate"));
-        }
-      }
+      // Removed the cancel date validation
+      // if
+      // (empBusinessMission.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CANCEL)) {
+      // if (empBusinessMission.getCancelDate().compareTo(empBusinessMission.getStartDate()) == -1
+      // || empBusinessMission.getCancelDate()
+      // .compareTo(empBusinessMission.getStartDate()) == 0) {
+      // throw new OBException(OBMessageUtils.messageBD("Ehcm_BusinessMission_CancelDate"));
+      // }
+      // }
 
       // cant able to create cutoff for cutoff employment
       if (empBusinessMission.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CUTOFF)) {

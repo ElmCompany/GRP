@@ -9,6 +9,7 @@ import java.util.Date;
 
 import javax.servlet.ServletException;
 
+import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.erpCommon.ad_callouts.SimpleCallout;
 import org.openbravo.erpCommon.utility.OBMessageUtils;
@@ -23,8 +24,10 @@ public class Ehcm_Acttyp_Callout extends SimpleCallout {
   @Override
   protected void execute(CalloutInfo info) throws ServletException {
     // TODO Auto-generated method stub
-
-    String inpActive = info.getStringParameter("inpisactive", null);
+    VariablesSecureApp vars = info.vars;
+    String inpActive = vars.getStringParameter("inpisactive");
+    String inpEndDate = vars.getStringParameter("inpenddate");
+    String inpLastFieldChanged = vars.getStringParameter("inpLastFieldChanged");
 
     try {
       DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -37,10 +40,18 @@ public class Ehcm_Acttyp_Callout extends SimpleCallout {
       st = conn.prepareStatement(query);
       rs = st.executeQuery();
       if (rs.next()) {
-        if (inpActive.equals("N")) {
-          info.addResult("inpenddate", rs.getString("eut_convert_to_hijri_timestamp"));
-        } else {
-          info.addResult("inpenddate", null);
+        if (inpLastFieldChanged.equals("inpisactive")) {
+          if (inpActive.equals("N")) {
+            info.addResult("inpenddate", rs.getString("eut_convert_to_hijri_timestamp"));
+          } else {
+            info.addResult("inpenddate", null);
+          }
+        } else if (inpLastFieldChanged.equals("inpenddate")) {
+          if (inpEndDate == null || inpEndDate.equals("")) {
+            info.addResult("inpisactive", true);
+          } else {
+            info.addResult("inpisactive", false);
+          }
         }
       }
     } catch (Exception e) {

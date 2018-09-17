@@ -86,6 +86,11 @@ public class EhcmUpdateJobsTitleEvent extends EntityPersistenceEventObserver {
             .compareTo(updjob.getEhcmJobClassification().getClassificationDate()) <= 0) {
           throw new OBException(OBMessageUtils.messageBD("EHCM_JobClass_Great_ClassDate"));
         }
+      } else {
+        if (updateJobsClassDate
+            .compareTo(updjob.getEhcmJobClassification().getClassificationDate()) < 0) {
+          throw new OBException(OBMessageUtils.messageBD("EHCM_JobClass_Great_ClassDate"));
+        }
       }
       if (startDate != null && jobClassStartDate != null) {
         if (startDate.compareTo(jobClassStartDate) < 0) {
@@ -136,6 +141,11 @@ public class EhcmUpdateJobsTitleEvent extends EntityPersistenceEventObserver {
           .equals(updjob.getEhcmJobClassification().getClassificationCode())) {
         if (updateJobsClassDate
             .compareTo(updjob.getEhcmJobClassification().getClassificationDate()) <= 0) {
+          throw new OBException(OBMessageUtils.messageBD("EHCM_JobClass_Great_ClassDate"));
+        }
+      } else {
+        if (updateJobsClassDate
+            .compareTo(updjob.getEhcmJobClassification().getClassificationDate()) < 0) {
           throw new OBException(OBMessageUtils.messageBD("EHCM_JobClass_Great_ClassDate"));
         }
       }

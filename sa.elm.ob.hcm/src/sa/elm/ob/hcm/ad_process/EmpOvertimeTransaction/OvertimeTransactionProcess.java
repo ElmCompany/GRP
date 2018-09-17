@@ -80,6 +80,15 @@ public class OvertimeTransactionProcess implements Process {
 
     try {
       OBContext.setAdminMode();
+      // check whether the employee is suspended or not
+      if (overtimeObj.getEmployee().getEmploymentStatus()
+          .equals(DecisionTypeConstants.EMPLOYMENTSTATUS_SUSPENDED)) {
+        obError.setType("Error");
+        obError.setTitle("Error");
+        obError.setMessage(OBMessageUtils.messageBD("EHCM_emplo_suspend"));
+        bundle.setResult(obError);
+        return;
+      }
 
       // condition for checking the hours when days greater than 0
       if (new BigDecimal(overtimeObj.getWorkingDays()).compareTo(new BigDecimal(0)) > 0) {

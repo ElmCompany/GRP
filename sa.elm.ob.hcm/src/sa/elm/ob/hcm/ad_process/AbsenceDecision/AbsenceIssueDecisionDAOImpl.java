@@ -37,7 +37,6 @@ import sa.elm.ob.hcm.EHCMEmpLeaveBlock;
 import sa.elm.ob.hcm.EHCMEmpLeaveln;
 import sa.elm.ob.hcm.EHCMHolidayCalendar;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
-import sa.elm.ob.hcm.EmploymentInfo;
 import sa.elm.ob.hcm.ehcmgradeclass;
 import sa.elm.ob.hcm.ad_process.Constants;
 import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
@@ -64,10 +63,11 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
    */
 
   public Boolean chkEmpLeavePresentInTwoBlk(EHCMAbsenceAttendance absence) throws Exception {
-    List<EHCMEmpLeaveBlock> levblkList = null;
+
     String hql = "";
     try {
-
+      OBContext.setAdminMode(true);
+      List<EHCMEmpLeaveBlock> levblkList = null;
       hql = " and e.enabled='Y' and  e.ehcmEmpPerinfo.id=:employeeId and e.absenceType.id=:absenceTypeId ";
 
       if (absence.getSubtype() != null) {
@@ -84,7 +84,8 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
       levblok.setNamedParameter("absenceTypeId", absence.getEhcmAbsenceType().getId());
       levblok.setNamedParameter("startDate", absence.getStartDate());
       levblok.setNamedParameter("endDate", absence.getEndDate());
-
+      levblok.setFilterOnReadableClients(false);
+      levblok.setFilterOnReadableOrganization(false);
       if (absence.getSubtype() != null) {
         levblok.setNamedParameter("subTypeId", absence.getSubtype().getId());
       }
@@ -98,6 +99,8 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
     } catch (Exception e) {
       e.printStackTrace();
       log.error("Exception in chkEmpLeavePresentInTwoBlk in AbsenceIssueDecisionDAOImpl: ", e);
+    } finally {
+      OBContext.restorePreviousMode();
     }
     return false;
   }
@@ -186,6 +189,7 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
 
   public void updateAbsenceDecision(EHCMAbsenceAttendance absence) {
     try {
+      OBContext.setAdminMode();
       absence.setSueDecision(true);
       absence.setDecisionDate(new Date());
       absence.setDecisionStatus("I");
@@ -194,6 +198,8 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
     } catch (Exception e) {
       e.printStackTrace();
       log.error("Exception in updateAbsenceDecision in AbsenceIssueDecisionDAOImpl: ", e);
+    } finally {
+      OBContext.restorePreviousMode();
     }
   }
 
@@ -280,7 +286,7 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
       } else {
         st.setString(8, absenceattend.getId());
       }
-      st.setBoolean(9, availabledays);
+      st.setString(9, "0");
       if (absenceattend.getSubtype() != null)
         st.setString(10, absenceattend.getSubtype().getId());
       else
@@ -534,6 +540,7 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
     String hql = "";
     Date leaveEndDate = null;
     try {
+      OBContext.setAdminMode();
       if (absence.getSubtype() != null) {
         hql = " and e.subtype.id=:subTypeId ";
       }
@@ -556,6 +563,8 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
             empLeaveQry.setNamedParameter("absenceType", absencetype.getId());
             empLeaveQry.setNamedParameter("employeeId", employee.getId());
             empLeaveQry.setNamedParameter("startDate", StartDate);
+            empLeaveQry.setFilterOnReadableClients(false);
+            empLeaveQry.setFilterOnReadableOrganization(false);
             if (absence.getSubtype() != null) {
               empLeaveQry.setNamedParameter("subTypeId", absence.getSubtype().getId());
             }
@@ -626,7 +635,9 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
       }
 
     } catch (final Exception e) {
-      log.error("Exception in insertEmpLeave" + e);
+      log.error("Exception in insertEmpLeave", e);
+    } finally {
+      OBContext.restorePreviousMode();
     }
     return leave;
 
@@ -665,6 +676,8 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
           empLeaveQry.setNamedParameter("absenceType", absenceType.getId());
           empLeaveQry.setNamedParameter("employeeId", employee.getId());
           empLeaveQry.setNamedParameter("startDate", StartDate);
+          empLeaveQry.setFilterOnReadableClients(false);
+          empLeaveQry.setFilterOnReadableOrganization(false);
           if (absence.getSubtype() != null) {
             empLeaveQry.setNamedParameter("subTypeId", absence.getSubtype().getId());
           }
@@ -769,7 +782,7 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
   public void updateEmpLeave(EHCMAbsenceAttendance absence) {
     List<EHCMEmpLeaveln> linelist = null;
     try {
-
+      OBContext.setAdminMode();
       OBQuery<EHCMEmpLeaveln> lnQry = OBDal.getInstance().createQuery(EHCMEmpLeaveln.class,
           " ehcmAbsenceAttendance.id='" + absence.getOriginalDecisionNo().getId() + "'");
       linelist = lnQry.list();
@@ -789,6 +802,8 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
     } catch (Exception e) {
       e.printStackTrace();
       log.error("Exception in updateEmpLeave in AbsenceIssueDecisionDAOImpl: ", e);
+    } finally {
+      OBContext.restorePreviousMode();
     }
   }
 
@@ -798,7 +813,7 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
     JSONObject json = null;
     JSONObject leavelist = null;
     try {
-
+      OBContext.setAdminMode();
       if (absence.getEhcmAbsenceType().getAccrualResetDate().equals("LO")) {
         leavelist = getLeaveOccuranceList(absence, absenceType, absencedays, startdate, enddate);
 
@@ -843,6 +858,8 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
     } catch (final Exception e) {
       log.error("Exception in insertEmpLeaveLine" + e);
       count = 0;
+    } finally {
+      OBContext.restorePreviousMode();
     }
     return count;
   }
@@ -948,6 +965,14 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
     return endDate;
   }
 
+  /**
+   * 
+   * @param header
+   * @param absence
+   * @param startdate
+   * @param enddate
+   * @return
+   */
   public int updateEmpLeaveBlock(EHCMEmpLeaveBlock header, EHCMAbsenceAttendance absence,
       Date startdate, Date enddate) {
     int count = 0;
@@ -1588,7 +1613,7 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
       Connection con, EHCMAbsenceTypeAccruals accrual, EHCMEmpLeave leave) {
     List<EHCMEmpLeaveln> empLeaveLnList = new ArrayList<EHCMEmpLeaveln>();
     try {
-
+      OBContext.setAdminMode();
       OBQuery<EHCMEmpLeaveln> ln = OBDal.getInstance().createQuery(EHCMEmpLeaveln.class,
           " ehcmAbsenceAttendance.id=:originalDecisionNo ");
       ln.setNamedParameter("originalDecisionNo", absence.getOriginalDecisionNo().getId());
@@ -1651,6 +1676,7 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
     } catch (
 
     final Exception e) {
+      OBContext.restorePreviousMode();
       log.error("Exception in cancelEmpLeave() Method : ", e);
     }
   }
@@ -1970,47 +1996,6 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
     return false;
   }
 
-  public String convertToGregorianDate(String hijriDate) {
-    String gregDate = "";
-    try {
-      SQLQuery Query = OBDal.getInstance().getSession().createSQLQuery(
-          "select to_char(gregorian_date,'YYYY-MM-DD')  from eut_hijri_dates where hijri_date ='"
-              + hijriDate + "'");
-      log.debug("Query:" + Query.toString());
-      if (Query.list().size() > 0) {
-        Object row = (Object) Query.list().get(0);
-        gregDate = (String) row;
-        log.debug("ConvertedDate:" + (String) row);
-      }
-    }
-
-    catch (final Exception e) {
-      log.error("Exception in convertToGregorianDate() Method : ", e);
-      return "0";
-    }
-    return gregDate;
-  }
-
-  public String convertTohijriDate(String gregDate) {
-    String hijriDate = "";
-    try {
-      SQLQuery gradeQuery = OBDal.getInstance().getSession()
-          .createSQLQuery("select eut_convert_to_hijri(to_char(to_timestamp('" + gregDate
-              + "','YYYY-MM-DD HH24:MI:SS'),'YYYY-MM-DD  HH24:MI:SS'))");
-      if (gradeQuery.list().size() > 0) {
-        Object row = (Object) gradeQuery.list().get(0);
-        hijriDate = (String) row;
-        log.debug("ConvertedDate:" + (String) row);
-      }
-    }
-
-    catch (final Exception e) {
-      log.error("Exception in convertTohijriDate() Method : ", e);
-      return "0";
-    }
-    return hijriDate;
-  }
-
   public JSONObject getStartDateAndEndDate(Date startDate, Date endDate,
       EHCMAbsenceAttendance absence, EHCMAbsenceType absencetype) {
     JSONObject result = new JSONObject();
@@ -2153,22 +2138,6 @@ public class AbsenceIssueDecisionDAOImpl implements AbsenceIssueDecisionDAO {
       log.error("Exception in getEndDate() Method : ", e);
     }
     return EndDate;
-  }
-
-  public EmploymentInfo getHiringEmployInfo(EhcmEmpPerInfo employeeOB) {
-    EmploymentInfo empinfo = null;
-    try {
-      for (EmploymentInfo empInfoOB : employeeOB.getEhcmEmploymentInfoList()) {
-        if (empInfoOB.getChangereason().equals("H")) {
-          empinfo = empInfoOB;
-        }
-      }
-    } catch (OBException e) {
-      // TODO Auto-generated catch block
-      log.error("Exception in getActiveEmployInfo " + e.getMessage());
-      e.printStackTrace();
-    }
-    return empinfo;
   }
 
   public String getChkLeaveApproveMsg(String checkAppMessage, EHCMAbsenceType absencetype) {

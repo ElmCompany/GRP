@@ -433,7 +433,6 @@ public class MissionCategoryDAOImpl implements MissionCategoryDAO {
     List<EhcmEmpPerInfo> empList = new ArrayList<EhcmEmpPerInfo>();
     EHCMMiscatEmployee misCatEmployee = null;
     String refreshhql = "";
-    int a = 0;
     try {
       OBContext.setAdminMode();
       // get Recent Period

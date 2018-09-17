@@ -191,7 +191,12 @@ public class BusinessTripDAOimpl implements BusinessTripDAO {
       businessMissionOB.setFoodProvided(businessTripRequestDTO.getFoodProvided());
       businessMissionOB.setHousingProvided(businessTripRequestDTO.getHousingProvided());
       businessMissionOB.setTicketsProvided(businessTripRequestDTO.getTicketsProvided());
+      businessMissionOB.setRoundTrip(businessTripRequestDTO.getRoundTrip());
+      businessMissionOB.setTaskDescription(businessTripRequestDTO.getTaskDescription());
       businessMissionOB.setMissionDays(Long.valueOf(businessTripRequestDTO.getMissionDays()));
+      businessMissionOB.setLetterNo(businessTripRequestDTO.getLetterNo());
+      businessMissionOB.setLetterDate(DateUtils.convertStringToDate(OPEN_BRAVO_GREG_DATE_FORMAT,
+          Utility.convertToGregorian(businessTripRequestDTO.getLetterDate())));
       // payment details only for business payment
       if (decisionType.equals(Constants.DECISION_TYPE_BUSINESSMISSION_PAYMENT)) {
         businessMissionOB.setPaymentAmt(
@@ -202,6 +207,13 @@ public class BusinessTripDAOimpl implements BusinessTripDAO {
             new BigDecimal(businessTripRequestDTO.getPaymentDetails().getAdvancePercentage()));
       }
 
+      if (decisionType.equals(Constants.CANCEL_DECISION)
+          || decisionType.equals(Constants.DECISION_TYPE_BUSINESSMISSION_PAYMENT)) {
+        EHCMEmpBusinessMission orignalDecision = getBusinessTripByDecisionNo(
+            businessTripRequestDTO.getOrginalDecNo()).get(0);
+        businessMissionOB.setOriginalDecisionNo(orignalDecision);
+      }
+
       OBDal.getInstance().save(businessMissionOB);
       OBDal.getInstance().flush();
     } catch (Exception e) {
@@ -209,7 +221,6 @@ public class BusinessTripDAOimpl implements BusinessTripDAO {
       log.error("Error while Creating Business Mission ->Mission-->", e);
       throw new SystemException(Resource.getProperty(MessageKeys.ERROR, userLang));
     } finally {
-
       OBContext.restorePreviousMode();
     }
     return businessMissionOB;

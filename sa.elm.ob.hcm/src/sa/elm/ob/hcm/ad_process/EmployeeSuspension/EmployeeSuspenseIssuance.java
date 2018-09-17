@@ -52,6 +52,7 @@ public class EmployeeSuspenseIssuance implements Process {
     SuspensionReason susReason = null;
     String endDate = null;
     boolean isExist = false;
+
     // get suspension record termination record
     if (oldSuspension != null) {
       OBQuery<EHCMEMPTermination> oldTerminationQry = OBDal.getInstance().createQuery(
@@ -74,7 +75,14 @@ public class EmployeeSuspenseIssuance implements Process {
     }
     try {
       OBContext.setAdminMode(true);
-
+      // check whether employee is terminated.
+      if (suspensionView.getEmployee().getEmploymentStatus().equals("TE")) {
+        obError.setType("Error");
+        obError.setTitle("Error");
+        obError.setMessage(OBMessageUtils.messageBD("EHCM_emp_termination"));
+        bundle.setResult(obError);
+        return;
+      }
       if (!objSuspension.isSueDecision()) {
         // if delegated position is exist for the employee with greater than start date the throw
         // error , for cancel the delegation
@@ -117,6 +125,7 @@ public class EmployeeSuspenseIssuance implements Process {
           }
         }
         // update status as Issued and set decision date
+        objSuspension.setEnabled(true);
         objSuspension.setSueDecision(true);
         objSuspension.setDecisionDate(new Date());
         objSuspension.setDecisionStatus("I");

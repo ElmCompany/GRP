@@ -16,9 +16,10 @@ import org.springframework.stereotype.Component;
 
 import sa.elm.ob.hcm.GenericActivitiData;
 import sa.elm.ob.hcm.ad_process.Constants;
-import sa.elm.ob.hcm.dao.activiti.CommonActivitiDAO;
+import sa.elm.ob.hcm.dao.activiti.SelfServiceTransactionDAO;
 import sa.elm.ob.hcm.dto.profile.AddressInformationDTO;
 import sa.elm.ob.hcm.dto.profile.DependentInformationDTO;
+import sa.elm.ob.hcm.dto.profile.EmployeeAdditionalInformationDTO;
 import sa.elm.ob.hcm.dto.profile.PersonalInformationDTO;
 import sa.elm.ob.hcm.services.profile.EmployeeProfileUpdateService;
 
@@ -37,7 +38,7 @@ public class EmployeeUpdateProfileListner implements TaskListener, ApplicationCo
   @Override
   public void notify(DelegateTask delegateTask) {
 
-    CommonActivitiDAO commonActivitiDAO = applicationContext.getBean(CommonActivitiDAO.class);
+    SelfServiceTransactionDAO commonActivitiDAO = applicationContext.getBean(SelfServiceTransactionDAO.class);
 
     TaskEntity taskEntity = (TaskEntity) delegateTask;
     @SuppressWarnings("rawtypes")
@@ -46,7 +47,8 @@ public class EmployeeUpdateProfileListner implements TaskListener, ApplicationCo
     if (approved) {
       GenericActivitiData genericActivtiData = commonActivitiDAO
           .findTransactionRecord(variablesMap.get(ActivitiConstants.TARGET_IDENTIFIER).toString());
-      moveTransactionRecordToActualTable(variablesMap.get("userName").toString(),
+      moveTransactionRecordToActualTable(
+          variablesMap.get(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_USERNAME).toString(),
           genericActivtiData);
     }
 
@@ -60,8 +62,8 @@ public class EmployeeUpdateProfileListner implements TaskListener, ApplicationCo
   public void moveTransactionRecordToActualTable(String userName,
       GenericActivitiData genericActivtiData) {
 
-    EmployeeProfileUpdateService employeeProfileUpdateService = (EmployeeProfileUpdateService) applicationContext
-        .getBean("employeeProfileUpdateService");
+    EmployeeProfileUpdateService employeeProfileUpdateService = applicationContext
+        .getBean(EmployeeProfileUpdateService.class);
 
     JSONObject jsonObject = null;
     ObjectMapper mapper = new ObjectMapper();
@@ -71,28 +73,50 @@ public class EmployeeUpdateProfileListner implements TaskListener, ApplicationCo
         jsonObject = new JSONObject(new String(genericActivtiData.getTemporaryData()));
       if (genericActivtiData != null
           && genericActivtiData.getTypeOfActiviti().equals(Constants.UPDATE_ADDRESS)) {
-        if (genericActivtiData.getTemporaryData() != null) {
-          AddressInformationDTO addressInformationDTO = mapper.readValue(jsonObject.toString(),
-              AddressInformationDTO.class);
-          // move data from transaction table to main table
-          // EhcmEmpPerInfo employeeOB =
-          // employeeProfileDAO.getEmployeeProfileByUser(userName);
-          // employeeProfileUpdateDAO.updateEmployeeAddress(employeeOB,
-          // addressInformationDTO);//call DAO directly
-          employeeProfileUpdateService.updateEmployeeAddress(userName, addressInformationDTO);
-        }
+
+        AddressInformationDTO addressInformationDTO = mapper.readValue(jsonObject.toString(),
+            AddressInformationDTO.class);
+        // move data from transaction table to main table
+        employeeProfileUpdateService.updateEmployeeAddress(userName, addressInformationDTO);
+
       } else if (genericActivtiData != null
           && genericActivtiData.getTypeOfActiviti().equals(Constants.UPDATE_PERSONAL_INFORMATION)) {
+
         PersonalInformationDTO personalInformationDTO = mapper.readValue(jsonObject.toString(),
             PersonalInformationDTO.class);
         // move data from transaction table to main table
         employeeProfileUpdateService.updatePersonalInformation(userName, personalInformationDTO);
+
       } else if (genericActivtiData != null
           && genericActivtiData.getTypeOfActiviti().equals(Constants.UPDATE_DEPENDENT)) {
+
         DependentInformationDTO dependentInformationDTO = mapper.readValue(jsonObject.toString(),
             DependentInformationDTO.class);
         // move data from transaction table to main table
         employeeProfileUpdateService.updateEmployeeDependent(userName, dependentInformationDTO);
+
+      } else if (genericActivtiData != null
+          && genericActivtiData.getTypeOfActiviti().equals(Constants.UPDATE_CONTACT_INFORMATION)) {
+
+        EmployeeAdditionalInformationDTO contactInfoDTO = mapper.readValue(jsonObject.toString(),
+            EmployeeAdditionalInformationDTO.class);
+        employeeProfileUpdateService.updateContactInformation(userName, contactInfoDTO);
+
+      } else if (genericActivtiData != null
+          && genericActivtiData.getTypeOfActiviti().equals(Constants.ADD_DEPENDENT)) {
+
+        DependentInformationDTO dependentInformationDTO = mapper.readValue(jsonObject.toString(),
+            DependentInformationDTO.class);
+        // move data from transaction table to main table
+        employeeProfileUpdateService.addDependent(userName, dependentInformationDTO);
+
+      } else if (genericActivtiData != null
+          && genericActivtiData.getTypeOfActiviti().equals(Constants.REMOVE_DEPENDENT)) {
+
+        DependentInformationDTO dependent = mapper.readValue(jsonObject.toString(),
+            DependentInformationDTO.class);
+        // move data from transaction table to main table
+        employeeProfileUpdateService.removeDependent(userName, dependent.getNationalId());
       }
 
     } catch (Exception e) {

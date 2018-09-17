@@ -96,10 +96,12 @@ public class Graderatelineeve extends EntityPersistenceEventObserver {
         }
       }
 
-      if (Minimum.compareTo(Maximum) > 0) {
-        throw new OBException(OBMessageUtils.messageBD("Ehcm_MaxMinMidValue"));
-      } else if ((Midvalue.compareTo(Maximum) > 0) || (Midvalue.compareTo(Minimum) < 0)) {
-        throw new OBException(OBMessageUtils.messageBD("Ehcm_MaxMinMidValue"));
+      if (Minimum != null && Maximum != null && Midvalue != null) {
+        if (Minimum.compareTo(Maximum) > 0) {
+          throw new OBException(OBMessageUtils.messageBD("Ehcm_MaxMinMidValue"));
+        } else if ((Midvalue.compareTo(Maximum) > 0) || (Midvalue.compareTo(Minimum) < 0)) {
+          throw new OBException(OBMessageUtils.messageBD("Ehcm_MaxMinMidValue"));
+        }
       }
 
       OBQuery<ehcmgraderatelines> type1 = OBDal.getInstance().createQuery(ehcmgraderatelines.class,
@@ -202,11 +204,12 @@ public class Graderatelineeve extends EntityPersistenceEventObserver {
           throw new OBException(OBMessageUtils.messageBD("Ehcm_EitherFixed_Value"));
         }
       }
-
-      if (Minimum.compareTo(Maximum) > 0) {
-        throw new OBException(OBMessageUtils.messageBD("Ehcm_MaxMinMidValue"));
-      } else if ((Midvalue.compareTo(Maximum) > 0) || (Midvalue.compareTo(Minimum) < 0)) {
-        throw new OBException(OBMessageUtils.messageBD("Ehcm_MaxMinMidValue"));
+      if (Minimum != null && Maximum != null && Midvalue != null) {
+        if (Minimum.compareTo(Maximum) > 0) {
+          throw new OBException(OBMessageUtils.messageBD("Ehcm_MaxMinMidValue"));
+        } else if ((Midvalue.compareTo(Maximum) > 0) || (Midvalue.compareTo(Minimum) < 0)) {
+          throw new OBException(OBMessageUtils.messageBD("Ehcm_MaxMinMidValue"));
+        }
       }
 
       OBQuery<ehcmgraderatelines> type1 = OBDal.getInstance().createQuery(ehcmgraderatelines.class,

@@ -60,8 +60,8 @@
       <foreign-key foreignTable="C_FILE" name="EHCM_DOC_FILE">
         <reference local="C_FILE_ID" foreign="C_FILE_ID"/>
       </foreign-key>
-      <foreign-key foreignTable="EHCM_EMP_DOCTYPE" name="EHCM_DOCTYPE_FKEY">
-        <reference local="DOCTYPE" foreign="EHCM_EMP_DOCTYPE_ID"/>
+      <foreign-key foreignTable="EHCM_DEFLOOKUPS_TYPELN" name="EHCM_DOCTYPEHCMREF_FKEY">
+        <reference local="DOCTYPE" foreign="EHCM_DEFLOOKUPS_TYPELN_ID"/>
       </foreign-key>
       <foreign-key foreignTable="AD_CLIENT" name="EHCM_DOCUMENTS_CLI">
         <reference local="AD_CLIENT_ID" foreign="AD_CLIENT_ID"/>

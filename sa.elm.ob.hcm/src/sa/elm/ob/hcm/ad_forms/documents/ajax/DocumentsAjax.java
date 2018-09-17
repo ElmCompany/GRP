@@ -235,10 +235,16 @@ public class DocumentsAjax extends HttpSecureAppServlet {
         JSONObject jsob = new JSONObject();
         String isExist = "N";
         boolean doc = false;
+        Date validDate = null;
         String docTypeId = request.getParameter("inpDocType");
+        String empId = request.getParameter("inpEmployeeId");
+        String docId = request.getParameter("inpDocumentId");
         Date issuedDate = UtilityDAO.convertToGregorianDate(request.getParameter("inpIssuedDate"));
-        Date validDate = UtilityDAO.convertToGregorianDate(request.getParameter("inpValidDate"));
-        doc = docdao.checkValidData(docTypeId, issuedDate, validDate);
+
+        if (request.getParameter("inpValidDate") != "") {
+          validDate = UtilityDAO.convertToGregorianDate(request.getParameter("inpValidDate"));
+        }
+        doc = docdao.checkValidData(empId, docId, docTypeId, issuedDate, validDate);
         if (doc) {
           isExist = "Y";
         }
@@ -246,7 +252,22 @@ public class DocumentsAjax extends HttpSecureAppServlet {
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(jsob.toString());
       }
+      if (action.equals("DateValidation")) {
+        JSONObject jsob = new JSONObject();
+        String isExist = "N";
+        Date validDate = null;
+        Date issuedDate = UtilityDAO.convertToGregorianDate(request.getParameter("inpIssuedDate"));
+        if (request.getParameter("inpValidDate") != "") {
+          validDate = UtilityDAO.convertToGregorianDate(request.getParameter("inpValidDate"));
 
+          if (issuedDate.after(validDate)) {
+            isExist = "Y";
+          }
+        }
+        jsob.put("isExists", isExist);
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(jsob.toString());
+      }
       if (action.equals("getUsersList")) {
         DocumentsVO searchVO = new DocumentsVO();
 

@@ -7,6 +7,7 @@ import org.openbravo.base.exception.OBException;
 import org.openbravo.base.model.Entity;
 import org.openbravo.base.model.ModelProvider;
 import org.openbravo.client.kernel.event.EntityDeleteEvent;
+import org.openbravo.client.kernel.event.EntityNewEvent;
 import org.openbravo.client.kernel.event.EntityPersistenceEventObserver;
 import org.openbravo.dal.core.OBContext;
 import org.openbravo.erpCommon.utility.OBMessageUtils;
@@ -23,6 +24,7 @@ public class EmpEvaluationEmpEvent extends EntityPersistenceEventObserver {
 
   private static Entity[] entities = {
       ModelProvider.getInstance().getEntity(EHCMEmpEvaluation_Emp.ENTITY_NAME) };
+  private static final String EMP_EVAL_STATUS_COMPLETED = "CO";
 
   @Override
   protected Entity[] getObservedEntities() {
@@ -38,8 +40,8 @@ public class EmpEvaluationEmpEvent extends EntityPersistenceEventObserver {
     try {
       OBContext.setAdminMode();
       EHCMEmpEvaluation_Emp empEvluationEmp = (EHCMEmpEvaluation_Emp) event.getTargetInstance();
-      // check employee evaluation stauts. if status is CO then dont allow to delete
-      if (empEvluationEmp.getEhcmEmpEvaluation().getStatus().equals("CO")) {
+      // check employee evaluation status. if status is CO then do not allow to delete
+      if (empEvluationEmp.getEhcmEmpEvaluation().getStatus().equals(EMP_EVAL_STATUS_COMPLETED)) {
         throw new OBException(OBMessageUtils.messageBD("EHCM_CantDeleteProcessed"));
       }
     } catch (OBException e) {
@@ -48,6 +50,28 @@ public class EmpEvaluationEmpEvent extends EntityPersistenceEventObserver {
       log.error(" Exception while delete Employee Evaluation Employee: " + e);
       throw new OBException(e.getMessage());
     } catch (Exception e) {
+      throw new OBException(OBMessageUtils.messageBD("HB_INTERNAL_ERROR"));
+    } finally {
+      OBContext.restorePreviousMode();
+    }
+  }
+
+  public void onSave(@Observes EntityNewEvent event) {
+    if (!isValidEvent(event)) {
+      return;
+    }
+    try {
+      OBContext.setAdminMode();
+      EHCMEmpEvaluation_Emp empEvluationEmp = (EHCMEmpEvaluation_Emp) event.getTargetInstance();
+      // check employee evaluation status. if status is CO then do not allow to save
+      if (empEvluationEmp.getEhcmEmpEvaluation().getStatus().equals(EMP_EVAL_STATUS_COMPLETED)) {
+        throw new OBException(OBMessageUtils.messageBD("EHCM_Record_Processed"));
+      }
+    } catch (OBException e) {
+      log.error(" Exception while creating Employee Evaluation Employee:   " + e);
+      throw new OBException(e.getMessage());
+    } catch (Exception e) {
+      e.printStackTrace();
       throw new OBException(OBMessageUtils.messageBD("HB_INTERNAL_ERROR"));
     } finally {
       OBContext.restorePreviousMode();

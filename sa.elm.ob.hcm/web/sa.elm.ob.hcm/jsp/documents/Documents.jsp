@@ -651,8 +651,8 @@ var currentTab = 'DOC';
 var changedvaluessave = '<%= Resource.getProperty("hcm.changedvaluessave", lang) %>';
 var seldoctype = '<%= Resource.getProperty("hcm.seldoctype", lang) %>';
 var selectdoc = '<%= Resource.getProperty("hcm.selectdoc", lang) %>';
-var docTypeId='<%= request.getAttribute("inpDocType") %>';
-var docTypeName='<%=request.getAttribute("inpDocTypeName")%>'; 
+var docTypeId='<%= request.getAttribute("inpDocType")==null ? "":request.getAttribute("inpDocType") %>';
+var docTypeName='<%=request.getAttribute("inpDocTypeName")==null ? "":request.getAttribute("inpDocTypeName")%>'; 
 getDocTypeOnLoad();
 function getDocTypeOnLoad(){
     setTimeout(function () {
@@ -676,9 +676,6 @@ if(docTypeId!=null && docTypeId!="" ){
     $("#inpDocType").select2({
         data: data
     });
-    $("#inpDocType").on("select2:unselecting", function (e) {
-        document.getElementById("inpDocType").options.length = 0;
-      }); 
 }
 </script> 
 

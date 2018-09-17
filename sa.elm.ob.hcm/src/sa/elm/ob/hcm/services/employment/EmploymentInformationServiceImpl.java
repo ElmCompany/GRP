@@ -1,6 +1,7 @@
 package sa.elm.ob.hcm.services.employment;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,7 @@ import sa.elm.ob.hcm.GenericActivitiData;
 import sa.elm.ob.hcm.ehcmpreviouservice;
 import sa.elm.ob.hcm.ehcmqualification;
 import sa.elm.ob.hcm.ad_process.Constants;
-import sa.elm.ob.hcm.dao.activiti.CommonActivitiDAO;
+import sa.elm.ob.hcm.dao.activiti.SelfServiceTransactionDAO;
 import sa.elm.ob.hcm.dao.employmentinformation.EmploymentInformationDAO;
 import sa.elm.ob.hcm.dao.profile.EmployeeProfileDAO;
 import sa.elm.ob.hcm.dto.employment.CertificationsDTO;
@@ -34,10 +35,8 @@ public class EmploymentInformationServiceImpl implements EmploymentInformationSe
 
   private static final String OPEN_BRAVO_DATE_FORMAT = "dd-MM-yyyy";
 
-  private final String EMPLOYEE_INFORMATIONS_WORKFLOW_KEY = "empInfoWorkflow";
-
   @Autowired
-  private CommonActivitiDAO commonActivitiDAO;
+  private SelfServiceTransactionDAO commonActivitiDAO;
 
   private String jsonInString = "";
 
@@ -260,13 +259,20 @@ public class EmploymentInformationServiceImpl implements EmploymentInformationSe
 
     Map<String, Object> variablesMap = new HashMap<String, Object>();
     variablesMap.put(ActivitiConstants.TARGET_IDENTIFIER, storedData.getId());
-    variablesMap.put("userName", username);
-    variablesMap.put("taskTitle", "New Qualification");
-    variablesMap.put("taskType", Constants.UPDATE_QUALIFICATION);
-    variablesMap.put("lineManager", lineManager);
-    variablesMap.put("emailAddress", employeeOB.getEmail());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_USERNAME, username);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_NAME, employeeOB.getName());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_SUBJECT, "New Qualification");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_LETTER_NUMBER, "");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TAKS_REQUEST_DATE,
+        sa.elm.ob.utility.util.Utility
+            .convertTohijriDate(DateUtils.convertDateToString("yyyy-MM-dd", new Date())));
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_STATUS, Constants.REQUEST_IN_PROGRESS);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_TYPE, Constants.UPDATE_QUALIFICATION);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_EMAIL, employeeOB.getEmail());
 
-    workflowUtilityService.startWorkflow(EMPLOYEE_INFORMATIONS_WORKFLOW_KEY, variablesMap);
+    variablesMap.put("lineManager", lineManager);
+
+    startWorkflow(variablesMap);
     return true;
   }
 
@@ -302,13 +308,20 @@ public class EmploymentInformationServiceImpl implements EmploymentInformationSe
 
     Map<String, Object> variablesMap = new HashMap<String, Object>();
     variablesMap.put(ActivitiConstants.TARGET_IDENTIFIER, storedData.getId());
-    variablesMap.put("userName", username);
-    variablesMap.put("taskTitle", "New Certification");
-    variablesMap.put("taskType", Constants.UPDATE_CERTIFICATION);
-    variablesMap.put("lineManager", lineManager);
-    variablesMap.put("emailAddress", employeeOB.getEmail());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_USERNAME, username);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_NAME, employeeOB.getName());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_SUBJECT, "New Certification");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_LETTER_NUMBER, "");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TAKS_REQUEST_DATE,
+        sa.elm.ob.utility.util.Utility
+            .convertTohijriDate(DateUtils.convertDateToString("yyyy-MM-dd", new Date())));
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_STATUS, Constants.REQUEST_IN_PROGRESS);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_TYPE, Constants.UPDATE_CERTIFICATION);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_EMAIL, employeeOB.getEmail());
 
-    workflowUtilityService.startWorkflow(EMPLOYEE_INFORMATIONS_WORKFLOW_KEY, variablesMap);
+    variablesMap.put("lineManager", lineManager);
+
+    startWorkflow(variablesMap);
     return true;
   }
 
@@ -402,6 +415,11 @@ public class EmploymentInformationServiceImpl implements EmploymentInformationSe
     qualificationDTO.setMajor(qualification.getLicensesub());
 
     return qualificationDTO;
+  }
+
+  private void startWorkflow(Map<String, Object> variablesMap) {
+    workflowUtilityService.startWorkflow(
+        sa.elm.ob.utility.util.Constants.EMPLOYEE_INFORMATIONS_WORKFLOW_KEY, variablesMap);
   }
 
 }

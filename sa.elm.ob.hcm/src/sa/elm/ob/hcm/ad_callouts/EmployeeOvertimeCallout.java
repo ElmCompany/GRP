@@ -8,6 +8,7 @@ import java.util.GregorianCalendar;
 
 import javax.servlet.ServletException;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.openbravo.base.secureApp.VariablesSecureApp;
@@ -20,6 +21,7 @@ import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EhcmEmployeeOvertime;
 import sa.elm.ob.hcm.EhcmOvertimeType;
 import sa.elm.ob.hcm.EmploymentInfo;
+import sa.elm.ob.hcm.ad_callouts.common.UpdateEmpDetailsInCallouts;
 import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
 import sa.elm.ob.utility.util.Utility;
 import sa.elm.ob.utility.util.UtilityDAO;
@@ -63,58 +65,66 @@ public class EmployeeOvertimeCallout extends SimpleCallout {
     JSONObject json = new JSONObject();
     log4j.debug("lastfieldChanged:" + lastfieldChanged);
     try {
-
+      UpdateEmpDetailsInCallouts callouts = new UpdateEmpDetailsInCallouts();
       EmploymentInfo empinfo = sa.elm.ob.hcm.util.UtilityDAO.getActiveEmployInfo(employeeId);
       // get Employee Details by using employeeId
       if (lastfieldChanged.equals("inpehcmEmpPerinfoId")) {
-        EhcmEmpPerInfo employee = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
-        info.addResult("inpempName", employee.getArabicfullname());
-        info.addResult("inpehcmEmpPerinfoId", employeeId);
+        if (StringUtils.isNotEmpty(employeeId)) {
+          EhcmEmpPerInfo employee = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
+          info.addResult("inpempName", employee.getArabicfullname());
+          info.addResult("inpehcmEmpPerinfoId", employeeId);
 
-        EHCMEmployeeStatusV employeeStatus = OBDal.getInstance().get(EHCMEmployeeStatusV.class,
-            employeeId);
-        if (employeeStatus != null)
-          info.addResult("inpempStatus", employeeStatus.getStatusvalue());
-        else
-          info.addResult("inpempStatus", "");
+          EHCMEmployeeStatusV employeeStatus = OBDal.getInstance().get(EHCMEmployeeStatusV.class,
+              employeeId);
+          if (employeeStatus != null)
+            info.addResult("inpempStatus", employeeStatus.getStatusvalue());
+          else
+            info.addResult("inpempStatus", "");
 
-        info.addResult("inpehcmGradeclassId", employee.getGradeClass().getId());
-        info.addResult("inpempType", employee.getEhcmActiontype().getPersonType());
+          info.addResult("inpehcmGradeclassId", employee.getGradeClass().getId());
+          info.addResult("inpempType", employee.getEhcmActiontype().getPersonType());
 
-        if (employee.getHiredate() != null) {
-          info.addResult("inphireDate",
-              (UtilityDAO.convertTohijriDate(dateFormat.format(employee.getHiredate()))));
+          if (employee.getHiredate() != null) {
+            info.addResult("inphireDate",
+                (UtilityDAO.convertTohijriDate(dateFormat.format(employee.getHiredate()))));
 
-        }
-        if (empinfo != null) {
-          employmentInfoId = empinfo.getId();
-          info.addResult("inpdepartmentId", empinfo.getPosition().getDepartment().getId());
-          if (empinfo.getPosition().getSection() != null) {
-            info.addResult("inpsectionId", empinfo.getPosition().getSection().getId());
-          } else {
-            info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Section_ID').setValue('')");
           }
-          info.addResult("inpehcmGradeId", empinfo.getGrade().getId());
-          info.addResult("inpehcmPositionId", empinfo.getPosition().getId());
-          info.addResult("inpjobTitle", empinfo.getPosition().getJOBName().getJOBTitle());
-          info.addResult("inpemploymentgrade", empinfo.getEmploymentgrade().getId());
-          info.addResult("inpassignedDept", empinfo.getSECDeptName());
+          if (empinfo != null) {
+            employmentInfoId = empinfo.getId();
+            info.addResult("inpdepartmentId", empinfo.getPosition().getDepartment().getId());
+            if (empinfo.getPosition().getSection() != null) {
+              info.addResult("inpsectionId", empinfo.getPosition().getSection().getId());
+            } else {
+              info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Section_ID').setValue('')");
+            }
+            info.addResult("inpehcmGradeId", empinfo.getGrade().getId());
+            info.addResult("inpehcmPositionId", empinfo.getPosition().getId());
+            info.addResult("inpjobTitle", empinfo.getPosition().getJOBName().getJOBTitle());
+            info.addResult("inpemploymentgrade", empinfo.getEmploymentgrade().getId());
+            info.addResult("inpassignedDept", empinfo.getSECDeptName());
+
+          }
+          if (empinfo.getStartDate() != null) {
+            info.addResult("inpstartdate",
+                (UtilityDAO.convertTohijriDate(dateFormat.format(empinfo.getStartDate()))));
+          }
+
+          inpdecisionType = DecisionType;
+          info.addResult("inpdecisionType", inpdecisionType);
+          info.addResult("inporiginalDecisionNo", "");
+          info.addResult("inpovertimeAmount", null);
+          /*
+           * info.addResult("JSEXECUTE",
+           * "form.getFieldFromColumnName('Ehcm_Payrolldef_Period_ID').setValue('')");
+           */
+          lastfieldChanged = "inpstartdate";
+          inpStartDate = UtilityDAO.convertTohijriDate(dateFormat.format(empinfo.getStartDate()));
+          startDate = UtilityDAO.convertToGregorian(inpStartDate);
+        } else {
+          callouts.SetEmpDetailsNull(info);
+          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Assigned_Dept').setValue('')");
 
         }
-        if (empinfo.getStartDate() != null) {
-          info.addResult("inpstartdate",
-              (UtilityDAO.convertTohijriDate(dateFormat.format(empinfo.getStartDate()))));
-        }
-
-        inpdecisionType = DecisionType;
-        info.addResult("inpdecisionType", inpdecisionType);
-        info.addResult("inporiginalDecisionNo", "");
-        info.addResult("inpovertimeAmount", null);
-        info.addResult("JSEXECUTE",
-            "form.getFieldFromColumnName('ehcm_payrolldef_period_id').setValue('')");
-        lastfieldChanged = "inpstartdate";
-        inpStartDate = UtilityDAO.convertTohijriDate(dateFormat.format(empinfo.getStartDate()));
-        startDate = UtilityDAO.convertToGregorian(inpStartDate);
       }
       // Decision type is payment,update and cancel then set the previous original decision no
       if (lastfieldChanged.equals("inpdecisionType")) {
@@ -301,15 +311,17 @@ public class EmployeeOvertimeCallout extends SimpleCallout {
           }
         } else {
           info.addResult("JSEXECUTE",
-              "form.getFieldFromColumnName('original_decision_no').setValue('')");
+              "form.getFieldFromColumnName('Original_Decision_No').setValue('')");
         }
         info.addResult("inpdecisionType", inpdecisionType);
 
       }
       if (!inpdecisionType.equals(DecisionTypeConstants.DECISION_TYPE_OVERTIMEPAYMENT)) {
         info.addResult("inpovertimeAmount", null);
-        info.addResult("JSEXECUTE",
-            "form.getFieldFromColumnName('ehcm_payrolldef_period_id').setValue('')");
+        /*
+         * info.addResult("JSEXECUTE",
+         * "form.getFieldFromColumnName('Ehcm_Payrolldef_Period_ID').setValue('')");
+         */
       }
 
       // To calculate no of days based on overtime Type

@@ -245,13 +245,13 @@
                   //alert(data.marialst);
                   if(data.empgender=='M' && data.marialst=='S'){
                       /* $("#inpRelationship option[value='H']").remove(); */
-                      $("#inpRelationship option[value='SP']").remove();
+                      $("#inpRelationship option[value='SO']").remove();
                       $("#inpRelationship option[value='S']").remove();
                       $("#inpRelationship option[value='D']").remove();
                   }
                   else if(data.empgender=='F' && data.marialst=='S'){
                       /* $("#inpRelationship option[value='H']").remove(); */
-                      $("#inpRelationship option[value='SP']").remove();
+                      $("#inpRelationship option[value='SO']").remove();
                       $("#inpRelationship option[value='S']").remove();
                       $("#inpRelationship option[value='D']").remove();
                   }
@@ -317,12 +317,13 @@
             $('#inpGendersel>option[value="M"]').prop('selected', true);
             $('#inpGendersel').prop('disabled', true);
             $('#inpGender').val("M");
+            $('#inpGendersel').val("M");
         }
-        else if(rel=="EC" || rel=="SP")
+        else if(rel=="EC" || rel=="SO")
         {
             $('#inpGendersel').prop('disabled', false);
         }
-        else
+        else if(rel=="D" || rel=="SI" || rel=='M' )
         {
             $('#inpGendersel>option[value="F"]').prop('selected', true);
             $('#inpGendersel').prop('disabled', true);
@@ -631,15 +632,14 @@
                                                                         <TD class="TextBox_ContentCell">
                                                                          <SELECT id="inpRelationship" name="inpRelationship" class="ComboKey Combo_TwoCells_width required" onchange="document.getElementById('messageBoxID').style.display = 'none';enableForm();empnamedetails(); " onclick="enableForm();">
                                                                              <OPTION value='0' selected><%= Resource.getProperty("hcm.select", lang)%></OPTION>
-                                                                             <OPTION value="H" <%if(request.getAttribute("inpRelationship") !=null && request.getAttribute("inpRelationship").equals("H")){%> selected<%} %>><%= Resource.getProperty("hcm.husband",lang)%></OPTION>
-                                                                             <OPTION value="W" <%if(request.getAttribute("inpRelationship") !=null && request.getAttribute("inpRelationship").equals("W")){%> selected<%} %>><%= Resource.getProperty("hcm.wife",lang)%></OPTION>
+                                                                             
+                                                                             <OPTION value="SO" <%if(request.getAttribute("inpRelationship") !=null && request.getAttribute("inpRelationship").equals("SO")){%> selected<%} %>><%= Resource.getProperty("hcm.spouses",lang)%></OPTION>
                                                                              <OPTION value="S" <%if(request.getAttribute("inpRelationship") !=null && request.getAttribute("inpRelationship").equals("S")){%> selected<%} %>><%= Resource.getProperty("hcm.son",lang)%></OPTION>
                                                                              <OPTION value="D" <%if(request.getAttribute("inpRelationship") !=null && request.getAttribute("inpRelationship").equals("D")){%> selected<%} %>><%= Resource.getProperty("hcm.daughter",lang)%></OPTION>
                                                                              <OPTION value="M" <%if(request.getAttribute("inpRelationship") !=null && request.getAttribute("inpRelationship").equals("M")){%> selected<%} %>><%= Resource.getProperty("hcm.mother",lang)%></OPTION>
                                                                              <OPTION value="F" <%if(request.getAttribute("inpRelationship") !=null && request.getAttribute("inpRelationship").equals("F")){%> selected<%} %>><%= Resource.getProperty("hcm.father",lang)%></OPTION>
                                                                              <OPTION value="B" <%if(request.getAttribute("inpRelationship") !=null && request.getAttribute("inpRelationship").equals("B")){%> selected<%} %>><%= Resource.getProperty("hcm.brother",lang)%></OPTION>
                                                                              <OPTION value="SI"<%if(request.getAttribute("inpRelationship") !=null && request.getAttribute("inpRelationship").equals("SI")){%> selected<%} %>><%= Resource.getProperty("hcm.sister",lang)%></OPTION>
-                                                                             <OPTION value="SP"<%if(request.getAttribute("inpRelationship") !=null && request.getAttribute("inpRelationship").equals("SP")){%> selected<%} %>><%= Resource.getProperty("hcm.spouse",lang)%></OPTION>
                                                                              <OPTION value="EC"<%if(request.getAttribute("inpRelationship") !=null && request.getAttribute("inpRelationship").equals("EC")){%> selected<%} %>><%= Resource.getProperty("hcm.emergencyContact",lang)%></OPTION>
                                                                                     </SELECT>
                                                                             
@@ -668,7 +668,7 @@
                                                                         <TD class="TextBox_ContentCell"> 
                                                                              <%  
                                                                             if(request.getAttribute("inpFirstName")!= null ) {%>
-                                                                                <input type="text" name="inpFirstName" id="inpFirstName" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= request.getAttribute("inpFirstName") %>" class="dojoValidateValid  TextBox_TwoCells_width required"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                       
+                                                                                <input type="text" name="inpFirstName" id="inpFirstName" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= Utility.escapeQuote(request.getAttribute("inpFirstName")) %>" class="dojoValidateValid  TextBox_TwoCells_width required"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                       
                                                                              <%}
                                                                               else{ %>
                                                                                 <input type="text" name="inpFirstName" id="inpFirstName" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="" required="false"   class="dojoValidateValid  TextBox_TwoCells_width required"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                   
@@ -685,7 +685,7 @@
                                                                         <TD class="TextBox_ContentCell"> 
                                                                             <%  
                                                                             if(request.getAttribute("inpFatherName")!= null ) {%>
-                                                                                <input type="text" name="inpFatherName" id="inpFatherName" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= request.getAttribute("inpFatherName") %>" required="false"   class="dojoValidateValid  TextBox_TwoCells_width required"  onchange="enableForm();"  onkeydown="return onChangeEvent(event);"></input>                                       
+                                                                                <input type="text" name="inpFatherName" id="inpFatherName" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= Utility.escapeQuote(request.getAttribute("inpFatherName")) %>" required="false"   class="dojoValidateValid  TextBox_TwoCells_width required"  onchange="enableForm();"  onkeydown="return onChangeEvent(event);"></input>                                       
                                                                              <%}
                                                                               else{ %>
                                                                                 <input type="text" name="inpFatherName" id="inpFatherName" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="" required="false"   class="dojoValidateValid  TextBox_TwoCells_width required"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                      
@@ -701,7 +701,7 @@
                                                                         </TD>
                                                                         <TD class="TextBox_ContentCell">
                                                                              <% if(request.getAttribute("inpGrandFather")!= null ) {%>
-                                                                                <input type="text" name="inpGrandFather" id="inpGrandFather" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= request.getAttribute("inpGrandFather") %>" required=""   class="dojoValidateValid  TextBox_TwoCells_width required"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                       
+                                                                                <input type="text" name="inpGrandFather" id="inpGrandFather" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= Utility.escapeQuote(request.getAttribute("inpGrandFather")) %>" required=""   class="dojoValidateValid  TextBox_TwoCells_width required"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                       
                                                                              <%} else{ %>
                                                                                 <input type="text" name="inpGrandFather" id="inpGrandFather" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="" required=""   class="dojoValidateValid  TextBox_TwoCells_width required"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                       
                                                                               <%} %> 
@@ -717,7 +717,7 @@
                                                                           <TD class="TextBox_ContentCell"> 
                                                                              <%  
                                                                             if(request.getAttribute("inpFourthName")!= null ) {%>
-                                                                                <input type="text" name="inpFourthName" id="inpFourthName" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= request.getAttribute("inpFourthName") %>" class="dojoValidateValid  TextBox_TwoCells_width"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                      
+                                                                                <input type="text" name="inpFourthName" id="inpFourthName" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= Utility.escapeQuote(request.getAttribute("inpFourthName")) %>" class="dojoValidateValid  TextBox_TwoCells_width"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                      
                                                                              <%}
                                                                               else{ %>
                                                                                 <input type="text" name="inpFourthName" id="inpFourthName" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value=""   class="dojoValidateValid  TextBox_TwoCells_width"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                       
@@ -735,7 +735,7 @@
                                                                         <TD class="TextBox_ContentCell"> 
                                                                              <%  
                                                                             if(request.getAttribute("inpFamily")!= null ) {%>
-                                                                                <input type="text" name="inpFamily" id="inpFamily" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= request.getAttribute("inpFamily") %>" required="false"   class="dojoValidateValid  TextBox_TwoCells_width required" onchange="enableForm();"  onkeydown="return onChangeEvent(event);"></input>                                       
+                                                                                <input type="text" name="inpFamily" id="inpFamily" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= Utility.escapeQuote(request.getAttribute("inpFamily")) %>" required="false"   class="dojoValidateValid  TextBox_TwoCells_width required" onchange="enableForm();"  onkeydown="return onChangeEvent(event);"></input>                                       
                                                                              <%}
                                                                               else{ %>
                                                                                 <input type="text" name="inpFamily" id="inpFamily" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="" required="false"   class="dojoValidateValid  TextBox_TwoCells_width required" onkeydown="return onChangeEvent(event);"></input>                                      
@@ -778,7 +778,7 @@
                                                                         <TD class="TitleCell" align="right" style="min-width:110px;"><span class="LabelText" ><%= Resource.getProperty("hcm.gender",lang)%></span>
                                                                         </TD>
                                                                         <TD class="TextBox_ContentCell">
-                                                                             <SELECT id="inpGendersel" name="inpGendersel" class="ComboKey Combo_TwoCells_width required" onchange="document.getElementById('messageBoxID').style.display = 'none';enableForm();">
+                                                                             <SELECT id="inpGendersel" name="inpGendersel" class="ComboKey Combo_TwoCells_width required" onchange="document.getElementById('messageBoxID').style.display = 'none';enableForm();setGenderVal(this.value);">
                                                                               <option value='M' <%if(request.getAttribute("inpGender") !=null && request.getAttribute("inpGender").equals("M")){%> selected<%} %> ><span><%= Resource.getProperty("hcm.male",lang)%></span></option>
                                                                                <option value='F' <%if(request.getAttribute("inpGender") !=null  && request.getAttribute("inpGender").equals("F")){%> selected<%} %> ><span><%= Resource.getProperty("hcm.female",lang)%></span></option> 
                                                                                <!-- <option value='F'><span>Female</span></option>
@@ -812,12 +812,12 @@
                                                                                 <td class="TextBox_ContentCell">
                                                                                  <%  
                                                                                 if(request.getAttribute("inpEndDate")!= null ) {%>
-                                                                                     <input type="text" id="inpEndDate" class="dojoValidateValid TextBox_btn_OneCell_width " onchange="document.getElementById('messageBoxID').style.display = 'none';enableForm(); " readonly value="<%= request.getAttribute("inpEndDate") %>" maxlength="10" name="inpEndDate" ></input> 
+                                                                                     <input type="text" id="inpEndDate" class="dojoValidateValid TextBox_btn_OneCell_width " onchange="document.getElementById('messageBoxID').style.display = 'none';enableForm(); "  value="<%= request.getAttribute("inpEndDate") %>" maxlength="10" name="inpEndDate" ></input> 
                                                                                  <%}
                                                                                   else{ %>
                                                                                   <input type="text" id="inpEndDate" class="dojoValidateValid TextBox_btn_OneCell_width " onchange="document.getElementById('messageBoxID').style.display = 'none';enableForm(); "  value="" maxlength="10" name="inpEndDate" ></input>
                                                                                   <%} %>  
-<%--                                                                                   <input type="text" id="inpEndDate" class="dojoValidateValid TextBox_btn_OneCell_width " onchange="document.getElementById('messageBoxID').style.display = 'none';enableForm(); " readonly value="<%= request.getAttribute("today") %>" maxlength="10" name="inpEndDate" ></input> 
+<%--                                                                                   <input type="text" id="inpEndDate" class="dojoValidateValid TextBox_btn_OneCell_width " onchange="document.getElementById('messageBoxID').style.display = 'none';enableForm(); "  value="<%= request.getAttribute("today") %>" maxlength="10" name="inpEndDate" ></input> 
  --%>                                                                             </td>
                                                                          </tr>
                                                                         </table>
@@ -865,7 +865,7 @@
                                                                         <TD class="TextBox_ContentCell" colspan=3> 
                                                                              <%  
                                                                             if(request.getAttribute("inpLocation")!= null ) {%>
-                                                                                <input type="text" name="inpLocation" id="inpLocation" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= request.getAttribute("inpLocation") %>" required="false"   class="dojoValidateValid  TextBox_TwoCells_width"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                       
+                                                                                <input type="text" name="inpLocation" id="inpLocation" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= Utility.escapeQuote(request.getAttribute("inpLocation")) %>" required="false"   class="dojoValidateValid  TextBox_TwoCells_width"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                       
                                                                              <%}
                                                                               else{ %>
                                                                                 <input type="text" name="inpLocation" id="inpLocation" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="" required="false"   class="dojoValidateValid  TextBox_TwoCells_width"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                       
@@ -874,6 +874,96 @@
                                                                                value="" required="false"   class="dojoValidateValid  TextBox_TwoCells_width" /> -->                                       
                                                                          </TD>  
                                                                     </TR>  
+                                                       <TR>
+                                                             <TD colspan="6">
+                                                               <table style="width: 90%;">
+                                                                   <tr>
+                                                                    <td>
+                                                                       <TABLE class="FieldGroup" cellspacing="0" cellpadding="0" border="0">
+                                                                           <TBODY>
+                                                                               <TR class="FieldGroup_TopMargin"></TR>
+                                                                               <TR>
+                                                                                   <TD class="FieldGroupTitle_Left"><IMG class="FieldGroupTitle_Left_bg" border="0" src="../web/images/blank.gif"></IMG></TD>
+                                                                                   <TD class="FieldGroupTitle" id="subGridTitle2"><%= Resource.getProperty("hcm.dependents.english",lang)%></TD>
+                                                                                   <TD class="FieldGroupTitle_Right"><IMG class="FieldGroupTitle_Right_bg" border="0" src="../web/images/blank.gif"></IMG></TD>
+                                                                                   <TD class="FieldGroupContent"></TD>
+                                                                               </TR>    
+                                                                               <TR class="FieldGroup_BottomMargin" style="display: none;"></TR>          
+                                                                           </TBODY>
+                                                                       </TABLE>
+                                                                    </td>
+                                                                   </tr>
+                                                               </table>
+                                                            </TD>
+                                                          </TR>
+                                                     <TR>
+                                                        <TD class="TitleCell" align="left" style="width:110px;">
+                                                                 <span class="LabelText" ><%= Resource.getProperty("hcm.firstname", lang)%>
+                                                                  </span>
+                                                         </TD>
+                                                         <TD class="TextBox_ContentCell"> 
+                                                                 <%  
+                                                                  if(request.getAttribute("inpFirstNameEn")!= null ) {%>
+                                                                          <input type="text" name="inpFirstNameEn" id="inpFirstNameEn" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= Utility.escapeQuote(request.getAttribute("inpFirstNameEn")) %>" class="dojoValidateValid  TextBox_TwoCells_width"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                       
+                                                                    <%}
+                                                                   else{ %>
+                                                                    <input type="text" name="inpFirstNameEn" id="inpFirstNameEn" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="" required="false"   class="dojoValidateValid  TextBox_TwoCells_width"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                   
+                                                                     <%} %> 
+                                                            </TD>
+                                                                   
+                                                            <TD class="TitleCell" align="left" style="width:110px;">
+                                                                    <span class="LabelText" ><%= Resource.getProperty("hcm.fathername", lang)%>
+                                                                     </span>
+                                                              </TD>
+                                                             <TD class="TextBox_ContentCell"> 
+                                                                     <%  
+                                                                     if(request.getAttribute("inpFatherNameEn")!= null ) {%>
+                                                                     <input type="text" name="inpFatherNameEn" id="inpFatherNameEn" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= Utility.escapeQuote(request.getAttribute("inpFatherNameEn")) %>" required="false"   class="dojoValidateValid  TextBox_TwoCells_width"  onchange="enableForm();"  onkeydown="return onChangeEvent(event);"></input>                                       
+                                                                      <%}
+                                                                      else{ %>
+                                                                       <input type="text" name="inpFatherNameEn" id="inpFatherNameEn" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="" required="false"   class="dojoValidateValid  TextBox_TwoCells_width"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                      
+                                                                      <%} %>
+                                                              </TD>
+                                                              <TD class="TitleCell" align="left" style="width:110px;">
+                                                                      <span class="LabelText" ><%= Resource.getProperty("hcm.grandfather", lang)%>
+                                                                      </span>
+                                                              </TD>
+                                                               <TD class="TextBox_ContentCell">
+                                                                       <% if(request.getAttribute("inpGrandFatherEn")!= null ) {%>
+                                                                           <input type="text" name="inpGrandFatherEn" id="inpGrandFatherEn" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= Utility.escapeQuote(request.getAttribute("inpGrandFatherEn")) %>" required=""   class="dojoValidateValid  TextBox_TwoCells_width"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                       
+                                                                      <%} else{ %>
+                                                                          <input type="text" name="inpGrandFatherEn" id="inpGrandFatherEn" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="" required=""   class="dojoValidateValid  TextBox_TwoCells_width"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                       
+                                                                        <%} %> 
+                                                                 </TD>
+                                                           </TR> 
+                                                           <TR>
+                                                              <TD class="TitleCell" align="left" style="width:110px;">
+                                                                      <span class="LabelText" ><%= Resource.getProperty("hcm.fourthname", lang)%>
+                                                                      </span>
+                                                               </TD>
+                                                               <TD class="TextBox_ContentCell"> 
+                                                                       <%  
+                                                                       if(request.getAttribute("inpFourthNameEn")!= null ) {%>
+                                                                           <input type="text" name="inpFourthNameEn" id="inpFourthNameEn" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= Utility.escapeQuote(request.getAttribute("inpFourthNameEn")) %>" class="dojoValidateValid  TextBox_TwoCells_width"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                      
+                                                                        <%}
+                                                                        else{ %>
+                                                                            <input type="text" name="inpFourthNameEn" id="inpFourthNameEn" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value=""   class="dojoValidateValid  TextBox_TwoCells_width"  onchange="enableForm();" onkeydown="return onChangeEvent(event);"></input>                                       
+                                                                        <%} %> 
+                                                                 </TD> 
+                                                                 <TD class="TitleCell" align="left" style="width:110px;">
+                                                                       <span class="LabelText" ><%= Resource.getProperty("hcm.family", lang)%>
+                                                                       </span>
+                                                                  </TD>
+                                                                   <TD class="TextBox_ContentCell"> 
+                                                                         <%  
+                                                                         if(request.getAttribute("inpFamilyEn")!= null ) {%>
+                                                                              <input type="text" name="inpFamilyEn" id="inpFamilyEN" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="<%= Utility.escapeQuote(request.getAttribute("inpFamilyEn")) %>" required="false"   class="dojoValidateValid  TextBox_TwoCells_width" onchange="enableForm();"  onkeydown="return onChangeEvent(event);"></input>                                       
+                                                                          <%}
+                                                                         else{ %>
+                                                                              <input type="text" name="inpFamilyEn" id="inpFamilyEN" maxlength="35" style="overflow: hidden; text-overflow:ellipsis;" value="" required="false"   class="dojoValidateValid  TextBox_TwoCells_width" onkeydown="return onChangeEvent(event);"></input>                                      
+                                                                         <%} %> 
+                                                                     </TD>
+                                                                </TR>
                                                                                                                                         
                                                                  </TABLE>
                                                     </div>
@@ -1142,8 +1232,7 @@ function reloadTabSave(tab) {
 
        document.getElementById("SubmitType").value = "Save";
        //document.getElementById("inpAction").value = "GridView";
-
-       var url = "&inpNextTab=" + tab;
+           var url = "&inpNextTab=" + tab;
        submitCommandForm('DEFAULT', true, null, contextPath + '/sa.elm.ob.hcm.ad_forms.dependents.header/Dependents?' + url, '_self', null, true);
        return false;
     }
@@ -1188,7 +1277,15 @@ function onClickSave(index, type) {
     }
 }
 function checkValidData() {
-
+    //var startdateObj = new Date(1439,12,16);  
+     var strdate = document.getElementById("inpStartDate").value;
+     var enddateObj = document.getElementById("inpEndDate").value;  
+     if(enddateObj!=""){
+     if (OBCompareDate(enddateObj,strdate) == -1 || OBCompareDate(enddateObj,strdate) == 0) {
+         OBAlert('<%= Resource.getProperty("hcm.enddatelesser", lang)%>');
+         return false;
+     }
+     }
     if($("#inpAgeMD").val() < 0 || $("#inpAgeMY").val() < 0 || $("#inpAgeMM").val() < 0){
        OBAlert('<%= Resource.getProperty("hcm.agenegative", lang)%>');
        document.getElementById("inpDoj").focus();
@@ -1200,6 +1297,9 @@ function checkValidData() {
         document.getElementById("inpRelationship").focus();
         return false;
     }
+    
+   
+    
     if (document.getElementById("inpNatIdf").value!=''){
         var url=contextPath+"/sa.elm.ob.hcm.ad_forms.dependents.ajax/DependentsAjax?action=CheckNationalNum";
         <%-- "<%=request.getContextPath()%>/sa.elm.ob.hcm.ad_forms.dependents.ajax/DependentAjax?action=CheckNationalNum" --%>
@@ -1263,6 +1363,10 @@ function checkValidData() {
     else{
        return true;
     }
+}
+
+function setGenderVal(value){
+    $("#inpGender").val(value);
 }
 $( document ).ready(function() {
     if($('#inpEmployeeIsActive').val()=="false"){

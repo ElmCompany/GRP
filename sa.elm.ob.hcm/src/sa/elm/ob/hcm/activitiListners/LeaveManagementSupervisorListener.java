@@ -5,18 +5,29 @@ import java.util.Map;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
 import org.activiti.engine.impl.persistence.entity.TaskEntity;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import sa.elm.ob.hcm.util.ActivitiProcess;
-import sa.elm.ob.hcm.util.ActivitiProcessImpl;
 
 @Component
-public class LeaveManagementSupervisorListener implements TaskListener {
+public class LeaveManagementSupervisorListener implements TaskListener, ApplicationContextAware {
+
+  private static ApplicationContext applicationContext;
+
+  @SuppressWarnings("static-access")
+  @Override
+  public void setApplicationContext(ApplicationContext context) throws BeansException {
+    this.applicationContext = context;
+
+  }
 
   @Override
   public void notify(DelegateTask delegateTask) {
 
-    ActivitiProcess activitiProcess = new ActivitiProcessImpl();
+    ActivitiProcess activitiProcess = applicationContext.getBean(ActivitiProcess.class);
 
     TaskEntity taskEntity = (TaskEntity) delegateTask;
     String taskId = taskEntity.getId();

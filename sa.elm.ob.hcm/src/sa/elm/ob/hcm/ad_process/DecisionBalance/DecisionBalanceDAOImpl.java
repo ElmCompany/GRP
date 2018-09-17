@@ -485,7 +485,6 @@ public class DecisionBalanceDAOImpl implements DecisionBalanceDAO {
     Boolean checkUniqueConstraintFailForDecisionBalLine = false;
     List<DecisionBalance> decisionBalanceList = null;
     String hql = "";
-    // int A = 0;
     try {
 
       if (decisionBalance.getDecisionType().equals("BM"))

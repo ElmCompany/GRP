@@ -6,6 +6,8 @@ import java.util.Map;
 import org.activiti.engine.impl.persistence.entity.TaskEntity;
 import org.activiti.engine.task.Task;
 
+import sa.elm.ob.hcm.selfservice.dto.tasks.TaskDTO;
+
 /**
  * This is the interface for defining activi workflow engine processes
  *
@@ -80,16 +82,57 @@ public interface ActivitiProcess {
    */
   String getCommaSeparatedRoles(String receiptId);
 
+  /**
+   * @param username
+   * @return
+   */
   List<Task> getTaskAssignedToUser(String username);
 
+  /**
+   * @param taskId
+   * @return
+   */
   Map<String, Object> getTaskDetails(String taskId);
 
+  /**
+   * @param roleId
+   * @return
+   */
   List<Task> getTasksAssignedToRole(String roleId);
 
+  /**
+   * @param username
+   * @param taskId
+   */
   void assignTaskToUser(String username, String taskId);
 
+  /**
+   * @param username
+   * @param taskId
+   */
   void claimTask(String username, String taskId);
 
+  /**
+   * @param taskId
+   * @param variableName
+   * @param value
+   */
   void setVariableToTask(String taskId, String variableName, Object value);
+
+  /**
+   * @param username
+   * @return
+   */
+  List<TaskDTO> getTasksByUser(String username);
+
+  /**
+   * @param roleId
+   * @return
+   */
+  List<TaskDTO> getTasksByRole(String roleId);
+
+  void deleteTasksByRole(String roleId);
+
+  void deleteTasksByUser(String username);
 
 }

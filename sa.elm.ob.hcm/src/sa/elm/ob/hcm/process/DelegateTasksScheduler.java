@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import sa.elm.ob.hcm.EhcmApprovalDelegation;
 import sa.elm.ob.hcm.selfservice.dao.delegate.DelegateTasksDAO;
 import sa.elm.ob.hcm.util.ActivitiProcess;
-import sa.elm.ob.hcm.util.ActivitiProcessImpl;
 
 public class DelegateTasksScheduler extends DalBaseProcess {
   /**
@@ -29,7 +28,8 @@ public class DelegateTasksScheduler extends DalBaseProcess {
   @Autowired
   DelegateTasksDAO delegateTasksDAO;
 
-  ActivitiProcess activiti = new ActivitiProcessImpl();
+  @Autowired
+  ActivitiProcess activiti;
 
   public void doExecute(ProcessBundle bundle) throws Exception {
 

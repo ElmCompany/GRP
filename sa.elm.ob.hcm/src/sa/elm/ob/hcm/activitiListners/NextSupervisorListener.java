@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 import sa.elm.ob.hcm.selfservice.exceptions.SystemException;
 import sa.elm.ob.hcm.services.workflow.WorkflowUtilityService;
 import sa.elm.ob.hcm.util.ActivitiProcess;
-import sa.elm.ob.hcm.util.ActivitiProcessImpl;
 
 @Component
 public class NextSupervisorListener implements TaskListener, ApplicationContextAware {
@@ -33,7 +32,7 @@ public class NextSupervisorListener implements TaskListener, ApplicationContextA
     WorkflowUtilityService workflowUtilityService = applicationContext
         .getBean(WorkflowUtilityService.class);
 
-    ActivitiProcess activitiProcess = new ActivitiProcessImpl();
+    ActivitiProcess activitiProcess = applicationContext.getBean(ActivitiProcess.class);
 
     TaskEntity taskEntity = (TaskEntity) delegateTask;
 

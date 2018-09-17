@@ -69,7 +69,7 @@
         <default/>
         <onCreateDefault/>
       </column>
-      <column name="EPRIORITY" primaryKey="false" required="true" type="VARCHAR" size="60" autoIncrement="false">
+      <column name="EPRIORITY" primaryKey="false" required="true" type="DECIMAL" autoIncrement="false">
         <default/>
         <onCreateDefault/>
       </column>

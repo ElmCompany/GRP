@@ -49,6 +49,7 @@ public class EmploymentDAO {
   VariablesSecureApp vars = null;
   private static Logger log4j = Logger.getLogger(EmploymentDAO.class);
   public static final String EmpInfo_ChangeReason_List_ID = "57889F5818294AE6B371B3FD3369E8B3";
+  public static final String EmpInfo_Status_RefId = "C1F70DD4E2E140D8939D047C2B504728";
 
   public EmploymentDAO(Connection con) {
     this.conn = con;
@@ -205,10 +206,10 @@ public class EmploymentDAO {
       countQuery.append(" select count(distinct gd.ehcm_grade_id) as count ");
       selectQuery
           .append(" select distinct gd.value as gdNo , gd.ehcm_grade_id as gdId, gd.seqno as seq ");
-      fromQuery
-          .append(" from ehcm_grade gd where ad_org_id in (" + Utility.getChildOrg(clientId, orgId)
-              + ") and ad_org_id in( select ad_org_id from ad_role_orgaccess where ad_role_id = ? and ad_client_id = ? ) and ad_client_id=? "
-              + "and gd.seqno <= ? ");
+      fromQuery.append(" from ehcm_grade gd where ad_org_id in ("
+          + Utility.getChildOrg(clientId, orgId)
+          + ") and ad_org_id in( select ad_org_id from ad_role_orgaccess where ad_role_id = ? and ad_client_id = ? ) and ad_client_id=? "
+          + "and gd.seqno <= ? ");
 
       if (searchTerm != null && !searchTerm.equals(""))
         fromQuery.append(" and ( gd.value ilike '%" + searchTerm.toLowerCase() + "%' )");
@@ -585,10 +586,10 @@ public class EmploymentDAO {
       countQuery.append(" select count(distinct payscl.ehcm_payscale_id) as count ");
       selectQuery.append(
           " select distinct payscl.name as paysclNo , payscl.ehcm_payscale_id as paysclId ");
-      fromQuery.append(
-          " from ehcm_payscale payscl where ad_org_id in (" + Utility.getChildOrg(clientId, orgId)
-              + ") and ad_org_id in( select ad_org_id from ad_role_orgaccess where ad_role_id = ? and ad_client_id = ? ) and ad_client_id=? "
-              + "and payscl.ehcm_grade_id = ?");
+      fromQuery.append(" from ehcm_payscale payscl where ad_org_id in ("
+          + Utility.getChildOrg(clientId, orgId)
+          + ") and ad_org_id in( select ad_org_id from ad_role_orgaccess where ad_role_id = ? and ad_client_id = ? ) and ad_client_id=? "
+          + "and payscl.ehcm_grade_id = ?");
 
       if (searchTerm != null && !searchTerm.equals(""))
         fromQuery.append(" and ( payscl.name ilike '%" + searchTerm.toLowerCase() + "%' )");
@@ -750,9 +751,8 @@ public class EmploymentDAO {
         whereClause.append(" and concat(name,' ',fathername,' ',grandfathername) ilike '%")
             .append(searchAttr.getString("fname")).append("%'");
       if (searchAttr.has("aname"))
-        whereClause
-            .append(
-                " and concat(arabicname,' ',arabicfatname,' ',arbgrafaname,' ',arabicfamilyname) ilike '%")
+        whereClause.append(
+            " and concat(arabicname,' ',arabicfatname,' ',arbgrafaname,' ',arabicfamilyname) ilike '%")
             .append(searchAttr.getString("aname")).append("%'");
       if (searchAttr.has("empno"))
         whereClause.append(" and value ilike '%").append(searchAttr.getString("empno"))
@@ -1051,17 +1051,19 @@ public class EmploymentDAO {
         if (vo.getJobCode() != null)
           sqlQuery += " and emp.jobcode ilike '%" + vo.getJobCode() + "%'";
         if (vo.getDeptCode() != null)
-          sqlQuery += " and emp.deptcode ilike '%" + vo.getDeptCode() + "%'";
+          sqlQuery += " and org.value ilike '%" + vo.getDeptCode() + "%'";
         if (vo.getSectionCode() != null)
-          sqlQuery += " and emp.sectioncode ilike '%" + vo.getSectionCode() + "%'";
+          sqlQuery += " and orgsec.value ilike '%" + vo.getSectionCode() + "%'";
         if (vo.getPayscale() != null)
           sqlQuery += " and psc.name ilike '%" + vo.getPayscale() + "%'";
         if (vo.getGradeStep() != null)
           sqlQuery += " and po.point ilike '%" + vo.getGradeStep() + "%'";
         if (vo.getEmpGrade() != null)
           sqlQuery += " and empgrade.value ilike '%" + vo.getEmpGrade() + "%'";
-        if (vo.getStatus() != null)
-          sqlQuery += " and emp.status ilike '%" + vo.getStatus() + "%'";
+        if (vo.getStatus() != null && !vo.getStatus().equals("0"))
+          sqlQuery += " and emp.status ='" + vo.getStatus() + "'";
+        if (vo.getChangeReason() != null && !vo.getChangeReason().equals("0"))
+          sqlQuery += " and emp.changereason ='" + vo.getChangeReason() + "'";
         if (!StringUtils.isEmpty(vo.getStartDate()))
           sqlQuery += " and emp.startdate " + vo.getStartDate().split("##")[0] + " to_timestamp('"
               + vo.getStartDate().split("##")[1] + "', 'yyyy-MM-dd HH24:MI:SS') ";
@@ -1101,7 +1103,8 @@ public class EmploymentDAO {
       else
         sqlQuery += " order by emp.startdate desc " + " limit " + limit + " offset " + offset;
 
-      log4j.debug("DAO select Query:" + sqlQuery + ">> employeeId:" + employeeId);
+      log4j.debug("DAO select Query:" + sqlQuery + ">> employeeId:" + employeeId + ">> ref:"
+          + EmpInfo_ChangeReason_List_ID);
       st = conn.prepareStatement(sqlQuery);
       st.setString(1, EmpInfo_ChangeReason_List_ID);
       st.setString(2, employeeId);
@@ -1599,6 +1602,66 @@ public class EmploymentDAO {
       OBContext.restorePreviousMode();
     }
     return chkCondition;
+
+  }
+
+  public List<EmploymentVO> getEmploymentStatusList(String lang) {
+    PreparedStatement st = null;
+    ResultSet rs = null;
+    List<EmploymentVO> ls = new ArrayList<EmploymentVO>();
+    try {
+
+      st = OBDal.getInstance().getConnection().prepareStatement(
+          " select ad_ref_list.value as code,coalesce(ad_ref_list_trl.name,ad_ref_list.name) as name from ad_ref_list left join ad_ref_list_trl on ad_ref_list.ad_ref_list_id = ad_ref_list_trl.ad_ref_list_id and ad_ref_list_trl.ad_language=? where ad_ref_list.ad_reference_id = ? ");
+      st.setString(1, lang);
+      st.setString(2, EmpInfo_Status_RefId);
+      rs = st.executeQuery();
+
+      while (rs.next()) {
+        EmploymentVO empVO = new EmploymentVO();
+        empVO = new EmploymentVO();
+        empVO.setStatus(rs.getString("code"));
+        empVO.setArabicName(rs.getString("name"));
+
+        ls.add(empVO);
+
+      }
+
+    } catch (final Exception e) {
+      e.printStackTrace();
+      log4j.error("Exception in getEmploymentStatusList : ", e);
+    }
+    return ls;
+
+  }
+
+  public List<EmploymentVO> getChangeReasonList(String lang) {
+    PreparedStatement st = null;
+    ResultSet rs = null;
+    List<EmploymentVO> ls = new ArrayList<EmploymentVO>();
+    try {
+
+      st = OBDal.getInstance().getConnection().prepareStatement(
+          " select ad_ref_list.value as code,coalesce(ad_ref_list_trl.name,ad_ref_list.name) as name from ad_ref_list left join ad_ref_list_trl on ad_ref_list.ad_ref_list_id = ad_ref_list_trl.ad_ref_list_id and ad_ref_list_trl.ad_language=? where ad_ref_list.ad_reference_id = ? ");
+      st.setString(1, lang);
+      st.setString(2, EmpInfo_ChangeReason_List_ID);
+      rs = st.executeQuery();
+
+      while (rs.next()) {
+        EmploymentVO empVO = new EmploymentVO();
+        empVO = new EmploymentVO();
+        empVO.setStatus(rs.getString("code"));
+        empVO.setArabicName(rs.getString("name"));
+
+        ls.add(empVO);
+
+      }
+
+    } catch (final Exception e) {
+      e.printStackTrace();
+      log4j.error("Exception in getChangeReasonList : ", e);
+    }
+    return ls;
 
   }
 }

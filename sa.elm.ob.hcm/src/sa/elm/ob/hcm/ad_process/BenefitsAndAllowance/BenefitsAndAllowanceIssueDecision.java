@@ -17,6 +17,7 @@ import org.openbravo.scheduling.ProcessBundle;
 import org.openbravo.service.db.DbUtility;
 
 import sa.elm.ob.hcm.EHCMBenefitAllowance;
+import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
 
 public class BenefitsAndAllowanceIssueDecision implements Process {
   private static final Logger log = Logger.getLogger(BenefitsAndAllowanceIssueDecision.class);
@@ -37,15 +38,26 @@ public class BenefitsAndAllowanceIssueDecision implements Process {
       OBContext.setAdminMode(true);
       log.debug("issueDecision B&A :" + allowance.isSueDecision());
       log.debug("getDecisionType B&A :" + allowance.getDecisionType());
+      // check whether the employee is suspended or not
+      if (allowance.getEmployee().getEmploymentStatus()
+          .equals(DecisionTypeConstants.EMPLOYMENTSTATUS_SUSPENDED)) {
+        obError.setType("Error");
+        obError.setTitle("Error");
+        obError.setMessage(OBMessageUtils.messageBD("EHCM_emplo_suspend"));
+        bundle.setResult(obError);
+        return;
+      }
 
       // check Issued or not
       if (!allowance.isSueDecision()) {
+        boolean isOrigProc = false;
         if ("UP".equals(allowance.getDecisionType())) {
           boolean isProc = false;
           EHCMBenefitAllowance orgAllowance = OBDal.getInstance().get(EHCMBenefitAllowance.class,
               allowance.getOriginalDecisionNo().getId());
           // Check if original decision processed
-          if (empAllowanceDAOImpl.checkPayrollProcessed(orgAllowance)) {
+          if (empAllowanceDAOImpl.checkPayrollProcessed(orgAllowance, false)) {
+            isOrigProc = true;
             Date originalStartDate = orgAllowance.getStartDate();
             Date updateStartDate = allowance.getStartDate();
             Date originalEndDate = orgAllowance.getEndDate();
@@ -65,7 +77,9 @@ public class BenefitsAndAllowanceIssueDecision implements Process {
             else if ((originalEndDate != null && updateEndDate != null)
                 && originalEndDate.compareTo(updateEndDate) > 0) {
               isProc = true;
-            }
+            } // Case 3:If update end date is not null then check update end date with payroll
+              // process end date, if update end date is lesser than payroll end date then don't
+              // allow to update. This case will be handled in checkPayrollProcessed method
           }
           if (isProc) {
             obError.setType("Error");
@@ -75,7 +89,7 @@ public class BenefitsAndAllowanceIssueDecision implements Process {
             return;
           }
         }
-        if (empAllowanceDAOImpl.checkPayrollProcessed(allowance)) {
+        if (empAllowanceDAOImpl.checkPayrollProcessed(allowance, isOrigProc)) {
           obError.setType("Error");
           obError.setTitle("Error");
           obError.setMessage(OBMessageUtils.messageBD("EHCM_PayrollProcessed"));

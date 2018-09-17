@@ -947,8 +947,10 @@ public class EmpSecondmentEventDAOImpl implements EmpSecondmentEventDAO {
           changeReason = empInfo.getChangereason();
           if (changeReason.equals(DecisionTypeConstants.CHANGEREASON_SECONDMENT)
               || changeReason.equals(DecisionTypeConstants.CHANGEREASON_EXTEND_SECONDMENT)) { // ||
-            days = days.add(BigDecimal.valueOf(sa.elm.ob.hcm.util.UtilityDAO
-                .caltheDaysUsingGreDate(empInfo.getStartDate(), empInfo.getEndDate())));
+            Date secStartDate = empInfo.getEhcmEmpSecondment().getStartDate();
+            Date secEndDate = empInfo.getEhcmEmpSecondment().getEndDate();
+            days = days.add(BigDecimal.valueOf(
+                sa.elm.ob.hcm.util.UtilityDAO.caltheDaysUsingGreDate(secStartDate, secEndDate)));
           } else {
             continue;
           }
@@ -1101,6 +1103,8 @@ public class EmpSecondmentEventDAOImpl implements EmpSecondmentEventDAO {
     int currentDays = 0;
     int totalSecondmentDays = 0;
     Date lastSecondmentEndDate = null;
+    Date empSecStartDate = null;
+    Date empSecEndDate = null;
     // int j = 0;
     try {
 
@@ -1120,28 +1124,32 @@ public class EmpSecondmentEventDAOImpl implements EmpSecondmentEventDAO {
       employInfoList = employInfoQry.list();
       if (employInfoList.size() > 0) {
         for (EmploymentInfo info : employInfoList) {
+
           if ((info.getChangereason().equals(DecisionTypeConstants.CHANGEREASON_SECONDMENT) || info
               .getChangereason().equals(DecisionTypeConstants.CHANGEREASON_EXTEND_SECONDMENT))
               && days < totalDays) {
-
+            empSecStartDate = info.getEhcmEmpSecondment().getStartDate();
+            empSecEndDate = info.getEhcmEmpSecondment().getEndDate();
             if (!isSecondmentStart) {
               isSecondmentStart = true;
             } else {
               isSecondmentContinuous = true;
             }
-            lastSecondmentEndDate = info.getEndDate();
-            days += sa.elm.ob.hcm.util.UtilityDAO.caltheDaysUsingGreDate(info.getStartDate(),
-                info.getEndDate());
+            lastSecondmentEndDate = empSecEndDate;
+            days += sa.elm.ob.hcm.util.UtilityDAO.caltheDaysUsingGreDate(empSecStartDate,
+                empSecEndDate);
           } else if ((info.getChangereason().equals(DecisionTypeConstants.CHANGEREASON_SECONDMENT)
               || info.getChangereason()
                   .equals(DecisionTypeConstants.CHANGEREASON_EXTEND_SECONDMENT))
               && days == totalDays) {
+            empSecStartDate = info.getEhcmEmpSecondment().getStartDate();
+            empSecEndDate = info.getEhcmEmpSecondment().getEndDate();
             isSecondmentContinuous = false;
             days = 0;
             isSecondmentStart = true;
-            lastSecondmentEndDate = info.getEndDate();
-            days += sa.elm.ob.hcm.util.UtilityDAO.caltheDaysUsingGreDate(info.getStartDate(),
-                info.getEndDate());
+            lastSecondmentEndDate = empSecEndDate;
+            days += sa.elm.ob.hcm.util.UtilityDAO.caltheDaysUsingGreDate(empSecStartDate,
+                empSecEndDate);
 
           } else {
             if (days == totalDays) {

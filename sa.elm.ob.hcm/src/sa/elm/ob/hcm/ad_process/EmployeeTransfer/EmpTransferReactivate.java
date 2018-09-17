@@ -20,6 +20,7 @@ import org.openbravo.service.db.DbUtility;
 import sa.elm.ob.hcm.EHCMEmpTransfer;
 import sa.elm.ob.hcm.EhcmPosition;
 import sa.elm.ob.hcm.EmploymentInfo;
+import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
 import sa.elm.ob.hcm.ad_process.assignedOrReleasePosition.AssingedOrReleaseEmpInPositionDAO;
 import sa.elm.ob.hcm.ad_process.assignedOrReleasePosition.AssingedOrReleaseEmpInPositionDAOImpl;
 import sa.elm.ob.hcm.util.Utility;
@@ -39,13 +40,23 @@ public class EmpTransferReactivate implements Process {
     String decisionType = transfer.getDecisionType();
     String lang = vars.getLanguage();
     Date dateBefore = null;
-    int milliSecond = 1 * 24 * 3600 * 1000;
+    // int milliSecond = 1 * 24 * 3600 * 1000;
+    EHCMEmpTransfer currentTransfer = null;
+    currentTransfer=transfer;
+    AssingedOrReleaseEmpInPositionDAO assingedOrReleaseEmpInPositionDAO = new AssingedOrReleaseEmpInPositionDAOImpl();
 
     try {
       OBContext.setAdminMode(true);
 
       if (transfer.getDecisionType().equals("CR") && !transfer.isJoinworkreq()) {
         EmpTransferreactivateDAO.deleteEmpInfo(transfer, decisionType);
+        transfer.setDecisionStatus("UP");
+        transfer.setDecisionDate(null);
+        transfer.setSueDecision(false);
+        // ExtendServiceHandlerDAO.updateEmpRecord(transfer.getEhcmEmpPerinfo().getId());
+
+      }
+      if (transfer.getDecisionType().equals("CR") && transfer.isJoinworkreq()) {
         transfer.setDecisionStatus("UP");
         transfer.setDecisionDate(null);
         transfer.setSueDecision(false);
@@ -71,8 +82,10 @@ public class EmpTransferReactivate implements Process {
 
         EmpTransferreactivateDAO.updateEmpInfo(prevtransfer, prevEmpinfo, info, vars, "UP", lang,
             null, null);
-        AssingedOrReleaseEmpInPositionDAO assingedOrReleaseEmpInPositionDAO = new AssingedOrReleaseEmpInPositionDAOImpl();
-        EhcmPosition pos = OBDal.getInstance().get(EhcmPosition.class,
+      
+        assingedOrReleaseEmpInPositionDAO.updateEmpPositionWhileReactive(null, currentTransfer,
+            null, vars, false);
+       /*  EhcmPosition pos = OBDal.getInstance().get(EhcmPosition.class,
             transfer.getOriginalDecisionsNo().getNEWEhcmPosition().getId());
 
         assingedOrReleaseEmpInPositionDAO.insertPositionEmployeeHisotry(transfer.getClient(),
@@ -93,24 +106,27 @@ public class EmpTransferReactivate implements Process {
         assingedOrReleaseEmpInPositionDAO.deletePositionEmployeeHisotry(
             transfer.getOriginalDecisionsNo().getEhcmEmpPerinfo(), uppos);
 
-        dateBefore = new Date(
-            transfer.getOriginalDecisionsNo().getStartDate().getTime() - milliSecond);
+        dateBefore = new Date(transfer.getOriginalDecisionsNo().getStartDate().getTime()
+            - DecisionTypeConstants.ONE_DAY_IN_MILISEC);
         assingedOrReleaseEmpInPositionDAO.updateEndDateInPositionEmployeeHisotry(
             transfer.getOriginalDecisionsNo().getEhcmEmpPerinfo(), recentEmployeInfo.getPosition(),
             dateBefore, transfer.getOriginalDecisionsNo(), null, null, null, null, null,
-            recentEmployeInfo);
+            recentEmployeInfo);*/
         transfer.setEnabled(true);
         transfer.setDecisionStatus("UP");
         transfer.setSueDecision(false);
         transfer.setDecisionType("UP");
+        // ExtendServiceHandlerDAO.updateEmpRecord(transfer.getEhcmEmpPerinfo().getId());
 
       }
       if (transfer.getDecisionType().equals("CA") && !transfer.isJoinworkreq()) {
         info = Utility.getActiveEmployInfo(transfer.getEhcmEmpPerinfo().getId());
         EmpTransferreactivateDAO.insertEmploymentInfo(transfer.getOriginalDecisionsNo(), info, vars,
             "CR", lang, null, null);
-        AssingedOrReleaseEmpInPositionDAO assingedOrReleaseEmpInPositionDAO = new AssingedOrReleaseEmpInPositionDAOImpl();
-        EhcmPosition pos = OBDal.getInstance().get(EhcmPosition.class,
+   
+        assingedOrReleaseEmpInPositionDAO.updateEmpPositionWhileReactive(null, currentTransfer,
+            null, vars, true);
+      /*  EhcmPosition pos = OBDal.getInstance().get(EhcmPosition.class,
             transfer.getOriginalDecisionsNo().getNEWEhcmPosition().getId());
 
         assingedOrReleaseEmpInPositionDAO.insertPositionEmployeeHisotry(transfer.getClient(),
@@ -125,14 +141,15 @@ public class EmpTransferReactivate implements Process {
             .getRecentEmploymentInfo(transfer.getOriginalDecisionsNo().getEhcmEmpPerinfo(), null,
                 transfer.getOriginalDecisionsNo(), null);
 
-        dateBefore = new Date(
-            transfer.getOriginalDecisionsNo().getStartDate().getTime() - milliSecond);
+        dateBefore = new Date(transfer.getOriginalDecisionsNo().getStartDate().getTime()
+            - DecisionTypeConstants.ONE_DAY_IN_MILISEC);
         assingedOrReleaseEmpInPositionDAO.updateEndDateInPositionEmployeeHisotry(
             transfer.getOriginalDecisionsNo().getEhcmEmpPerinfo(), recentEmployeInfo.getPosition(),
-            dateBefore, null, null, null, null, null, null, recentEmployeInfo);
+            dateBefore, null, null, null, null, null, null, recentEmployeInfo);*/
         transfer.setDecisionStatus("UP");
         transfer.setSueDecision(false);
         transfer.setDecisionDate(null);
+        // ExtendServiceHandlerDAO.updateEmpRecord(transfer.getEhcmEmpPerinfo().getId());
       }
 
       obError.setType("Success");

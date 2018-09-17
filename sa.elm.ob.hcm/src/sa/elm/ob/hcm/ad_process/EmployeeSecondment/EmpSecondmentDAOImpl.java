@@ -14,13 +14,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import sa.elm.ob.hcm.EHCMEmpSecondment;
-import sa.elm.ob.hcm.EHCMEmpSupervisor;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EhcmJoiningWorkRequest;
 import sa.elm.ob.hcm.EhcmPosition;
 import sa.elm.ob.hcm.EmployeeDelegation;
 import sa.elm.ob.hcm.EmploymentInfo;
-import sa.elm.ob.hcm.ehcmpayscaleline;
 import sa.elm.ob.hcm.ad_process.Constants;
 import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
 import sa.elm.ob.hcm.util.UtilityDAO;
@@ -69,7 +67,7 @@ public class EmpSecondmentDAOImpl implements EmpSecondmentDAO {
       }
 
       empInfo = OBDal.getInstance().createQuery(EmploymentInfo.class,
-          " as e where ehcmEmpPerinfo.id=:employeeId " + "  and e.enabled='Y' " + hql
+          " as e where ehcmEmpPerinfo.id=:employeeId " + "  and e.enabled='Y' "
               + " order by e.creationDate desc");
       empInfo.setNamedParameter("employeeId", secondment.getEhcmEmpPerinfo().getId());
       empInfo.setMaxResult(1);
@@ -91,7 +89,7 @@ public class EmpSecondmentDAOImpl implements EmpSecondmentDAO {
     Date dateAfter = null;
     int oneMiliSeconds = 1 * 24 * 3600 * 1000;
     Date dateBefore = null;
-    EHCMEmpSupervisor supervisorId = null;
+    boolean isExtraStep = false;
     try {
       if (!isJWR) {
         if (secondment.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CREATE)
@@ -124,33 +122,8 @@ public class EmpSecondmentDAOImpl implements EmpSecondmentDAO {
         }
       }
 
-      employInfo.setDepartmentName(secondment.getDepartmentCode().getName());
-      employInfo.setDeptcode(secondment.getDepartmentCode());
-      employInfo.setGrade(secondment.getGrade());
-      ehcmpayscaleline line = OBDal.getInstance().get(ehcmpayscaleline.class,
-          secondment.getEhcmPayscaleline().getId());
-      employInfo.setEhcmPayscale(line.getEhcmPayscale());
-      employInfo.setEmpcategory(secondment.getEmployeeCategory().getId());
-      employInfo.setEmployeeno(secondment.getEhcmEmpPerinfo().getSearchKey());
-      employInfo.setEhcmPayscaleline(line);
-      employInfo.setEmploymentgrade(secondment.getEmploymentGrade());
-      employInfo.setJobcode(secondment.getPosition().getEhcmJobs());
-      employInfo.setPosition(secondment.getPosition());
-      employInfo.setJobtitle(secondment.getPosition().getJOBName().getJOBTitle());
-      employInfo.setToGovernmentAgency(secondment.getGOVAgency());
-      if (info.getLocation() != null)
-        employInfo.setLocation(info.getLocation());
-      if (info.getEhcmPayrollDefinition() != null)
-        employInfo.setEhcmPayrollDefinition(info.getEhcmPayrollDefinition());
-      if (secondment.getSectionCode() != null) {
-        employInfo.setSectionName(secondment.getSectionCode().getName());
-        employInfo.setSectioncode(secondment.getSectionCode());
-      }
-
-      employInfo.setEhcmEmpPerinfo(secondment.getEhcmEmpPerinfo());
-      supervisorId = UtilityDAO.getSupervisorforEmployee(secondment.getEhcmEmpPerinfo().getId(),
-          secondment.getClient().getId());
-      employInfo.setEhcmEmpSupervisor(supervisorId);
+      UtilityDAO.insertActEmplymntInfoDetailsInIssueDecision(secondment.getEhcmEmpPerinfo(),
+          employInfo, isExtraStep, false);
 
       if (!isJWR && jWRObj == null) {
         if (secondment.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CUTOFF)) {
@@ -184,24 +157,6 @@ public class EmpSecondmentDAOImpl implements EmpSecondmentDAO {
       }
       employInfo.setDecisionNo(secondment.getDecisionNo());
       employInfo.setDecisionDate(new Date());
-
-      /* secondary */
-      employInfo.setSecpositionGrade(info.getSecpositionGrade());
-      employInfo.setSecpositionGrade(info.getSecpositionGrade());
-      employInfo.setSecjobno(info.getSecjobno());
-      employInfo.setSecjobcode(info.getSecjobcode());
-      employInfo.setSecjobtitle(info.getSecjobtitle());
-      employInfo.setSECDeptCode(info.getSECDeptCode());
-      employInfo.setSECDeptName(info.getSECDeptName());
-      employInfo.setSECSectionCode(info.getSECSectionCode());
-      employInfo.setSECSectionName(info.getSECSectionName());
-      employInfo.setSECLocation(info.getSECLocation());
-      employInfo.setSECStartdate(info.getSECStartdate());
-      employInfo.setSECEnddate(info.getSECEnddate());
-      employInfo.setSECDecisionNo(info.getSECDecisionNo());
-      employInfo.setSECDecisionDate(info.getSECDecisionDate());
-      employInfo.setSECChangeReason(info.getSECChangeReason());
-      employInfo.setSECEmploymentNumber(info.getSECEmploymentNumber());
 
       OBDal.getInstance().save(employInfo);
       // OBDal.getInstance().flush();

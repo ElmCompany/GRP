@@ -114,7 +114,7 @@
  
 //Load Bank Details Grid
  var bankValue=document.getElementById("strbank").value;
- var branchValue=document.getElementById("strbranch").value
+ var branchValue=document.getElementById("strbranch").value;
 // var branchalue= document.getElementById("strbranch").value
  //var branchalue=" 0:select;58D20D7073CF46D2B23867E7D836EFF9:gopal";
  var bankdetailUrl = "&inpehcmPersonalPaymethdId=" + document.getElementById("inpehcmPersonalPaymethdId").value;
@@ -160,7 +160,7 @@
      edittype: 'select', 
      formatter:'select',
    editoptions: {
-  	        value: branchValue,
+  	        value: document.getElementById("strbranch").value,
   	      dataInit: function(elem) {
   	        $(elem).width(200);
   	    },
@@ -326,7 +326,9 @@
     	 getbankBranchOnSelection(id);
      },
   beforeRequest: function () {
-   $("#bankdetailslist").jqGrid('setColProp', 'Bank_Branch', { editoptions: { value:branchValue} });
+	  //alert( document.getElementById("strbranch").value);
+   //$("#bankdetailslist").jqGrid('setColProp', 'Bank_Branch', { editoptions: { value: document.getElementById("strbranch").value} });
+	  getbankbranchOnSelectionOfBank();
   jQuery("#bankdetailslist").setPostDataItem("inpEmployeeId", document.getElementById("inpEmployeeId").value);
     if ("" + jQuery("#bankdetailslist").getPostDataItem("_search") == "true") {
       if ("" + jQuery("#bankdetailslist").getPostDataItem("Start_Date") != "") {
@@ -450,7 +452,7 @@ getBankBranch = function (e) {
 			        //console.log(branchList);
 					 
 				    $('select[id*="' + rowid + '_Bank_Branch"]', row).html(branchList);
-					
+				    //$("#bankdetailslist").jqGrid('setColProp', 'Bank_Branch', { editoptions: { value: document.getElementById("strbranch").value} });
 			      }else{
 			    	  $('select[id*="' + rowid + '_Bank_Branch"]', row).html(branchList);
 			      }
@@ -462,9 +464,9 @@ getBankBranch = function (e) {
 function getbankBranchOnSelection(rowid){
 	 var row=$('tr#' + rowid);//$("#bankdetailslist").jqGrid('getGridParam',"selrow");
 	 var bankId= $("#bankdetailslist").jqGrid ('getCell', rowid, 'Bank_Name');
-		var branchList= '';//'0:' + select + ';';
+		var branchList= '0:' + select + ';';
 	 
- 
+		
 
 		 $.ajax({
 			    url: contextPath + '/sa.elm.ob.hcm.ad_forms.personalpaymentmethod.ajax/PersonalPaymentMethodAjax?action=bankdetails',
@@ -484,8 +486,35 @@ function getbankBranchOnSelection(rowid){
 			      }
 			    },
 			  });
+		 //DT.GETELBYID
+		 //$("#bankdetailslist").jqGrid('setColProp', 'Bank_Branch', { editoptions: { value:branchValue} });
 		 $("#bankdetailslist").jqGrid('setColProp', 'Bank_Branch', { editoptions: { value:branchList.substring(0,branchList.lastIndexOf(";"))} });
 }
+
+//getbankbranchOnSelectionOfBank();
+function getbankbranchOnSelectionOfBank(){
+		var branchList= '0:' + select + ';';
+		 $.ajax({
+			    url: contextPath + '/sa.elm.ob.hcm.ad_forms.personalpaymentmethod.ajax/PersonalPaymentMethodAjax?action=bankdetailsofbranch',
+			    contentType: 'application/json; charset=utf-8',
+			    dataType: 'json',
+			    type: 'GET',
+			    async: false,
+			    data: {
+			    },
+			    success: function (result) {
+			      if (result != undefined && result.length > 0) {
+			        for (var i = 0; i < result.length; i++) {
+			        	  branchList +=  result[i].BranchId + ':' + result[i].Branchcode + ';';
+			        }
+			     
+			      }
+			    },
+			  });
+		 document.getElementById("strbranch").value=branchList.substring(0,branchList.lastIndexOf(";"));
+		 $("#bankdetailslist").jqGrid('setColProp', 'Bank_Branch', { editoptions: { value:document.getElementById("strbranch").value } });
+}
+
 
  function enableForm() {
 	changesFlag = 1;
@@ -501,6 +530,7 @@ function getbankBranchOnSelection(rowid){
 }
  function reloadGrid(result) {
 	  setTimeout(function () {
+		 // location.reload();
 	    $("#bankdetailslist").trigger("reloadGrid");
 	    saveFlag = 0;
 	  }, 50);

@@ -26,8 +26,8 @@ public class ContractVO {
   private String percentage;
   private String salaryId;
   private String line;
-  private int minservice;
-  private int maxservice;
+  private String minservice;
+  private String maxservice;
   private String status;
 
   public String getStatus() {
@@ -38,19 +38,19 @@ public class ContractVO {
     this.status = status;
   }
 
-  public int getMinservice() {
+  public String getMinservice() {
     return minservice;
   }
 
-  public void setMinservice(int minservice) {
+  public void setMinservice(String minservice) {
     this.minservice = minservice;
   }
 
-  public int getMaxservice() {
+  public String getMaxservice() {
     return maxservice;
   }
 
-  public void setMaxservice(int maxservice) {
+  public void setMaxservice(String maxservice) {
     this.maxservice = maxservice;
   }
 

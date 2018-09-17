@@ -75,7 +75,7 @@ public class AbsenceAccrualDAOImpl implements AbsenceAccrualDAO {
       st.setInt(6, 1);
       st.setString(7, "CR");
       st.setString(8, null);
-      st.setBoolean(9, availabledays);
+      st.setString(9, "0");
       if (subTypeId != null)
         st.setString(10, subTypeId);
       else
@@ -555,7 +555,7 @@ public class AbsenceAccrualDAOImpl implements AbsenceAccrualDAO {
       st.setInt(6, 1);
       st.setString(7, "CR");
       st.setString(8, null);
-      st.setBoolean(9, availabledays);
+      st.setString(9, "0");
       if (subTypeId != null)
         st.setString(10, subTypeId);
       else

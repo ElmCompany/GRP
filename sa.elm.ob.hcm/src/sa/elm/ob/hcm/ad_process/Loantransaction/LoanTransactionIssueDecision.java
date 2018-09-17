@@ -13,6 +13,7 @@ import org.openbravo.scheduling.ProcessBundle;
 import org.openbravo.service.db.DbUtility;
 
 import sa.elm.ob.hcm.EHCMLoanTransaction;
+import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
 
 /**
  * 
@@ -26,10 +27,6 @@ public class LoanTransactionIssueDecision implements Process {
   private static final int payrollProcessed = 3;
   private static final int payrollProcessedHoldPeriod = 4;
 
-  /**
-   * 
-   */
-
   @Override
   public void execute(ProcessBundle bundle) throws Exception {
     // TODO Auto-generated method stub
@@ -40,6 +37,16 @@ public class LoanTransactionIssueDecision implements Process {
     try {
       int result = 0;
       OBContext.setAdminMode(true);
+      // check whether the employee is suspended or not
+      if (loan.getEmployee().getEmploymentStatus()
+          .equals(DecisionTypeConstants.EMPLOYMENTSTATUS_SUSPENDED)) {
+        obError.setType("Error");
+        obError.setTitle("Error");
+        obError.setMessage(OBMessageUtils.messageBD("EHCM_emplo_suspend"));
+        bundle.setResult(obError);
+        return;
+      }
+
       // check Issued or not
       if (!loan.isSueDecision()) {
 

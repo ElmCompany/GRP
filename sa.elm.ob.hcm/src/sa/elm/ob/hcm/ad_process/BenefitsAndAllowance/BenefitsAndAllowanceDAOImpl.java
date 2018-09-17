@@ -59,7 +59,7 @@ public class BenefitsAndAllowanceDAOImpl implements BenefitsAndAllowanceDAO {
    * @throws Exception
    */
   @SuppressWarnings("rawtypes")
-  public boolean checkPayrollProcessed(EHCMBenefitAllowance allowance) {
+  public boolean checkPayrollProcessed(EHCMBenefitAllowance allowance, boolean isOrigProc) {
     StringBuffer query = null;
     Query payPrdQuery = null;
     boolean isPayrollProcessed = false;
@@ -96,9 +96,11 @@ public class BenefitsAndAllowanceDAOImpl implements BenefitsAndAllowanceDAO {
             log.debug("Allowance>" + allowanceStartDate + "//" + allowanceEndDate);
 
             if ((payrollStartDate.compareTo(allowanceStartDate) <= 0
-                && payrollEndDate.compareTo(allowanceStartDate) >= 0)
+                && payrollEndDate.compareTo(allowanceStartDate) >= 0 && !isOrigProc)
                 || (payrollStartDate.compareTo(allowanceEndDate) <= 0
-                    && payrollEndDate.compareTo(allowanceEndDate) >= 0)) {
+                    && payrollEndDate.compareTo(allowanceEndDate) > 0
+                    && (payrollEndDate.compareTo(allowanceEndDate) == 0
+                        && !"UP".equals(allowance.getDecisionType())))) {
               return true;
             }
           }

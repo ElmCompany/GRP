@@ -34,7 +34,7 @@ public class BenefitsAndAllowanceReactivate extends DalBaseProcess {
     EHCMBenefitAllowance allowance = Utility.getObject(EHCMBenefitAllowance.class, allowanceId);
 
     try {
-      if (empAllowanceDAOImpl.checkPayrollProcessed(allowance)) {
+      if (empAllowanceDAOImpl.checkPayrollProcessed(allowance, false)) {
         obError.setType("Error");
         obError.setTitle("Error");
         obError.setMessage(OBMessageUtils.messageBD("Ehcm_PayrollProcessed"));

@@ -9,8 +9,6 @@ import sa.elm.ob.hcm.EHCMAbsenceAttendance;
 import sa.elm.ob.hcm.EHCMAbsenceType;
 import sa.elm.ob.hcm.EHCMAbsenceTypeAccruals;
 import sa.elm.ob.hcm.EHCMEmpLeave;
-import sa.elm.ob.hcm.EhcmEmpPerInfo;
-import sa.elm.ob.hcm.EmploymentInfo;
 
 /**
  * Interface for all Absence Decision related DB Operations
@@ -195,15 +193,6 @@ public interface AbsenceIssueDecisionDAO {
    */
   Date getEndDate(int absenceDays, Date startDate, String clientId, boolean isInclude)
       throws Exception;
-
-  /**
-   * getting hiring employ info record
-   * 
-   * @param employeeOB
-   * @return
-   * @throws Exception
-   */
-  EmploymentInfo getHiringEmployInfo(EhcmEmpPerInfo employeeOB) throws Exception;
 
   /**
    * get check leave approve msg

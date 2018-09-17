@@ -504,9 +504,11 @@ direction='ltr';
      }
     var equalto='<%= Resource.getProperty("hcm.Equalto", lang) %>';
     var greaterthanequalto='<%= Resource.getProperty("hcm.GreaterthanorEqualto", lang) %>';
-    var lessthanequalto= '<%= Resource.getProperty("hcm.LesserthanorEqualto", lang) %>';    
-    document.getElementById("strbranch").value="<%=strbranchList.substring(0,strbranchList.lastIndexOf(";"))%>";
-</script>
+    var lessthanequalto= '<%= Resource.getProperty("hcm.LesserthanorEqualto", lang) %>';  
+    var changesFlag =0,contextPath="<%=request.getContextPath()%>";
+
+<%--     document.getElementById("strbranch").value="<%=strbranchList.substring(0,strbranchList.lastIndexOf(";"))%>";
+ --%></script>
 <script type="text/javascript" src="../web/js/jquery-1.7.2.min.js"></script>
 <script type="text/javascript" src="../web/js/ui/jquery.ui.core.js"></script>
 <script type="text/javascript" src="../web/js/jquery/grid.locale-en.js"></script>
@@ -522,7 +524,6 @@ direction='ltr';
 <script type="text/javascript" src="../web/sa.elm.ob.utility/js/jquery.calendars.package-2.0.2/jquery.calendars.picker.js"></script> 
 <script type="text/javascript" src="../web/sa.elm.ob.utility/js/jquery.calendars.package-2.0.2/jquery.calendars.picker.ext.js"></script>
 <script type="text/javascript">
-var changesFlag =0,contextPath="<%=request.getContextPath()%>";
 var bankdetailGrid = jQuery("#bankdetailslist");
 
  </script>

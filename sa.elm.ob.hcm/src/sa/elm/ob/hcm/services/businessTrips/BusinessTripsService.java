@@ -78,7 +78,7 @@ public interface BusinessTripsService {
    * @throws BusinessException
    * @throws SystemException
    */
-  Boolean submitPaymentBusinessTripRequestWithWorkflow(String username, String originalDecNo,
-      BusinessPaymentDTO businessPaymentDTO) throws BusinessException, SystemException;
+  Boolean submitPaymentBusinessTripRequestWithWorkflow(String username, String originalDecNo)
+      throws BusinessException, SystemException;
 
 }

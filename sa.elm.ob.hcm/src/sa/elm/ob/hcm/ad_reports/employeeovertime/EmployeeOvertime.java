@@ -121,7 +121,7 @@ public class EmployeeOvertime extends HttpSecureAppServlet {
         parameters.put("inpAuthInfoDeptId", inpAuthInfoDeptId);
 
         strReportName = "@basedesign@/sa/elm/ob/hcm/ad_reports/employeeovertime/EmployeeOvertime.jrxml";
-        String strOutput = "pdf";
+        String strOutput = "xls";
 
         renderJR(vars, response, strReportName, strOutput, parameters, null, null);
       }

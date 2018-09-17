@@ -116,7 +116,8 @@ public class EmployeesInformationReport extends HttpSecureAppServlet {
         SQLQuery Query = OBDal.getInstance().getSession().createSQLQuery(
             " select list.ad_ref_list_id as listId ,list.name as  name,list.value from  ad_ref_list  list"
                 + " where  list.ad_reference_id = :ad_reference_id  and list.isactive='Y'"
-                + " and list.value not in('COSCTR','EXSCTR') " + "   order by list.name ");
+                + " and list.value in ('T','PR','H','SCTR','ABS','BM','PRT') "
+                + "   order by list.name ");
         Query.setParameter("ad_reference_id", EMPLOYEE_STATUS_REFERENCE_ID);
         if (Query.list().size() > 0) {
           for (Object o : Query.list()) {
@@ -319,7 +320,7 @@ public class EmployeesInformationReport extends HttpSecureAppServlet {
             EmployeesBusinessMissionDAO.getUserDepartment(vars.getUser()));
 
         strReportName = "@basedesign@/sa/elm/ob/hcm/ad_reports/EmployeesInformationReport/EmployeesInformationReport.jrxml";
-        String strOutput = "pdf";
+        String strOutput = "xls";
         String strFileName = "EmployeesInformationReport";
 
         renderJR(vars, response, strReportName, strFileName, strOutput, parameters, data, null);

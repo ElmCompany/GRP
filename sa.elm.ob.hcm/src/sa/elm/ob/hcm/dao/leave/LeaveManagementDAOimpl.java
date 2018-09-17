@@ -143,11 +143,33 @@ public class LeaveManagementDAOimpl implements LeaveManagementDAO {
         absenceAttendanceOB
             .setEhcmAbsenceReason(findAbsenceReason(leaveRequestDTO.getAbsenceReason()));
 
-      if (decisionType.equals(Constants.CANCEL_DECISION)) {
-        absenceAttendanceOB.setCancelDate(new Date());
+      if (decisionType.equals(Constants.CANCEL_DECISION)
+          || decisionType.equals(Constants.EXTEND_DECISION)) {
+        if (decisionType.equals(Constants.CANCEL_DECISION)) {
+          absenceAttendanceOB.setCancelDate(new Date());
+          absenceAttendanceOB.setEndDate(originalAttendance.getEndDate());
+        }
         absenceAttendanceOB.setAbsenceDays(originalAttendance.getAbsenceDays());
         absenceAttendanceOB.setStartDate(originalAttendance.getStartDate());
-        absenceAttendanceOB.setEndDate(originalAttendance.getEndDate());
+        if (decisionType.equals(Constants.EXTEND_DECISION)) {
+          try {
+            absenceAttendanceOB.setExtendLeaveDay(new Long(leaveRequestDTO.getAbsenceDays()));
+            absenceAttendanceOB.setAbsenceDays(originalAttendance.getAbsenceDays()
+                .add(new BigDecimal(leaveRequestDTO.getAbsenceDays())));
+            absenceAttendanceOB
+                .setExtendStartdate(DateUtils.convertStringToDate(OPEN_BRAVO_GREG_DATE_FORMAT,
+                    Utility.convertToGregorian(leaveRequestDTO.getStartDate())));
+            absenceAttendanceOB
+                .setExtendEnddate(DateUtils.convertStringToDate(OPEN_BRAVO_GREG_DATE_FORMAT,
+                    Utility.convertToGregorian(leaveRequestDTO.getEndDate())));
+            absenceAttendanceOB
+                .setEndDate(DateUtils.convertStringToDate(OPEN_BRAVO_GREG_DATE_FORMAT,
+                    Utility.convertToGregorian(leaveRequestDTO.getEndDate())));
+          } catch (ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+        }
       } else {
         absenceAttendanceOB.setAbsenceDays(new BigDecimal(leaveRequestDTO.getAbsenceDays()));
         try {
@@ -209,7 +231,7 @@ public class LeaveManagementDAOimpl implements LeaveManagementDAO {
     List<EHCMAbsenceReason> objAbsenceReasonList = new ArrayList<EHCMAbsenceReason>();
     try {
       OBContext.setAdminMode(true);
-      final String query = " as e where e.absenceReason=:reason  ";
+      final String query = " as e where e.eUTDeflookupsTypeln.code=:reason  ";
       objAbsenceReasonQry = OBDal.getInstance().createQuery(EHCMAbsenceReason.class, query);
       objAbsenceReasonQry.setNamedParameter("reason", absenceReason);
       objAbsenceReasonQry.setFilterOnReadableClients(false);

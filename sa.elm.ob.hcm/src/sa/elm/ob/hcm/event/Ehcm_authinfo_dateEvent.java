@@ -84,7 +84,6 @@ public class Ehcm_authinfo_dateEvent extends EntityPersistenceEventObserver {
       return;
     }
     try {
-      int a = 0;
       OBContext.setAdminMode();
       final EHCMAuthorizationInfo obj = (EHCMAuthorizationInfo) event.getTargetInstance();
       AuthorizationInfoEventDAO authorizationInfo = new AuthorizationInfoEventDAOImpl();

@@ -4,6 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONObject;
+import org.openbravo.base.exception.OBException;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.client.kernel.RequestContext;
 import org.openbravo.dal.core.OBContext;
@@ -27,6 +28,10 @@ public class EmpSecondment implements Process {
   private final OBError obError = new OBError();
   public static String DECISION_TYPE_CANCEL = DecisionTypeConstants.DECISION_TYPE_CANCEL;
   public static String DECISION_TYPE_CUTOFF = DecisionTypeConstants.DECISION_TYPE_CUTOFF;
+  public static String DECISION_TYPE_EXTEND = DecisionTypeConstants.DECISION_TYPE_EXTEND;
+  public static String DECISION_TYPE_CREATE = DecisionTypeConstants.DECISION_TYPE_CREATE;
+  public static String DECISION_TYPE_UPDATE = DecisionTypeConstants.DECISION_TYPE_UPDATE;
+
   EmpSecondmentEventDAO empSecondmentEventDAO = new EmpSecondmentEventDAOImpl();
 
   @Override
@@ -51,6 +56,15 @@ public class EmpSecondment implements Process {
       log.debug("isSueDecision:" + secondment.isSueDecision());
       log.debug("getDecisionType:" + secondment.getDecisionType());
       OBContext.setAdminMode(true);
+      // check whether the employee is suspended or not
+      if (secondment.getEhcmEmpPerinfo().getEmploymentStatus()
+          .equals(DecisionTypeConstants.EMPLOYMENTSTATUS_SUSPENDED)) {
+        obError.setType("Error");
+        obError.setTitle("Error");
+        obError.setMessage(OBMessageUtils.messageBD("EHCM_emplo_suspend"));
+        bundle.setResult(obError);
+        return;
+      }
 
       // check Issued or not
       if (!secondment.isSueDecision()) {
@@ -64,6 +78,16 @@ public class EmpSecondment implements Process {
             obError.setMessage(OBMessageUtils.messageBD("EHCM_EmpSecMoreThanSixYr"));
             bundle.setResult(obError);
             return;
+          }
+        }
+
+        /* three year validation */
+        if (decType.equals(DECISION_TYPE_EXTEND) || decType.equals(DECISION_TYPE_CREATE)
+            || decType.equals(DECISION_TYPE_UPDATE)) {
+          yearValidation = empSecondmentEventDAO.threeYearValidationForSecondment(secondment,
+              decType, Constants.SecondmentBlockYear);
+          if (yearValidation == Boolean.FALSE) {
+            throw new OBException(OBMessageUtils.messageBD("EHCM_EmpSec_DontAllowThreeYr"));
           }
         }
 

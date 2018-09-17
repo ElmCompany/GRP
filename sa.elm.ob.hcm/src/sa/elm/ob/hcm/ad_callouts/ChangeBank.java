@@ -4,6 +4,7 @@ import java.text.DateFormat;
 
 import javax.servlet.ServletException;
 
+import org.apache.commons.lang.StringUtils;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.erpCommon.ad_callouts.SimpleCallout;
@@ -14,6 +15,7 @@ import sa.elm.ob.hcm.EHCMEmployeeStatusV;
 import sa.elm.ob.hcm.EhcmChangeBankV;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EmploymentInfo;
+import sa.elm.ob.hcm.ad_callouts.common.UpdateEmpDetailsInCallouts;
 import sa.elm.ob.hcm.util.Utility;
 import sa.elm.ob.hcm.util.UtilityDAO;
 
@@ -41,38 +43,46 @@ public class ChangeBank extends SimpleCallout {
     DateFormat dateFormat = sa.elm.ob.utility.util.Utility.YearFormat;
     log4j.debug("lastfiled:" + lastfieldChanged);
     try {
+      UpdateEmpDetailsInCallouts callouts = new UpdateEmpDetailsInCallouts();
       EmploymentInfo empinfo = null;
       empinfo = Utility.getActiveEmployInfo(employeeId);
       if (lastfieldChanged.equals("inpehcmEmpPerinfoId")) {
-        EhcmEmpPerInfo employee = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
-        info.addResult("inpempName", employee.getArabicfullname());
+        if (StringUtils.isNotEmpty(employeeId)) {
+          EhcmEmpPerInfo employee = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
+          info.addResult("inpempName", employee.getArabicfullname());
 
-        EHCMEmployeeStatusV employeeStatus = OBDal.getInstance().get(EHCMEmployeeStatusV.class,
-            employeeId);
-        if (employeeStatus != null)
-          info.addResult("inpempStatus", employeeStatus.getStatusvalue());
-        else
-          info.addResult("inpempStatus", "");
+          EHCMEmployeeStatusV employeeStatus = OBDal.getInstance().get(EHCMEmployeeStatusV.class,
+              employeeId);
+          if (employeeStatus != null)
+            info.addResult("inpempStatus", employeeStatus.getStatusvalue());
+          else
+            info.addResult("inpempStatus", "");
 
-        info.addResult("inpehcmGradeclassId", employee.getGradeClass().getId());
-        info.addResult("inpempType", employee.getEhcmActiontype().getPersonType());
-        if (employee.getHiredate() != null) {
-          info.addResult("inphireDate",
-              (UtilityDAO.convertTohijriDate(dateFormat.format(employee.getHiredate()))));
-        }
-        if (empinfo != null) {
-          info.addResult("inpdepartmentId", empinfo.getPosition().getDepartment().getId());
-          if (empinfo.getPosition() != null && empinfo.getPosition().getSection() != null) {
-            info.addResult("inpsectionId", empinfo.getPosition().getSection().getId());
+          info.addResult("inpehcmGradeclassId", employee.getGradeClass().getId());
+          info.addResult("inpempType", employee.getEhcmActiontype().getPersonType());
+          if (employee.getHiredate() != null) {
+            info.addResult("inphireDate",
+                (UtilityDAO.convertTohijriDate(dateFormat.format(employee.getHiredate()))));
           }
-          info.addResult("inpehcmGradeId", empinfo.getGrade().getId());
-          info.addResult("inpehcmPositionId", empinfo.getPosition().getId());
-          info.addResult("inpjobTitle", empinfo.getPosition().getJOBName().getJOBTitle());
-          info.addResult("inpemploymentgrade", empinfo.getEmploymentgrade().getId());
-          info.addResult("inpassignedDept", empinfo.getSECDeptName());
-          info.addResult("inpehcmGradestepsId",
-              empinfo.getEhcmPayscale().getEhcmGradesteps().getId());
-          info.addResult("inpehcmPayscalelineId", empinfo.getEhcmPayscaleline().getId());
+          if (empinfo != null) {
+            info.addResult("inpdepartmentId", empinfo.getPosition().getDepartment().getId());
+            if (empinfo.getPosition() != null && empinfo.getPosition().getSection() != null) {
+              info.addResult("inpsectionId", empinfo.getPosition().getSection().getId());
+            }
+            info.addResult("inpehcmGradeId", empinfo.getGrade().getId());
+            info.addResult("inpehcmPositionId", empinfo.getPosition().getId());
+            info.addResult("inpjobTitle", empinfo.getPosition().getJOBName().getJOBTitle());
+            info.addResult("inpemploymentgrade", empinfo.getEmploymentgrade().getId());
+            info.addResult("inpassignedDept", empinfo.getSECDeptName());
+            info.addResult("inpehcmGradestepsId",
+                empinfo.getEhcmPayscale().getEhcmGradesteps().getId());
+            info.addResult("inpehcmPayscalelineId", empinfo.getEhcmPayscaleline().getId());
+          }
+        } else {
+          callouts.SetEmpDetailsNull(info);
+          info.addResult("JSEXECUTE",
+              "form.getFieldFromColumnName('Ehcm_Payscaleline_ID').setValue('')");
+          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Assigned_Dept').setValue('')");
         }
       }
       if (lastfieldChanged.equals("inpexistingBank")) {

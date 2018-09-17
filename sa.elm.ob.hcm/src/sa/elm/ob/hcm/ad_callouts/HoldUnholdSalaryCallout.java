@@ -19,6 +19,7 @@ import sa.elm.ob.hcm.EHCMEmployeeStatusV;
 import sa.elm.ob.hcm.EHCMHoldUnHoldSalary;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EmploymentInfo;
+import sa.elm.ob.hcm.ad_callouts.common.UpdateEmpDetailsInCallouts;
 import sa.elm.ob.hcm.ad_callouts.dao.EndofEmploymentCalloutDAO;
 import sa.elm.ob.hcm.ad_callouts.dao.EndofEmploymentCalloutDAOImpl;
 import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
@@ -48,6 +49,7 @@ public class HoldUnholdSalaryCallout extends SimpleCallout {
     ResultSet rs = null;
     EndofEmploymentCalloutDAO endofemploymentobj = new EndofEmploymentCalloutDAOImpl();
     try {
+      UpdateEmpDetailsInCallouts callouts = new UpdateEmpDetailsInCallouts();
       EmploymentInfo empinfo = null;
       empinfo = Utility.getActiveEmployInfo(employeeId);
 
@@ -116,24 +118,10 @@ public class HoldUnholdSalaryCallout extends SimpleCallout {
             }
           }
         } else {
-          info.addResult("inpempName", "");
-          info.addResult("inpempStatus", "");
-          info.addResult("inpempType", "");
-          info.addResult("inphireDate", "");
-          info.addResult("inpehcmGradeclassId", null);
-          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Department_ID').setValue('')");
-          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Section_ID').setValue('')");
-          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Ehcm_Grade_ID').setValue('')");
-          info.addResult("JSEXECUTE",
-              "form.getFieldFromColumnName('Ehcm_Position_ID').setValue('')");
-          info.addResult("inpjobTitle", "");
-          info.addResult("JSEXECUTE",
-              "form.getFieldFromColumnName('Employmentgrade').setValue('')");
-          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Assigned_Dept').setValue('')");
+          callouts.SetEmpDetailsNull(info);
           info.addResult("JSEXECUTE",
               "form.getFieldFromColumnName('Ehcm_Payscaleline_ID').setValue('')");
-          info.addResult("JSEXECUTE",
-              "form.getFieldFromColumnName('Ehcm_Gradeclass_ID').setValue('')");
+          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Assigned_Dept').setValue('')");
         }
       }
 

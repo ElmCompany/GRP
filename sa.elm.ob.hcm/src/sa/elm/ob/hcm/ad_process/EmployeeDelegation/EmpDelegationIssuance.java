@@ -50,6 +50,16 @@ public class EmpDelegationIssuance implements Process {
       OBContext.setAdminMode(true);
       log.debug("isSueDecision:" + objDelegation.isSueDecision());
       log.debug("getDecisionType12:" + objDelegation.getDecisionType());
+      // check whether the employee is suspended or not
+      if (objDelegation.getEhcmEmpPerinfo().getEmploymentStatus()
+          .equals(DecisionTypeConstants.EMPLOYMENTSTATUS_SUSPENDED)) {
+        obError.setType("Error");
+        obError.setTitle("Error");
+        obError.setMessage(OBMessageUtils.messageBD("EHCM_emplo_suspend"));
+        bundle.setResult(obError);
+        return;
+      }
+
       if (!objDelegation.isSueDecision()) {
 
         // checking position is available or not
@@ -110,61 +120,65 @@ public class EmpDelegationIssuance implements Process {
         // update status as Issued and set decision date
         objDelegation.setSueDecision(true);
         objDelegation.setDecisionDate(new Date());
-        objDelegation.setDecisionStatus("I");
+        // objDelegation.setDecisionStatus("I");
         OBDal.getInstance().save(objDelegation);
         OBDal.getInstance().flush();
         // Create Delegation
         if (objDelegation.getDecisionType().equals("CR")) {
           // update secondary info in employment information
           OBQuery<EmploymentInfo> empInfo = OBDal.getInstance().createQuery(EmploymentInfo.class,
-              " ehcmEmpPerinfo.id=:employeeId and startDate<=:start and "
-                  + "(endDate>=:start or endDate is null) order by creationDate desc ");
+              " ehcmEmpPerinfo.id=:employeeId and "
+                  + "((startDate >=:start and to_date(to_char(coalesce (endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <=:end) or"
+                  + " (startDate <=:end and to_date(to_char(coalesce (endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') >=:start))"
+                  + "order by creationDate desc ");
           empInfo.setNamedParameter("employeeId", objDelegation.getEhcmEmpPerinfo().getId());
           empInfo.setNamedParameter("start", objDelegation.getStartDate());
-          empInfo.setMaxResult(1);
+          empInfo.setNamedParameter("end", objDelegation.getEndDate());
+          log.debug(empInfo.list().size());
           if (empInfo.list().size() > 0) {
-            EmploymentInfo empinfo = empInfo.list().get(0);
-            if (objDelegation.getNewPosition() != null) {
-              EhcmPosition objPosition = OBDal.getInstance().get(EhcmPosition.class,
-                  objDelegation.getNewPosition().getId());
-              empinfo.setSecpositionGrade(objPosition.getGrade());
-              empinfo.setSecjobno(objPosition);
-              empinfo.setSecjobcode(objPosition.getEhcmJobs());
-              empinfo.setSecjobtitle(objPosition.getEhcmJobs().getJOBTitle());
-            }
-            if (objDelegation.getNewDepartment() != null) {
-              empinfo.setSECDeptName(objDelegation.getNewDepartment().getName());
-              empinfo.setSECDeptCode(objDelegation.getNewDepartment());
-              empinfo.setAssignedDepartment(objDelegation.getNewDepartment());
-              if (objDelegation.getNewDepartment().getEhcmEscmLoc() != null) {
-                EscmLocation loc = OBDal.getInstance().get(EscmLocation.class,
-                    objDelegation.getNewDepartment().getEhcmEscmLoc().getId());
-                empinfo.setSECLocation(loc.getLocationName());
+            for (int empInfoList = 0; empInfoList < empInfo.list().size(); empInfoList++) {
+              EmploymentInfo empinfo = empInfo.list().get(empInfoList);
+              if (objDelegation.getNewPosition() != null) {
+                EhcmPosition objPosition = OBDal.getInstance().get(EhcmPosition.class,
+                    objDelegation.getNewPosition().getId());
+                empinfo.setSecpositionGrade(objPosition.getGrade());
+                empinfo.setSecjobno(objPosition);
+                empinfo.setSecjobcode(objPosition.getEhcmJobs());
+                empinfo.setSecjobtitle(objPosition.getEhcmJobs().getJOBTitle());
               }
-            }
-            if (objDelegation.getNewSection() != null) {
-              empinfo.setSECSectionCode(objDelegation.getNewSection());
-              empinfo.setSECSectionName(objDelegation.getNewSection().getName());
+              if (objDelegation.getNewDepartment() != null) {
+                empinfo.setSECDeptName(objDelegation.getNewDepartment().getName());
+                empinfo.setSECDeptCode(objDelegation.getNewDepartment());
+                empinfo.setAssignedDepartment(objDelegation.getNewDepartment());
+                if (objDelegation.getNewDepartment().getEhcmEscmLoc() != null) {
+                  EscmLocation loc = OBDal.getInstance().get(EscmLocation.class,
+                      objDelegation.getNewDepartment().getEhcmEscmLoc().getId());
+                  empinfo.setSECLocation(loc.getLocationName());
+                }
+              }
+              if (objDelegation.getNewSection() != null) {
+                empinfo.setSECSectionCode(objDelegation.getNewSection());
+                empinfo.setSECSectionName(objDelegation.getNewSection().getName());
 
-              // if (objDelegation.getNewSection().getEhcmLocation() != null) {
-              // empinfo.setSECLocation(
-              // objDelegation.getNewSection().getEhcmLocation().getLocationName());
-              // }
+                // if (objDelegation.getNewSection().getEhcmLocation() != null) {
+                // empinfo.setSECLocation(
+                // objDelegation.getNewSection().getEhcmLocation().getLocationName());
+                // }
+              }
+              if (objDelegation.getStartDate() != null) {
+                empinfo.setSECStartdate(objDelegation.getStartDate());
+              }
+              if (objDelegation.getEndDate() != null) {
+                empinfo.setSECEnddate(objDelegation.getEndDate());
+              }
+              if (objDelegation.getDecisionDate() != null) {
+                empinfo.setSECDecisionDate(objDelegation.getDecisionDate());
+              }
+              empinfo.setSECDecisionNo(objDelegation.getDecisionNo());
+              empinfo.setSECChangeReason(objDelegation.getDelegationType());
+              empinfo.setSECEmploymentNumber(objDelegation.getEhcmEmpPerinfo().getSearchKey());
+              OBDal.getInstance().save(empinfo);
             }
-            if (objDelegation.getStartDate() != null) {
-              empinfo.setSECStartdate(objDelegation.getStartDate());
-            }
-            if (objDelegation.getEndDate() != null) {
-              empinfo.setSECEnddate(objDelegation.getEndDate());
-            }
-            if (objDelegation.getDecisionDate() != null) {
-              empinfo.setSECDecisionDate(objDelegation.getDecisionDate());
-            }
-            empinfo.setSECDecisionNo(objDelegation.getDecisionNo());
-            empinfo.setSECChangeReason(objDelegation.getDelegationType());
-            empinfo.setSECEmploymentNumber(objDelegation.getEhcmEmpPerinfo().getSearchKey());
-            OBDal.getInstance().save(empinfo);
-
           }
 
           // EhcmEmpPerInfo objEmployee = objDelegation.getEhcmEmpPerinfo();
@@ -192,53 +206,57 @@ public class EmpDelegationIssuance implements Process {
 
           // update secondary info in employment information
           OBQuery<EmploymentInfo> empInfo = OBDal.getInstance().createQuery(EmploymentInfo.class,
-              " ehcmEmpPerinfo.id=:employeeId and startDate<=:start and "
-                  + "(endDate>=:start or endDate is null) order by creationDate desc ");
+              " ehcmEmpPerinfo.id=:employeeId and "
+                  + "((startDate >=:start and to_date(to_char(coalesce (endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <=:end) or"
+                  + " (startDate <=:end and to_date(to_char(coalesce (endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') >=:start))"
+                  + "order by creationDate desc ");
           empInfo.setNamedParameter("employeeId", objDelegation.getEhcmEmpPerinfo().getId());
           empInfo.setNamedParameter("start", objDelegation.getStartDate());
-          empInfo.setMaxResult(1);
-          if (empInfo.list().size() > 0) {
-            EmploymentInfo empinfo = empInfo.list().get(0);
-            if (objDelegation.getNewPosition() != null) {
-              EhcmPosition objPosition = OBDal.getInstance().get(EhcmPosition.class,
-                  objDelegation.getNewPosition().getId());
-              empinfo.setSecpositionGrade(objPosition.getGrade());
-              empinfo.setSecjobno(objPosition);
-              empinfo.setSecjobcode(objPosition.getEhcmJobs());
-              empinfo.setSecjobtitle(objPosition.getEhcmJobs().getJOBTitle());
-            }
-            if (objDelegation.getNewDepartment() != null) {
-              empinfo.setSECDeptName(objDelegation.getNewDepartment().getName());
-              empinfo.setSECDeptCode(objDelegation.getNewDepartment());
-              empinfo.setAssignedDepartment(objDelegation.getNewDepartment());
-              if (objDelegation.getNewDepartment().getEhcmEscmLoc() != null) {
-                EscmLocation loc = OBDal.getInstance().get(EscmLocation.class,
-                    objDelegation.getNewDepartment().getEhcmEscmLoc().getId());
-                empinfo.setSECLocation(loc.getLocationName());
-              }
-            }
-            if (objDelegation.getNewSection() != null) {
-              empinfo.setSECSectionCode(objDelegation.getNewSection());
-              empinfo.setSECSectionName(objDelegation.getNewSection().getName());
-              // if (objDelegation.getNewSection().getEhcmLocation() != null) {
-              // empinfo.setSECLocation(
-              // objDelegation.getNewSection().getEhcmLocation().getLocationName());
-              // }
-            }
-            if (objDelegation.getStartDate() != null) {
-              empinfo.setSECStartdate(objDelegation.getStartDate());
-            }
-            if (objDelegation.getEndDate() != null) {
-              empinfo.setSECEnddate(objDelegation.getEndDate());
-            }
-            if (objDelegation.getDecisionDate() != null) {
-              empinfo.setSECDecisionDate(objDelegation.getDecisionDate());
-            }
-            empinfo.setSECDecisionNo(objDelegation.getDecisionNo());
-            empinfo.setSECChangeReason(objDelegation.getDelegationType());
-            empinfo.setSECEmploymentNumber(objDelegation.getEhcmEmpPerinfo().getSearchKey());
-            OBDal.getInstance().save(empinfo);
+          empInfo.setNamedParameter("end", objDelegation.getEndDate());
 
+          if (empInfo.list().size() > 0) {
+            for (int empInfoList = 0; empInfoList < empInfo.list().size(); empInfoList++) {
+              EmploymentInfo empinfo = empInfo.list().get(empInfoList);
+              if (objDelegation.getNewPosition() != null) {
+                EhcmPosition objPosition = OBDal.getInstance().get(EhcmPosition.class,
+                    objDelegation.getNewPosition().getId());
+                empinfo.setSecpositionGrade(objPosition.getGrade());
+                empinfo.setSecjobno(objPosition);
+                empinfo.setSecjobcode(objPosition.getEhcmJobs());
+                empinfo.setSecjobtitle(objPosition.getEhcmJobs().getJOBTitle());
+              }
+              if (objDelegation.getNewDepartment() != null) {
+                empinfo.setSECDeptName(objDelegation.getNewDepartment().getName());
+                empinfo.setSECDeptCode(objDelegation.getNewDepartment());
+                empinfo.setAssignedDepartment(objDelegation.getNewDepartment());
+                if (objDelegation.getNewDepartment().getEhcmEscmLoc() != null) {
+                  EscmLocation loc = OBDal.getInstance().get(EscmLocation.class,
+                      objDelegation.getNewDepartment().getEhcmEscmLoc().getId());
+                  empinfo.setSECLocation(loc.getLocationName());
+                }
+              }
+              if (objDelegation.getNewSection() != null) {
+                empinfo.setSECSectionCode(objDelegation.getNewSection());
+                empinfo.setSECSectionName(objDelegation.getNewSection().getName());
+                // if (objDelegation.getNewSection().getEhcmLocation() != null) {
+                // empinfo.setSECLocation(
+                // objDelegation.getNewSection().getEhcmLocation().getLocationName());
+                // }
+              }
+              if (objDelegation.getStartDate() != null) {
+                empinfo.setSECStartdate(objDelegation.getStartDate());
+              }
+              if (objDelegation.getEndDate() != null) {
+                empinfo.setSECEnddate(objDelegation.getEndDate());
+              }
+              if (objDelegation.getDecisionDate() != null) {
+                empinfo.setSECDecisionDate(objDelegation.getDecisionDate());
+              }
+              empinfo.setSECDecisionNo(objDelegation.getDecisionNo());
+              empinfo.setSECChangeReason(objDelegation.getDelegationType());
+              empinfo.setSECEmploymentNumber(objDelegation.getEhcmEmpPerinfo().getSearchKey());
+              OBDal.getInstance().save(empinfo);
+            }
           }
 
           // update old delegation as inactive
@@ -284,13 +302,13 @@ public class EmpDelegationIssuance implements Process {
 
           // clear secondary info in employment information
           OBQuery<EmploymentInfo> empInfo = OBDal.getInstance().createQuery(EmploymentInfo.class,
-              " ehcmEmpPerinfo.id=:employeeId and startDate<=:start and "
-                  + "(endDate>=:start or endDate is null)  order by creationDate desc ");
+              " ehcmEmpPerinfo.id=:employeeId and "
+                  + "((startDate >=:start and to_date(to_char(coalesce (endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <=:end) or"
+                  + " (startDate <=:end and to_date(to_char(coalesce (endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') >=:start))"
+                  + "order by creationDate desc ");
           empInfo.setNamedParameter("employeeId", objDelegation.getEhcmEmpPerinfo().getId());
           empInfo.setNamedParameter("start", objDelegation.getStartDate());
-
-          log.debug(objDelegation.getEhcmEmpPerinfo().getId());
-          log.debug(objDelegation.getOriginalDecisionNo().getId());
+          empInfo.setNamedParameter("end", objDelegation.getEndDate());
 
           OBQuery<EmployeeDelegation> empDelegation = OBDal.getInstance().createQuery(
               EmployeeDelegation.class,
@@ -301,71 +319,71 @@ public class EmpDelegationIssuance implements Process {
           empDelegation.setNamedParameter("delId", objDelegation.getId());
 
           empDelegation.setMaxResult(1);
-          empInfo.setMaxResult(1);
-          EmploymentInfo empinfo = empInfo.list().get(0);
-          if (empInfo.list().size() > 0 && empDelegation.list().size() == 0) {
-            empinfo.setSecpositionGrade(null);
-            empinfo.setSecjobno(null);
-            empinfo.setSecjobcode(null);
-            empinfo.setSecjobtitle(null);
-            empinfo.setSECDeptName(null);
-            empinfo.setSECDeptCode(null);
-            empinfo.setAssignedDepartment(null);
-            empinfo.setSECSectionCode(null);
-            empinfo.setSECSectionName(null);
-            empinfo.setSECLocation(null);
-            empinfo.setSECStartdate(null);
-            empinfo.setSECEnddate(null);
-            empinfo.setSECDecisionDate(null);
-            empinfo.setSECDecisionNo(null);
-            empinfo.setSECChangeReason(null);
-            empinfo.setSECEmploymentNumber(null);
-            OBDal.getInstance().save(empinfo);
-
-          } else if (empInfo.list().size() > 0 && empDelegation.list().size() > 0) {
-            objDelegation = OBDal.getInstance().get(EmployeeDelegation.class,
-                empDelegation.list().get(0).getId());
-            if (objDelegation.getNewPosition() != null) {
-              EhcmPosition objPosition = OBDal.getInstance().get(EhcmPosition.class,
-                  objDelegation.getNewPosition().getId());
-              empinfo.setSecpositionGrade(objPosition.getGrade());
-              empinfo.setSecjobno(objPosition);
-              empinfo.setSecjobcode(objPosition.getEhcmJobs());
-              empinfo.setSecjobtitle(objPosition.getEhcmJobs().getJOBTitle());
-            }
-            if (objDelegation.getNewDepartment() != null) {
-              empinfo.setSECDeptName(objDelegation.getNewDepartment().getName());
-              empinfo.setSECDeptCode(objDelegation.getNewDepartment());
-              empinfo.setAssignedDepartment(objDelegation.getNewDepartment());
-              if (objDelegation.getNewDepartment().getEhcmEscmLoc() != null) {
-                EscmLocation loc = OBDal.getInstance().get(EscmLocation.class,
-                    objDelegation.getNewDepartment().getEhcmEscmLoc().getId());
-                empinfo.setSECLocation(loc.getLocationName());
+          for (int empInfoList = 0; empInfoList < empInfo.list().size(); empInfoList++) {
+            EmploymentInfo empinfo = empInfo.list().get(empInfoList);
+            if (empInfo.list().size() > 0 && empDelegation.list().size() == 0) {
+              empinfo.setSecpositionGrade(null);
+              empinfo.setSecjobno(null);
+              empinfo.setSecjobcode(null);
+              empinfo.setSecjobtitle(null);
+              empinfo.setSECDeptName(null);
+              empinfo.setSECDeptCode(null);
+              empinfo.setAssignedDepartment(null);
+              empinfo.setSECSectionCode(null);
+              empinfo.setSECSectionName(null);
+              empinfo.setSECLocation(null);
+              empinfo.setSECStartdate(null);
+              empinfo.setSECEnddate(null);
+              empinfo.setSECDecisionDate(null);
+              empinfo.setSECDecisionNo(null);
+              empinfo.setSECChangeReason(null);
+              empinfo.setSECEmploymentNumber(null);
+              OBDal.getInstance().save(empinfo);
+            } else if (empInfo.list().size() > 0 && empDelegation.list().size() > 0) {
+              objDelegation = OBDal.getInstance().get(EmployeeDelegation.class,
+                  empDelegation.list().get(0).getId());
+              if (objDelegation.getNewPosition() != null) {
+                EhcmPosition objPosition = OBDal.getInstance().get(EhcmPosition.class,
+                    objDelegation.getNewPosition().getId());
+                empinfo.setSecpositionGrade(objPosition.getGrade());
+                empinfo.setSecjobno(objPosition);
+                empinfo.setSecjobcode(objPosition.getEhcmJobs());
+                empinfo.setSecjobtitle(objPosition.getEhcmJobs().getJOBTitle());
               }
+              if (objDelegation.getNewDepartment() != null) {
+                empinfo.setSECDeptName(objDelegation.getNewDepartment().getName());
+                empinfo.setSECDeptCode(objDelegation.getNewDepartment());
+                empinfo.setAssignedDepartment(objDelegation.getNewDepartment());
+                if (objDelegation.getNewDepartment().getEhcmEscmLoc() != null) {
+                  EscmLocation loc = OBDal.getInstance().get(EscmLocation.class,
+                      objDelegation.getNewDepartment().getEhcmEscmLoc().getId());
+                  empinfo.setSECLocation(loc.getLocationName());
+                }
+              }
+              if (objDelegation.getNewSection() != null) {
+                empinfo.setSECSectionCode(objDelegation.getNewSection());
+                empinfo.setSECSectionName(objDelegation.getNewSection().getName());
+                // if (objDelegation.getNewSection().getEhcmLocation() != null) {
+                // empinfo.setSECLocation(
+                // objDelegation.getNewSection().getEhcmLocation().getLocationName());
+                // }
+              }
+              if (objDelegation.getStartDate() != null) {
+                empinfo.setSECStartdate(objDelegation.getStartDate());
+              }
+              if (objDelegation.getEndDate() != null) {
+                empinfo.setSECEnddate(objDelegation.getEndDate());
+              }
+              if (objDelegation.getDecisionDate() != null) {
+                empinfo.setSECDecisionDate(objDelegation.getDecisionDate());
+              }
+              empinfo.setSECDecisionNo(objDelegation.getDecisionNo());
+              empinfo.setSECChangeReason(objDelegation.getDelegationType());
+              empinfo.setSECEmploymentNumber(objDelegation.getEhcmEmpPerinfo().getSearchKey());
+              OBDal.getInstance().save(empinfo);
+              OBDal.getInstance().save(empinfo);
+              objDelegation = OBDal.getInstance().get(EmployeeDelegation.class, delegationId);
             }
-            if (objDelegation.getNewSection() != null) {
-              empinfo.setSECSectionCode(objDelegation.getNewSection());
-              empinfo.setSECSectionName(objDelegation.getNewSection().getName());
-              // if (objDelegation.getNewSection().getEhcmLocation() != null) {
-              // empinfo.setSECLocation(
-              // objDelegation.getNewSection().getEhcmLocation().getLocationName());
-              // }
-            }
-            if (objDelegation.getStartDate() != null) {
-              empinfo.setSECStartdate(objDelegation.getStartDate());
-            }
-            if (objDelegation.getEndDate() != null) {
-              empinfo.setSECEnddate(objDelegation.getEndDate());
-            }
-            if (objDelegation.getDecisionDate() != null) {
-              empinfo.setSECDecisionDate(objDelegation.getDecisionDate());
-            }
-            empinfo.setSECDecisionNo(objDelegation.getDecisionNo());
-            empinfo.setSECChangeReason(objDelegation.getDelegationType());
-            empinfo.setSECEmploymentNumber(objDelegation.getEhcmEmpPerinfo().getSearchKey());
-            OBDal.getInstance().save(empinfo);
-            OBDal.getInstance().save(empinfo);
-            objDelegation = OBDal.getInstance().get(EmployeeDelegation.class, delegationId);
           }
 
           /*
@@ -393,6 +411,7 @@ public class EmpDelegationIssuance implements Process {
           OBDal.getInstance().flush();
         }
       }
+      objDelegation.setDecisionStatus("I");
       obError.setType("Success");
       obError.setTitle("Success");
       obError.setMessage(OBMessageUtils.messageBD("Ehcm_Submit_Process"));

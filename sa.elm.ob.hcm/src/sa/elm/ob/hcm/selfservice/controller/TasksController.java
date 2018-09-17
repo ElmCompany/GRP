@@ -1,10 +1,8 @@
 package sa.elm.ob.hcm.selfservice.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,10 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import sa.elm.ob.hcm.selfservice.dto.tasks.TaskDTO;
 import sa.elm.ob.hcm.services.selfservicetransactions.SelfServiceTransactionService;
 import sa.elm.ob.hcm.services.workflow.WorkflowUtilityService;
 import sa.elm.ob.hcm.util.ActivitiProcess;
-import sa.elm.ob.hcm.util.ActivitiProcessImpl;
 
 @RestController
 @RequestMapping("openerp/hr/tasks")
@@ -28,19 +26,15 @@ public class TasksController {
   @Autowired
   private WorkflowUtilityService workflowUtilityService;
 
-  private ActivitiProcess activitiProcess = new ActivitiProcessImpl();
+  @Autowired
+  private ActivitiProcess activitiProcess;
 
   @RequestMapping(value = "/user/{username}", method = RequestMethod.GET)
-  public ResponseEntity<List<String>> getTaskAssignedToUser(
-      @PathVariable("username") String username) {
+  public ResponseEntity<List<TaskDTO>> getTaskAssignedToUser(@PathVariable String username) {
 
-    String empId = workflowUtilityService.getEmpId(username);
-    List<Task> tasks = activitiProcess.getTaskAssignedToUser(empId);
-    List<String> taskIds = new ArrayList<String>();
-    for (Task task : tasks) {
-      taskIds.add(task.getId());
-    }
-    return new ResponseEntity<List<String>>(taskIds, HttpStatus.OK);
+    List<TaskDTO> tasks = activitiProcess.getTasksByUser(username);
+
+    return new ResponseEntity<List<TaskDTO>>(tasks, HttpStatus.OK);
   }
 
   @RequestMapping(value = "/taskId/{taskId}", method = RequestMethod.GET)
@@ -64,15 +58,11 @@ public class TasksController {
   }
 
   @RequestMapping(value = "/role/{roleId}", method = RequestMethod.GET)
-  public ResponseEntity<List<String>> getTasksAssignedToRole(@PathVariable String roleId) {
+  public ResponseEntity<List<TaskDTO>> getTasksAssignedToRole(@PathVariable String roleId) {
 
-    List<Task> tasks = activitiProcess.getTasksAssignedToRole(roleId);
+    List<TaskDTO> tasks = activitiProcess.getTasksByRole(roleId);
 
-    List<String> taskIds = new ArrayList<String>();
-    for (Task task : tasks) {
-      taskIds.add(task.getId());
-    }
-    return new ResponseEntity<List<String>>(taskIds, HttpStatus.OK);
+    return new ResponseEntity<List<TaskDTO>>(tasks, HttpStatus.OK);
   }
 
   @RequestMapping(value = "/username/{username}/taskId/{taskId}", method = RequestMethod.PUT)
@@ -98,6 +88,18 @@ public class TasksController {
     List<String> roles = workflowUtilityService.getRoleListByUsingUsername(username);
 
     return new ResponseEntity<List<String>>(roles, HttpStatus.OK);
+  }
+
+  @RequestMapping(value = "/role/{id}", method = RequestMethod.DELETE)
+  public ResponseEntity<Boolean> deleteTasksByRole(@PathVariable String id) {
+    activitiProcess.deleteTasksByRole(id);
+    return new ResponseEntity<Boolean>(true, HttpStatus.OK);
+  }
+
+  @RequestMapping(value = "/user/{username}", method = RequestMethod.DELETE)
+  public ResponseEntity<Boolean> deleteTasksByUsername(@PathVariable String username) {
+    activitiProcess.deleteTasksByUser(username);
+    return new ResponseEntity<Boolean>(true, HttpStatus.OK);
   }
 
 }

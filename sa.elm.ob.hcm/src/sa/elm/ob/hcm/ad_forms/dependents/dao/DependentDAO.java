@@ -258,7 +258,8 @@ public class DependentDAO {
       String depqry = "SELECT dep.relationship as rel,dep.firstname,dep.fathername,dep.grandfather,dep.fourthname,dep.family,"
           + "(select eut_convert_to_hijri(to_char(dep.dob,'YYYY-MM-DD HH24:MI:SS'))) as dob,dep.gender,dep.nationalidentifier as natidf,"
           + "(select eut_convert_to_hijri(to_char(dep.startdate,'YYYY-MM-DD HH24:MI:SS'))) as startdate,"
-          + "(select eut_convert_to_hijri(to_char(dep.enddate,'YYYY-MM-DD HH24:MI:SS'))) as enddate,dep.phoneno,dep.location FROM ehcm_dependents dep "
+          + "(select eut_convert_to_hijri(to_char(dep.enddate,'YYYY-MM-DD HH24:MI:SS'))) as enddate,dep.phoneno,dep.location,"
+          + "dep.firstname_en, dep.fathername_en, dep.grandfather_en, dep.fourthname_en, dep.family_en FROM ehcm_dependents dep "
           + "where ehcm_emp_perinfo_id = '" + employeeId + "'";
       if (dependentId != "" || dependentId != null || dependentId != "null") {
         depqry = depqry + "and ehcm_dependents_id = '" + dependentId + "'";
@@ -286,6 +287,12 @@ public class DependentDAO {
         dependentVO.setEnddate(rs.getString("enddate") == null ? "" : rs.getString("enddate"));
         dependentVO.setPhoneno(Utility.nullToEmpty(rs.getString("phoneno")));
         dependentVO.setLocation(Utility.nullToEmpty(rs.getString("location")));
+
+        dependentVO.setFirstnameEn(Utility.nullToEmpty(rs.getString("firstname_en")));
+        dependentVO.setFathernameEn(Utility.nullToEmpty(rs.getString("fathername_en")));
+        dependentVO.setGrandfatherEn(Utility.nullToEmpty(rs.getString("grandfather_en")));
+        dependentVO.setFourthnameEn(Utility.nullToEmpty(rs.getString("fourthname_en")));
+        dependentVO.setFamilyEn(Utility.nullToEmpty(rs.getString("family_en")));
       }
     } catch (final SQLException e) {
       log4j.error("", e);

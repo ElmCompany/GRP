@@ -15,12 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import sa.elm.ob.hcm.EHCMEMPTermination;
-import sa.elm.ob.hcm.EHCMEmpSupervisor;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EhcmterminationEmpV;
 import sa.elm.ob.hcm.EmploymentInfo;
 import sa.elm.ob.hcm.ehcmempstatus;
-import sa.elm.ob.hcm.ehcmpayscaleline;
 import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
 import sa.elm.ob.hcm.ad_process.EmpExtendService.DAO.ExtendServiceHandlerDAO;
 import sa.elm.ob.hcm.util.UtilityDAO;
@@ -52,7 +50,8 @@ public class EmpTerminationDAOImpl implements EndofEmploymentDAO {
     return OBDal.getInstance().getConnection();
   }
 
-  public void removeEmploymentRecord(String terminationId) {
+  public void removeEmploymentRecord(String terminationId, VariablesSecureApp vars,
+      EHCMEMPTermination termination) {
     OBQuery<EmploymentInfo> empInfo = null;
     EmploymentInfo empinfo = null;
     List<EmploymentInfo> employmentInfo = new ArrayList<EmploymentInfo>();
@@ -63,6 +62,8 @@ public class EmpTerminationDAOImpl implements EndofEmploymentDAO {
       employmentInfo = empInfo.list();
       if (employmentInfo.size() > 0) {
         empinfo = employmentInfo.get(0);
+        updateEmploymentRecord(terminationId, vars, termination, empinfo.getId());
+
         OBDal.getInstance().remove(empinfo);
         OBDal.getInstance().flush();
       }
@@ -75,14 +76,15 @@ public class EmpTerminationDAOImpl implements EndofEmploymentDAO {
   }
 
   public void updateEmploymentRecord(String terminationId, VariablesSecureApp vars,
-      EHCMEMPTermination termination) {
+      EHCMEMPTermination termination, String recentEmpInfoId) {
     OBQuery<EmploymentInfo> empInfo = null;
     EmploymentInfo empinfo = null;
     List<EmploymentInfo> employmentInfo = new ArrayList<EmploymentInfo>();
     Date endDate = null;
     try {
       empInfo = OBDal.getInstance().createQuery(EmploymentInfo.class,
-          "   ehcmEmpPerinfo.id=:employeeId order by creationDate desc ");
+          "   ehcmEmpPerinfo.id=:employeeId and id <> '" + recentEmpInfoId
+              + "' order by creationDate desc ");
       empInfo.setNamedParameter("employeeId", termination.getEhcmEmpPerinfo().getId());
       empInfo.setMaxResult(1);
       employmentInfo = empInfo.list();
@@ -92,7 +94,8 @@ public class EmpTerminationDAOImpl implements EndofEmploymentDAO {
         empinfoObj.setUpdated(new java.util.Date());
         empinfo.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
         endDate = ExtendServiceHandlerDAO.updateEndDateInEmploymentInfo(
-            termination.getEhcmEmpPerinfo().getId(), termination.getClient().getId());
+            termination.getEhcmEmpPerinfo().getId(), termination.getClient().getId(),
+            recentEmpInfoId);
         empinfo.setEndDate(endDate);
         empinfo.setEnabled(true);
         empinfo.setAlertStatus(DecisionTypeConstants.Status_active);
@@ -105,6 +108,25 @@ public class EmpTerminationDAOImpl implements EndofEmploymentDAO {
       e.printStackTrace();
     }
 
+  }
+
+  public void updateEmpStatusRecord(String employeeId, EHCMEMPTermination terminationId) {
+    try {
+      OBQuery<ehcmempstatus> employeestatus = OBDal.getInstance().createQuery(ehcmempstatus.class,
+          " ehcmEmpPerinfo.id=:employeeId ");
+      employeestatus.setNamedParameter("employeeId", employeeId);
+      if (employeestatus.list().size() > 0) {
+        ehcmempstatus employee = employeestatus.list().get(0);
+        employee.setEhcmEmpTermination(terminationId);
+        OBDal.getInstance().save(employee);
+        OBDal.getInstance().flush();
+      }
+
+    } catch (OBException e) {
+      // TODO Auto-generated catch block
+      log.error("Exception in updateEmpStatusRecord " + e.getMessage());
+      e.printStackTrace();
+    }
   }
 
   public void removeEmpStatusRecord(String employeeId, String terminationId) {
@@ -170,7 +192,7 @@ public class EmpTerminationDAOImpl implements EndofEmploymentDAO {
       VariablesSecureApp vars) {
     EmploymentInfo info = null;
     EhcmterminationEmpV terminationView = terminationoldObj.getEhcmEmpPerinfo();
-    EHCMEmpSupervisor supervisorId = null;
+    int oneDay = 1 * 24 * 3600 * 1000;
     try {
       OBQuery<EmploymentInfo> empInfo = OBDal.getInstance().createQuery(EmploymentInfo.class,
           " as e where ehcmEmpPerinfo.id=:employeeId and e.enabled='Y' order by e.creationDate desc");
@@ -182,56 +204,14 @@ public class EmpTerminationDAOImpl implements EndofEmploymentDAO {
       EmploymentInfo employInfo = OBProvider.getInstance().get(EmploymentInfo.class);
       employInfo.setChangereason(Status_Terminate);
       employInfo.setChangereasoninfo(terminationoldObj.getEhcmTerminationReason().getSearchKey());
-
-      employInfo.setDepartmentName(terminationoldObj.getDepartmentCode().getName());
-      employInfo.setDeptcode(terminationoldObj.getDepartmentCode());
-      employInfo.setGrade(terminationoldObj.getGrade());
-      ehcmpayscaleline line = OBDal.getInstance().get(ehcmpayscaleline.class,
-          terminationoldObj.getEhcmPayscaleline().getId());
-      employInfo.setEhcmPayscale(line.getEhcmPayscale());
-      employInfo.setEmpcategory(terminationoldObj.getEmployeeCategory().getId());
-      employInfo.setEmployeeno(terminationView.getEhcmEmpPerinfo().getSearchKey());
-      employInfo.setEhcmPayscaleline(line);
-      employInfo.setEmploymentgrade(terminationoldObj.getEmploymentGrade());
-      employInfo.setJobcode(terminationoldObj.getPosition().getEhcmJobs());
-      employInfo.setPosition(terminationoldObj.getPosition());
-      employInfo.setJobtitle(terminationoldObj.getPosition().getJOBName().getJOBTitle());
-      employInfo.setLocation(info.getLocation());
-      if (info.getEhcmPayrollDefinition() != null)
-        employInfo.setEhcmPayrollDefinition(info.getEhcmPayrollDefinition());
-      if (terminationoldObj.getSectionCode() != null) {
-        employInfo.setSectionName(terminationoldObj.getSectionCode().getName());
-        employInfo.setSectioncode(terminationoldObj.getSectionCode());
-      }
-      employInfo.setEhcmEmpPerinfo(terminationView.getEhcmEmpPerinfo());
+      UtilityDAO.insertActEmplymntInfoDetailsInIssueDecision(terminationView.getEhcmEmpPerinfo(),
+          employInfo, false, true);
       employInfo.setStartDate(terminationoldObj.getTerminationDate());
       employInfo.setEndDate(null);
       employInfo.setAlertStatus(Status_TerminateEnd);
       employInfo.setEhcmEmpTermination(terminationoldObj);
       employInfo.setDecisionNo(terminationoldObj.getDecisionNo());
       employInfo.setDecisionDate(terminationoldObj.getDecisionDate());
-      supervisorId = UtilityDAO.getSupervisorforEmployee(
-          terminationoldObj.getEhcmEmpPerinfo().getId(), terminationoldObj.getClient().getId());
-      employInfo.setEhcmEmpSupervisor(supervisorId);
-      /* secondary */
-      employInfo.setSecpositionGrade(info.getSecpositionGrade());
-      employInfo.setSecpositionGrade(info.getSecpositionGrade());
-      employInfo.setSecjobno(info.getSecjobno());
-      employInfo.setSecjobcode(info.getSecjobcode());
-      employInfo.setSecjobtitle(info.getSecjobtitle());
-      employInfo.setSECDeptCode(info.getSECDeptCode());
-      employInfo.setSECDeptName(info.getSECDeptName());
-      if (info.getSECSectionCode() != null) {
-        employInfo.setSECSectionCode(info.getSECSectionCode());
-        employInfo.setSECSectionName(info.getSECSectionName());
-      }
-      employInfo.setSECLocation(info.getSECLocation());
-      employInfo.setSECStartdate(info.getSECStartdate());
-      employInfo.setSECEnddate(info.getSECEnddate());
-      employInfo.setSECDecisionNo(info.getSECDecisionNo());
-      employInfo.setSECDecisionDate(info.getSECDecisionDate());
-      employInfo.setSECChangeReason(info.getSECChangeReason());
-      employInfo.setSECEmploymentNumber(info.getSECEmploymentNumber());
 
       OBDal.getInstance().save(employInfo);
       OBDal.getInstance().flush();
@@ -240,8 +220,7 @@ public class EmpTerminationDAOImpl implements EndofEmploymentDAO {
           terminationoldObj.getEhcmEmpPerinfo().getId());
       person.setEmploymentStatus(Status_TerminateEnd);
       person.setEnabled(false);
-      Date dateBefore = new Date(
-          terminationoldObj.getTerminationDate().getTime() - 1 * 24 * 3600 * 1000);
+      Date dateBefore = new Date(terminationoldObj.getTerminationDate().getTime() - oneDay);
       if (person.getStartDate().compareTo(terminationoldObj.getTerminationDate()) == 0)
         person.setEndDate(person.getStartDate());
       else
@@ -260,8 +239,7 @@ public class EmpTerminationDAOImpl implements EndofEmploymentDAO {
         empinfo.setUpdated(new java.util.Date());
         empinfo.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
         Date startdate = empinfo.getStartDate();
-        dateBefore = new Date(
-            terminationoldObj.getTerminationDate().getTime() - 1 * 24 * 3600 * 1000);
+        dateBefore = new Date(terminationoldObj.getTerminationDate().getTime() - oneDay);
 
         if (startdate.compareTo(terminationoldObj.getTerminationDate()) == 0)
           empinfo.setEndDate(empinfo.getStartDate());
@@ -275,6 +253,10 @@ public class EmpTerminationDAOImpl implements EndofEmploymentDAO {
       }
 
     } catch (OBException e) {
+      // TODO Auto-generated catch block
+      log.error("Exception in insertRecordinEmploymentInfo " + e.getMessage());
+      e.printStackTrace();
+    } catch (Exception e) {
       // TODO Auto-generated catch block
       log.error("Exception in insertRecordinEmploymentInfo " + e.getMessage());
       e.printStackTrace();

@@ -43,8 +43,6 @@ public class EmpEmpTransferSelfIssueDecision implements Process {
     EmploymentInfo info = null;
     AssingedOrReleaseEmpInPositionDAO assingedOrReleaseEmpInPositionDAO = new AssingedOrReleaseEmpInPositionDAOImpl();
     log.debug("transferId:" + transferselfId);
-    Date dateBeforeForassign = null;
-    int millSec = 1 * 24 * 3600 * 1000;
     Boolean chkPositionAvailableOrNot = false;
     try {
       OBContext.setAdminMode(true);
@@ -55,34 +53,40 @@ public class EmpEmpTransferSelfIssueDecision implements Process {
       if (!transfer.getDecisionType().equals("CA")) {
         EhcmPosition position = OBDal.getInstance().get(EhcmPosition.class,
             transfer.getNewPosition().getId());
-        chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO.chkPositionAvailableOrNot(
-            transfer.getEhcmEmpPerinfo(), position, transfer.getStartDate(), transfer.getEndDate(),
-            transfer.getDecisionType(), false);
-        if (chkPositionAvailableOrNot) {
-          obError.setType("Error");
-          obError.setTitle("Error");
-          obError.setMessage(OBMessageUtils.messageBD("EHCM_PosNotAvailable"));
-          bundle.setResult(obError);
-          return;
+        if (!position.getId().equals(transfer.getPosition().getId())) {
+          chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO.chkPositionAvailableOrNot(
+              transfer.getEhcmEmpPerinfo(), position, transfer.getStartDate(),
+              transfer.getEndDate(), transfer.getDecisionType(), false);
+          if (chkPositionAvailableOrNot) {
+            obError.setType("Error");
+            obError.setTitle("Error");
+            obError.setMessage(OBMessageUtils.messageBD("EHCM_PosNotAvailable"));
+            bundle.setResult(obError);
+            return;
+          }
         }
-      } else {/*
-               * EhcmPosition currentPos = assingedOrReleaseEmpInPositionDAO.getRecentPosition(
-               * transfer.getEhcmEmpPerinfo(), null, transfer.getOriginalDecisionsNo(), null);
-               */
+      } else {
+        /*
+         * EhcmPosition currentPos = assingedOrReleaseEmpInPositionDAO.getRecentPosition(
+         * transfer.getEhcmEmpPerinfo(), null, transfer.getOriginalDecisionsNo(), null);
+         */
 
         EmploymentInfo recentEmployeInfo = assingedOrReleaseEmpInPositionDAO
             .getRecentEmploymentInfo(transfer.getEhcmEmpPerinfo(), null, null,
                 transfer.getOriginalDecisionsNo());
 
-        chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO.chkPositionAvailableOrNot(
-            transfer.getEhcmEmpPerinfo(), recentEmployeInfo.getPosition(), transfer.getStartDate(),
-            null, transfer.getDecisionType(), false);
-        if (chkPositionAvailableOrNot) {
-          obError.setType("Error");
-          obError.setTitle("Error");
-          obError.setMessage(OBMessageUtils.messageBD("EHCM_PosNotAvailable"));
-          bundle.setResult(obError);
-          return;
+        if (recentEmployeInfo != null && recentEmployeInfo.getPosition() != null
+            && !recentEmployeInfo.getPosition().getId().equals(transfer.getPosition().getId())) {
+          chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO.chkPositionAvailableOrNot(
+              transfer.getEhcmEmpPerinfo(), recentEmployeInfo.getPosition(),
+              transfer.getStartDate(), null, transfer.getDecisionType(), false);
+          if (chkPositionAvailableOrNot) {
+            obError.setType("Error");
+            obError.setTitle("Error");
+            obError.setMessage(OBMessageUtils.messageBD("EHCM_PosNotAvailable"));
+            bundle.setResult(obError);
+            return;
+          }
         }
       }
 
@@ -212,34 +216,7 @@ public class EmpEmpTransferSelfIssueDecision implements Process {
           OBDal.getInstance().flush();
 
           if (transfer.getNewPosition() != null) {
-
-            EhcmPosition pos = OBDal.getInstance().get(EhcmPosition.class,
-                transfer.getPosition().getId());
-            log.debug("employInfo.getEhcmEmpTransfer:" + transfer.getPosition().getJOBNo());
-            /*
-             * Task No.6797 pos.setAssignedEmployee(null); OBDal.getInstance().save(pos);
-             * OBDal.getInstance().flush();
-             */
-
-            EhcmPosition newpos = OBDal.getInstance().get(EhcmPosition.class,
-                transfer.getNewPosition().getId());
-            /*
-             * Task No.6797 newpos.setAssignedEmployee( OBDal.getInstance().get(EmployeeView.class,
-             * transfer.getEhcmEmpPerinfo().getId())); OBDal.getInstance().save(newpos);
-             * OBDal.getInstance().flush();
-             */
-
-            dateBeforeForassign = new Date(transfer.getStartDate().getTime() - millSec);
-
-            assingedOrReleaseEmpInPositionDAO.updateEndDateInPositionEmployeeHisotry(
-                transfer.getEhcmEmpPerinfo(), pos, dateBeforeForassign, null, null, transfer, null,
-                null, null, null);
-
-            assingedOrReleaseEmpInPositionDAO.insertPositionEmployeeHisotry(transfer.getClient(),
-                transfer.getOrganization(), transfer.getEhcmEmpPerinfo(), null,
-                transfer.getStartDate(), transfer.getEndDate(), transfer.getDecisionNo(),
-                transfer.getDecisionDate(), newpos, vars, null, null, transfer);
-
+            updatePositionAssEmp(transfer, vars);
           }
           log.debug(
               "employInfo.getEhcmEmpTransferSelf:" + employInfo.getEhcmEmpTransferSelf().getId());
@@ -373,53 +350,8 @@ public class EmpEmpTransferSelfIssueDecision implements Process {
               OBDal.getInstance().flush();
 
               if (transfer.getNewPosition() != null) {
+                updatePositionAssEmp(transfer, vars);
 
-                EhcmPosition pos = OBDal.getInstance().get(EhcmPosition.class,
-                    transfer.getPosition().getId());
-                /*
-                 * Task No.6797 pos.setAssignedEmployee(null); OBDal.getInstance().save(pos);
-                 * OBDal.getInstance().flush();
-                 */
-                EhcmPosition newpos = OBDal.getInstance().get(EhcmPosition.class,
-                    transfer.getNewPosition().getId());
-                /*
-                 * Task No.6797
-                 * newpos.setAssignedEmployee(OBDal.getInstance().get(EmployeeView.class,
-                 * transfer.getEhcmEmpPerinfo().getId())); OBDal.getInstance().save(newpos);
-                 * OBDal.getInstance().flush();
-                 */
-
-                if (transfer.getOriginalDecisionsNo() != null) {
-                  EhcmPosition currentPos = assingedOrReleaseEmpInPositionDAO
-                      .revertOldValuesAndGetOldestPosition(transfer.getEhcmEmpPerinfo(), null, null,
-                          transfer);
-                  if (!currentPos.getId().equals(transfer.getNewPosition().getId())) {
-                    if (!transfer.getPosition().getId().equals(transfer.getNewPosition().getId())
-                        && !currentPos.getId().equals(transfer.getPosition().getId())) {
-                      assingedOrReleaseEmpInPositionDAO
-                          .deletePositionEmployeeHisotry(transfer.getEhcmEmpPerinfo(), pos);
-                    }
-
-                    dateBeforeForassign = new Date(transfer.getStartDate().getTime() - millSec);
-
-                    assingedOrReleaseEmpInPositionDAO.updateEndDateInPositionEmployeeHisotry(
-                        transfer.getEhcmEmpPerinfo(), currentPos, dateBeforeForassign, null, null,
-                        transfer, null, null, null, null);
-
-                    assingedOrReleaseEmpInPositionDAO.insertPositionEmployeeHisotry(
-                        transfer.getClient(), transfer.getOrganization(),
-                        transfer.getEhcmEmpPerinfo(), null, transfer.getStartDate(),
-                        transfer.getEndDate(), transfer.getDecisionNo(), transfer.getDecisionDate(),
-                        newpos, vars, null, null, transfer);
-                  } else {
-                    if (transfer.getEndDate() != null) {
-                      assingedOrReleaseEmpInPositionDAO.updateEndDateInPositionEmployeeHisotry(
-                          transfer.getEhcmEmpPerinfo(), currentPos, transfer.getEndDate(), null,
-                          null, transfer, null, null, null, null);
-                    }
-                  }
-
-                }
               }
 
               log.debug("getChangereason:" + empinfo.getChangereason());
@@ -444,34 +376,7 @@ public class EmpEmpTransferSelfIssueDecision implements Process {
             empinfo.setAlertStatus("ACT");
             empinfo.setEhcmEmpTransferSelf(null);
             if (empinfo.getPosition() != null) {
-              EhcmPosition pos = OBDal.getInstance().get(EhcmPosition.class,
-                  transfer.getPosition().getId());
-              /*
-               * Task No.6797 pos.setAssignedEmployee(null); OBDal.getInstance().save(pos);
-               * OBDal.getInstance().flush();
-               */
-
-              /*
-               * EhcmPosition currentPos = assingedOrReleaseEmpInPositionDAO.getRecentPosition(
-               * transfer.getEhcmEmpPerinfo(), null, null, transfer.getOriginalDecisionsNo());
-               */
-              EmploymentInfo recentEmployeInfo = assingedOrReleaseEmpInPositionDAO
-                  .getRecentEmploymentInfo(transfer.getEhcmEmpPerinfo(), null, null,
-                      transfer.getOriginalDecisionsNo());
-
-              assingedOrReleaseEmpInPositionDAO
-                  .deletePositionEmployeeHisotry(transfer.getEhcmEmpPerinfo(), pos);
-
-              EhcmPosition newpos = OBDal.getInstance().get(EhcmPosition.class,
-                  empinfo.getPosition().getId());
-              /*
-               * Task No.6797 newpos.setAssignedEmployee(OBDal.getInstance().get(EmployeeView.class,
-               * transfer.getEhcmEmpPerinfo().getId())); OBDal.getInstance().save(newpos);
-               * OBDal.getInstance().flush();
-               */
-              assingedOrReleaseEmpInPositionDAO.updateEndDateInPositionEmployeeHisotry(
-                  transfer.getEhcmEmpPerinfo(), recentEmployeInfo.getPosition(), null, null, null,
-                  null, null, null, null, recentEmployeInfo);
+              updateEmpPositionInCancel(transfer, empinfo);
             }
 
             OBDal.getInstance().save(empinfo);
@@ -580,6 +485,161 @@ public class EmpEmpTransferSelfIssueDecision implements Process {
       bundle.setResult(error);
     } finally {
       OBContext.restorePreviousMode();
+    }
+  }
+
+  public static void updatePositionAssEmp(EHCMEmpTransferSelf empTransfer, VariablesSecureApp vars)
+      throws Exception {
+    // TODO Auto-generated method stub
+    Date dateBeforeForassign = null;
+    int millSec = 1 * 24 * 3600 * 1000;
+    AssingedOrReleaseEmpInPositionDAO assingedOrReleaseEmpInPositionDAO = new AssingedOrReleaseEmpInPositionDAOImpl();
+    try {
+
+      EhcmPosition pos = OBDal.getInstance().get(EhcmPosition.class,
+          empTransfer.getPosition().getId());
+      log.debug("employInfo.getEhcmEmpTransfer:" + empTransfer.getPosition().getJOBNo());
+      /*
+       * Task No.6797 pos.setAssignedEmployee(null); OBDal.getInstance().save(pos);
+       * OBDal.getInstance().flush();
+       */
+
+      EhcmPosition newpos = OBDal.getInstance().get(EhcmPosition.class,
+          empTransfer.getNewPosition().getId());
+      /*
+       * Task No.6797 newpos.setAssignedEmployee( OBDal.getInstance().get(EmployeeView.class,
+       * empTransfer.getEhcmEmpPerinfo().getId())); OBDal.getInstance().save(newpos);
+       * OBDal.getInstance().flush();
+       */
+      // update case if original decision no is there
+      if (empTransfer.getOriginalDecisionsNo() != null) {
+        /*
+         * revert the old changes whatever we did while doing the issue decision for selected
+         * original decision no and return current position ( before doing transferself(previous
+         * employment info record of transferself) what is the position of the employee)
+         */
+        EhcmPosition currentPos = assingedOrReleaseEmpInPositionDAO
+            .revertOldValuesAndGetOldestPosition(empTransfer.getEhcmEmpPerinfo(), null, null,
+                empTransfer, false);
+        // if current position is not equal to current transferself new position
+        if (!currentPos.getId().equals(empTransfer.getNewPosition().getId())) {
+
+          /*
+           * if (!empTransfer.getPosition().getId().equals(empTransfer.getNewPosition().getId()) &&
+           * !currentPos.getId().equals(empTransfer.getPosition().getId())) {
+           * assingedOrReleaseEmpInPositionDAO
+           * .deletePositionEmployeeHisotry(empTransfer.getEhcmEmpPerinfo(), pos); }
+           */
+
+          dateBeforeForassign = new Date(empTransfer.getStartDate().getTime() - millSec);
+
+          // update the enddate & transferselfid for currentposition
+          assingedOrReleaseEmpInPositionDAO.updateEndDateInPositionEmployeeHisotry(
+              empTransfer.getEhcmEmpPerinfo(), currentPos, dateBeforeForassign, null, null,
+              empTransfer, null, null, null, null);
+
+          // insert the new position in employee history
+          assingedOrReleaseEmpInPositionDAO.insertPositionEmployeeHisotry(empTransfer.getClient(),
+              empTransfer.getOrganization(), empTransfer.getEhcmEmpPerinfo(), null,
+              empTransfer.getStartDate(), empTransfer.getEndDate(), empTransfer.getDecisionNo(),
+              empTransfer.getDecisionDate(), newpos, vars, null, null, empTransfer);
+        }
+        // if current position is equal to current transferself of new position then update
+        // transferself id
+        // and update the enddate as transfer self enddate if enddate given
+        else {
+          // if (empTransfer.getEndDate() != null) {
+          assingedOrReleaseEmpInPositionDAO.updateEndDateInPositionEmployeeHisotry(
+              empTransfer.getEhcmEmpPerinfo(), currentPos, empTransfer.getEndDate(), null, null,
+              empTransfer, null, null, null, null);
+          // }
+        }
+
+      }
+      // create case
+      else {
+
+        // if current position and selected new position is not equal then update enddate for old
+        // position and insert new pos emp history for new position
+        if (!pos.getId().equals(newpos.getId())) {
+          dateBeforeForassign = new Date(empTransfer.getStartDate().getTime() - millSec);
+
+          // update old pos enddate as current transfer self startdate -1
+          assingedOrReleaseEmpInPositionDAO.updateEndDateInPositionEmployeeHisotry(
+              empTransfer.getEhcmEmpPerinfo(), pos, dateBeforeForassign, null, null, empTransfer,
+              null, null, null, null);
+
+          // insert new pos emp history for current transfer self of new position
+          assingedOrReleaseEmpInPositionDAO.insertPositionEmployeeHisotry(empTransfer.getClient(),
+              empTransfer.getOrganization(), empTransfer.getEhcmEmpPerinfo(), null,
+              empTransfer.getStartDate(), empTransfer.getEndDate(), empTransfer.getDecisionNo(),
+              empTransfer.getDecisionDate(), newpos, vars, null, null, empTransfer);
+
+        }
+        // if current position and selected new position is equal then update transferid of
+        // currentposition , and in tranfer having enddate also so need to update the enddate
+        else {
+          assingedOrReleaseEmpInPositionDAO.updateEndDateInPositionEmployeeHisotry(
+              empTransfer.getEhcmEmpPerinfo(), newpos, empTransfer.getEndDate(), null, null,
+              empTransfer, null, null, null, null);
+        }
+      }
+    } catch (
+
+    Exception e) {
+      e.printStackTrace();
+      log.error("Exception in updatePositionAssEmp in EmpEmpTransferSelfIssueDecision: ", e);
+    }
+  }
+
+  public static void updateEmpPositionInCancel(EHCMEmpTransferSelf empTransfer,
+      EmploymentInfo empinfo) {
+    // TODO Auto-generated method stub
+    AssingedOrReleaseEmpInPositionDAO assingedOrReleaseEmpInPositionDAO = new AssingedOrReleaseEmpInPositionDAOImpl();
+    try {
+
+      EhcmPosition pos = null;
+      EmploymentInfo recentEmployeInfo = null;
+
+      pos = OBDal.getInstance().get(EhcmPosition.class, empTransfer.getPosition().getId());
+
+      /*
+       * Task No.6797 pos.setAssignedEmployee(null); OBDal.getInstance().save(pos);
+       * OBDal.getInstance().flush();
+       */
+      /*
+       * EhcmPosition currentPos = assingedOrReleaseEmpInPositionDAO.getRecentPosition(
+       * empTransfer.getEhcmEmpPerinfo(), null, empTransfer.getOriginalDecisionsNo(), null);
+       */
+
+      recentEmployeInfo = assingedOrReleaseEmpInPositionDAO.getRecentEmploymentInfo(
+          empTransfer.getEhcmEmpPerinfo(), null, null, empTransfer.getOriginalDecisionsNo());
+
+      if (pos != null && recentEmployeInfo != null && recentEmployeInfo.getPosition() != null
+          && !recentEmployeInfo.getPosition().getId().equals(pos.getId())) {
+        if (pos != null) {
+          assingedOrReleaseEmpInPositionDAO
+              .deletePositionEmployeeHisotry(empTransfer.getEhcmEmpPerinfo(), pos);
+        }
+      }
+
+      /*
+       * EhcmPosition newpos = OBDal.getInstance().get(EhcmPosition.class,
+       * empinfo.getPosition().getId());
+       * 
+       * Task No.6797 newpos.setAssignedEmployee( OBDal.getInstance().get(EmployeeView.class,
+       * empTransfer.getEhcmEmpPerinfo().getId())); OBDal.getInstance().save(newpos);
+       * OBDal.getInstance().flush();
+       */
+      if (recentEmployeInfo != null) {
+        assingedOrReleaseEmpInPositionDAO.updateEndDateInPositionEmployeeHisotry(
+            empTransfer.getEhcmEmpPerinfo(), recentEmployeInfo.getPosition(), null, null, null,
+            empTransfer, null, null, null, recentEmployeInfo);
+      }
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      log.error("Exception in updateEmpPositionInCancel in EmpEmpTransferSelfIssueDecision: ", e);
     }
   }
 }

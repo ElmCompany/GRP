@@ -191,16 +191,16 @@ public class EmpScholarshipTrainingEvent extends EntityPersistenceEventObserver 
           }
         }
       }
-      if ((event.getCurrentState(canceldate) != null
-          && !event.getPreviousState(canceldate).equals(event.getCurrentState(canceldate)))
-          || !event.getPreviousState(decisionType).equals(event.getCurrentState(decisionType))) {
-        if (empScholarship.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CANCEL)) {
-          if (empScholarship.getCancelDate().compareTo(empScholarship.getStartDate()) == -1
-              || empScholarship.getCancelDate().compareTo(empScholarship.getStartDate()) == 0) {
-            throw new OBException(OBMessageUtils.messageBD("Ehcm_Scholarship_CancelDate"));
-          }
-        }
-      }
+      // if ((event.getCurrentState(canceldate) != null
+      // && !event.getPreviousState(canceldate).equals(event.getCurrentState(canceldate)))
+      // || !event.getPreviousState(decisionType).equals(event.getCurrentState(decisionType))) {
+      // if (empScholarship.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CANCEL)) {
+      // if (empScholarship.getCancelDate().compareTo(empScholarship.getStartDate()) == -1
+      // || empScholarship.getCancelDate().compareTo(empScholarship.getStartDate()) == 0) {
+      // throw new OBException(OBMessageUtils.messageBD("Ehcm_Scholarship_CancelDate"));
+      // }
+      // }
+      // }
       if ((event.getCurrentState(enddate) != null
           && !event.getPreviousState(enddate).equals(event.getCurrentState(enddate)))
           || !event.getPreviousState(decisionType).equals(event.getCurrentState(decisionType))) {
@@ -367,12 +367,12 @@ public class EmpScholarshipTrainingEvent extends EntityPersistenceEventObserver 
         }
       }
 
-      if (empScholarship.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CANCEL)) {
-        if (empScholarship.getCancelDate().compareTo(empScholarship.getStartDate()) == -1
-            || empScholarship.getCancelDate().compareTo(empScholarship.getStartDate()) == 0) {
-          throw new OBException(OBMessageUtils.messageBD("Ehcm_Scholarship_CancelDate"));
-        }
-      }
+      // if (empScholarship.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CANCEL)) {
+      // if (empScholarship.getCancelDate().compareTo(empScholarship.getStartDate()) == -1
+      // || empScholarship.getCancelDate().compareTo(empScholarship.getStartDate()) == 0) {
+      // throw new OBException(OBMessageUtils.messageBD("Ehcm_Scholarship_CancelDate"));
+      // }
+      // }
 
       // cant able to create cutoff for cutoff employment
       if (empScholarship.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CUTOFF)) {

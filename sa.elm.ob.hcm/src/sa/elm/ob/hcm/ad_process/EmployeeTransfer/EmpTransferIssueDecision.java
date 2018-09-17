@@ -1,6 +1,8 @@
 package sa.elm.ob.hcm.ad_process.EmployeeTransfer;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -19,9 +21,11 @@ import org.openbravo.service.db.DbUtility;
 import sa.elm.ob.hcm.EHCMEmpTransfer;
 import sa.elm.ob.hcm.EhcmPosition;
 import sa.elm.ob.hcm.EmploymentInfo;
+import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
 import sa.elm.ob.hcm.ad_process.assignedOrReleasePosition.AssingedOrReleaseEmpInPositionDAO;
 import sa.elm.ob.hcm.ad_process.assignedOrReleasePosition.AssingedOrReleaseEmpInPositionDAOImpl;
 import sa.elm.ob.hcm.util.Utility;
+import sa.elm.ob.hcm.util.UtilityDAO;
 
 public class EmpTransferIssueDecision implements Process {
   private static final Logger log = Logger.getLogger(EmpTransferIssueDecision.class);
@@ -41,25 +45,80 @@ public class EmpTransferIssueDecision implements Process {
     log.debug("transferId:" + transferId);
     String lang = vars.getLanguage();
     Boolean chkPositionAvailableOrNot = false;
+    Boolean update = false;
+    String clientId = transfer.getClient().getId();
+    Boolean isoverlapping = false;
+    String employeeId = transfer.getEhcmEmpPerinfo().getId();
     AssingedOrReleaseEmpInPositionDAO assingedOrReleaseEmpInPositionDAO = new AssingedOrReleaseEmpInPositionDAOImpl();
     try {
       OBContext.setAdminMode(true);
       log.debug("isSueDecision:" + transfer.isSueDecision());
       log.debug("getDecisionType:" + transfer.getDecisionType());
+      // check whether the employee is suspended or not
+      if (transfer.getEhcmEmpPerinfo().getEmploymentStatus()
+          .equals(DecisionTypeConstants.EMPLOYMENTSTATUS_SUSPENDED)) {
+        obError.setType("Error");
+        obError.setTitle("Error");
+        obError.setMessage(OBMessageUtils.messageBD("EHCM_emplo_suspend"));
+        bundle.setResult(obError);
+        return;
+      }
+      // check start date is overlapping with recent transaction of employee
+      if (transfer.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CREATE)) {
+        isoverlapping = UtilityDAO.chkOverlapDecisionStartdate(employeeId, transfer.getStartDate(),
+            clientId);
+        if (isoverlapping) {
+          obError.setType("Error");
+          obError.setTitle("Error");
+          obError.setMessage(OBMessageUtils.messageBD("EHCM_Date_Overlapping"));
+          bundle.setResult(obError);
+          return;
+        }
+
+      }
+
+      // To check if further decision entries are done for that employee in Employment Info
+      // screen.
+      if (transfer.getDecisionType().equals("UP") || transfer.getDecisionType().equals("CA")) {
+        OBQuery<EmploymentInfo> empCheck = OBDal.getInstance().createQuery(EmploymentInfo.class,
+            " ehcmEmpPerinfo.id=:employeeId order by creationDate desc");
+        empCheck.setNamedParameter("employeeId", employeeId);
+        empCheck.setMaxResult(1);
+        List<EmploymentInfo> empCheckList = new ArrayList<EmploymentInfo>();
+        empCheckList = empCheck.list();
+        if (empCheckList.size() > 0) {
+          String decision_no = empCheckList.get(0).getDecisionNo();
+          String org_Decision_no = transfer.getOriginalDecisionsNo().getDecisionNo();
+          if ((empCheckList.get(0).getChangereason().equals("ID")
+              || empCheckList.get(0).getChangereason().equals("OD"))
+              && decision_no.equals(org_Decision_no)) {
+            update = true;
+
+          } else {
+            obError.setType("Error");
+            obError.setTitle("Error");
+            obError.setMessage(OBMessageUtils.messageBD("EHCM_EMP_Transfer_Update"));
+            bundle.setResult(obError);
+            return;
+          }
+        }
+      }
 
       // checking position is available or not
       if (!transfer.getDecisionType().equals("CA")) {
         EhcmPosition position = OBDal.getInstance().get(EhcmPosition.class,
             transfer.getNEWEhcmPosition().getId());
-        chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO.chkPositionAvailableOrNot(
-            transfer.getEhcmEmpPerinfo(), position, transfer.getStartDate(), transfer.getEndDate(),
-            transfer.getDecisionType(), false);
-        if (chkPositionAvailableOrNot) {
-          obError.setType("Error");
-          obError.setTitle("Error");
-          obError.setMessage(OBMessageUtils.messageBD("EHCM_PosNotAvailable"));
-          bundle.setResult(obError);
-          return;
+        if (!position.getId().equals(transfer.getPosition().getId())) {
+          chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO.chkPositionAvailableOrNot(
+              transfer.getEhcmEmpPerinfo(), position, transfer.getStartDate(),
+              transfer.getEndDate(), transfer.getDecisionType(), false);
+          if (chkPositionAvailableOrNot) {
+            obError.setType("Error");
+            obError.setTitle("Error");
+            obError.setMessage(OBMessageUtils.messageBD("EHCM_PosNotAvailable"));
+            bundle.setResult(obError);
+            return;
+          }
         }
       } else {/*
                * EhcmPosition currentPos = assingedOrReleaseEmpInPositionDAO.getRecentPosition(
@@ -70,25 +129,28 @@ public class EmpTransferIssueDecision implements Process {
             .getRecentEmploymentInfo(transfer.getEhcmEmpPerinfo(), null,
                 transfer.getOriginalDecisionsNo(), null);
 
-        chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO.chkPositionAvailableOrNot(
-            transfer.getEhcmEmpPerinfo(), recentEmployeInfo.getPosition(), transfer.getStartDate(),
-            null, transfer.getDecisionType(), false);
-        if (chkPositionAvailableOrNot) {
-          obError.setType("Error");
-          obError.setTitle("Error");
-          obError.setMessage(OBMessageUtils.messageBD("EHCM_PosNotAvailable"));
-          bundle.setResult(obError);
-          return;
+        if (recentEmployeInfo != null && recentEmployeInfo.getPosition() != null
+            && !recentEmployeInfo.getPosition().getId().equals(transfer.getPosition().getId())) {
+          chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO.chkPositionAvailableOrNot(
+              transfer.getEhcmEmpPerinfo(), recentEmployeInfo.getPosition(),
+              transfer.getStartDate(), null, transfer.getDecisionType(), false);
+          if (chkPositionAvailableOrNot) {
+            obError.setType("Error");
+            obError.setTitle("Error");
+            obError.setMessage(OBMessageUtils.messageBD("EHCM_PosNotAvailable"));
+            bundle.setResult(obError);
+            return;
+          }
         }
       }
 
       if (transfer.getDecisionType().equals("CA")) {
 
         // dont allow to cancel the transfer if the employee has promoted
-        OBQuery<EmploymentInfo> chkemphavepromt = OBDal.getInstance()
-            .createQuery(EmploymentInfo.class, " as e where e.ehcmEmpPerinfo.id='"
-                + transfer.getEhcmEmpPerinfo().getId()
-                + "' and e.enabled='Y' and e.ehcmEmpPromotion is not null order by e.creationDate desc ");
+        OBQuery<EmploymentInfo> chkemphavepromt = OBDal.getInstance().createQuery(
+            EmploymentInfo.class,
+            " as e where e.ehcmEmpPerinfo.id=:empId and e.enabled='Y' and e.ehcmEmpPromotion is not null order by e.creationDate desc ");
+        chkemphavepromt.setNamedParameter("empId", employeeId);
         log.debug("chkemphavepromt:" + chkemphavepromt.list().size());
         if (chkemphavepromt.list().size() > 0) {
           obError.setType("Error");
@@ -105,19 +167,20 @@ public class EmpTransferIssueDecision implements Process {
         transfer.setSueDecision(true);
         transfer.setDecisionDate(new Date());
         transfer.setDecisionStatus("I");
+        transfer.getEhcmEmpPerinfo().setEmploymentStatus("AC");
         OBDal.getInstance().save(transfer);
         OBDal.getInstance().flush();
 
         if (transfer.getDecisionType().equals("CR") && !transfer.isJoinworkreq()) {
 
-          info = Utility.getActiveEmployInfo(transfer.getEhcmEmpPerinfo().getId());
+          info = Utility.getActiveEmployInfo(employeeId);
           EmpTransferIssueDecisionDAO.insertEmploymentInfo(transfer, info, vars, decisionType, lang,
               null, null);
 
         } else if (transfer.getDecisionType().equals("UP")
             && transfer.getOriginalDecisionsNo() != null
             && !transfer.getOriginalDecisionsNo().isJoinworkreq()) {
-          info = Utility.getActiveEmployInfo(transfer.getEhcmEmpPerinfo().getId());
+          info = Utility.getActiveEmployInfo(employeeId);
           EmpTransferIssueDecisionDAO.insertEmploymentInfo(transfer, info, vars, decisionType, lang,
               null, null);
         } else if (transfer.getDecisionType().equals("CA")
@@ -126,8 +189,10 @@ public class EmpTransferIssueDecision implements Process {
 
           // update the acive flag='Y' and enddate is null for recently update record
           OBQuery<EmploymentInfo> originalemp = OBDal.getInstance().createQuery(
-              EmploymentInfo.class, " ehcmEmpPerinfo.id='" + transfer.getEhcmEmpPerinfo().getId()
-                  + "' and enabled='N' order by creationDate desc ");
+              EmploymentInfo.class,
+              " ehcmEmpPerinfo.id =: empId and enabled='N' order by creationDate desc ");
+          originalemp.setNamedParameter("empId", employeeId);
+
           originalemp.setMaxResult(1);
           if (originalemp.list().size() > 0) {
             info = originalemp.list().get(0);

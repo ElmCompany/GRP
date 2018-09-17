@@ -71,7 +71,7 @@ public interface AssingedOrReleaseEmpInPositionDAO {
    */
   EhcmPosition revertOldValuesAndGetOldestPosition(EhcmEmpPerInfo employee,
       EHCMEmpTransfer empTransfer, EHCMEmpPromotion empPromotion,
-      EHCMEmpTransferSelf empTransferSelf) throws Exception;
+      EHCMEmpTransferSelf empTransferSelf, boolean isreactivate) throws Exception;
 
   /**
    * 
@@ -182,5 +182,14 @@ public interface AssingedOrReleaseEmpInPositionDAO {
    */
   void updateEndDatePositionEmployeeHisotryForCancelledEmp(EhcmEmpPerInfo employee,
       EhcmPosition postion) throws Exception;
+
+  /**
+   * 
+   * @param promotion
+   * @param vars
+   * @throws Exception
+   */
+  void updateEmpPositionWhileReactive(EHCMEmpPromotion promotion, EHCMEmpTransfer transfer,
+      EHCMEmpTransferSelf transferself, VariablesSecureApp vars, boolean iscancel) throws Exception;
 
 }

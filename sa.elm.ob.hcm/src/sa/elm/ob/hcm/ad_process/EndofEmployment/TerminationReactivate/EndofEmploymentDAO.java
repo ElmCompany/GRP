@@ -16,7 +16,8 @@ public interface EndofEmploymentDAO {
    * @param terminationId
    */
 
-  void removeEmploymentRecord(String terminationId);
+  void removeEmploymentRecord(String terminationId, VariablesSecureApp vars,
+      EHCMEMPTermination termination);
 
   /**
    * 
@@ -25,7 +26,14 @@ public interface EndofEmploymentDAO {
    * @param termination
    */
   void updateEmploymentRecord(String terminationId, VariablesSecureApp vars,
-      EHCMEMPTermination termination);
+      EHCMEMPTermination termination, String recentEmpInfoId);
+
+  /**
+   * 
+   * @param employeeId
+   * @param terminationId
+   */
+  void updateEmpStatusRecord(String employeeId, EHCMEMPTermination terminationId);
 
   /**
    * 

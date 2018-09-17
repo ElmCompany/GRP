@@ -69,14 +69,15 @@ public class JoinWorkRequestProcess implements Process {
     try {
       OBContext.setAdminMode(true);
 
-      if(joinReqProcess.getEmployee()!=null && joinReqProcess.getEmployee().getStatus().equals("TE")){
+      if (joinReqProcess.getEmployee() != null
+          && joinReqProcess.getEmployee().getStatus().equals("TE")) {
         {
           OBError result = OBErrorBuilder.buildMessage(null, "error", "@Ehcm_joinWorkCancelHire@");
           bundle.setResult(result);
           return;
         }
       }
-      if (joinReqProcess.getOriginalDecisionNo()!=null) {
+      if (joinReqProcess.getOriginalDecisionNo() != null) {
         employmentId = joinReqProcess.getOriginalDecisionNo().getId();
       }
 
@@ -147,8 +148,8 @@ public class JoinWorkRequestProcess implements Process {
       }
       // business mission
       if (joinReqProcess.getJoinWorkreason().equals("BM")) {
-        EHCMBusMissionSummary missionsummary = OBDal.getInstance()
-            .get(EHCMBusMissionSummary.class, employmentId);
+        EHCMBusMissionSummary missionsummary = OBDal.getInstance().get(EHCMBusMissionSummary.class,
+            employmentId);
         missionsummary.setEndDate(joinReqProcess.getJoindate());
         OBDal.getInstance().save(missionsummary);
         OBDal.getInstance().flush();
@@ -168,11 +169,10 @@ public class JoinWorkRequestProcess implements Process {
         OBDal.getInstance().flush();
 
         // updating enddate for previous record
-        OBQuery<EmploymentInfo> empoldrecord = OBDal.getInstance().createQuery(
-            EmploymentInfo.class,
+        OBQuery<EmploymentInfo> empoldrecord = OBDal.getInstance().createQuery(EmploymentInfo.class,
             " id not in ('" + employmentId
-            + "') and ehcmEmpPerinfo.id = :employeeId and creationDate < '"
-            + info.getCreationDate() + "'  order by creationDate desc ");
+                + "') and ehcmEmpPerinfo.id = :employeeId and creationDate < '"
+                + info.getCreationDate() + "'  order by creationDate desc ");
         empoldrecord.setNamedParameter("employeeId", joinReqProcess.getEmployee().getId());
         empInfoList = empoldrecord.list();
         if (empoldrecord.list().size() > 0) {
@@ -198,8 +198,8 @@ public class JoinWorkRequestProcess implements Process {
 
         // insert Secondment delay record in employment Info
         if (joinReqProcess.getJoindate().compareTo(joinReqProcess.getDecisionDate()) != 0) {
-          empSecondmentDAOImpl.insertEmploymentRecord(secInfo.getEhcmEmpSecondment(), secInfo,
-              true, true, joinReqProcess);
+          empSecondmentDAOImpl.insertEmploymentRecord(secInfo.getEhcmEmpSecondment(), secInfo, true,
+              true, joinReqProcess);
         }
 
         // insert JWR-Secondment record in employment Info
@@ -238,7 +238,7 @@ public class JoinWorkRequestProcess implements Process {
             .getPromotionEmployee(empPromotion.getEhcmEmpPerinfo().getId());
         // insert Employement For Employee Promotion
         EmploymentInfo infoobj = EmployeePromotionHandlerDAO.insertEmploymentInfo(empPromotion,
-            oldempInfo, vars, "CR", lang, joinReqProcess.getJoindate(), joinReqProcess);
+            oldempInfo, vars, "CR", lang, joinReqProcess.getJoindate(), joinReqProcess, false);
       }
       // IsJoinRequest as 'Yes' in employee suspension
       if (susjoinFlag) {
@@ -268,7 +268,4 @@ public class JoinWorkRequestProcess implements Process {
     }
   }
 
-
 }
-
-

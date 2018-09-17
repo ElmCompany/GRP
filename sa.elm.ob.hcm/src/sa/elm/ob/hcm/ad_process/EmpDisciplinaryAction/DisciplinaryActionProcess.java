@@ -45,6 +45,16 @@ public class DisciplinaryActionProcess implements Process {
 
     try {
       OBContext.setAdminMode();
+      // check whether the employee is suspended or not
+      if (disciplinaryObj.getEmployee().getEmploymentStatus()
+          .equals(DecisionTypeConstants.EMPLOYMENTSTATUS_SUSPENDED)) {
+        obError.setType("Error");
+        obError.setTitle("Error");
+        obError.setMessage(OBMessageUtils.messageBD("EHCM_emplo_suspend"));
+        bundle.setResult(obError);
+        return;
+      }
+
       // checking decision overlap
       if (disciplinaryObj.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CREATE)
           || (disciplinaryObj.getDecisionType()

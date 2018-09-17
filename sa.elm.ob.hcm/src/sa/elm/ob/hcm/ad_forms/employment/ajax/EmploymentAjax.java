@@ -280,8 +280,8 @@ public class EmploymentAjax extends HttpSecureAppServlet {
           if (request.getParameter("Status") != null) {
             vo.setStatus(request.getParameter("Status").replace("'", "''"));
           }
-          if (request.getParameter("Change Reason") != null) {
-            vo.setChangeReason(request.getParameter("Change Reason").replace("'", "''"));
+          if (request.getParameter("ChangeReason") != null) {
+            vo.setChangeReason(request.getParameter("ChangeReason").replace("'", "''"));
           }
           if (!StringUtils.isEmpty(request.getParameter("startdate"))) {
             hijiriDate = Utility.convertToGregorian(request.getParameter("startdate"));

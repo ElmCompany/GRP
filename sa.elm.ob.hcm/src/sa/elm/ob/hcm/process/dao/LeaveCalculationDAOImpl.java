@@ -497,7 +497,6 @@ public class LeaveCalculationDAOImpl implements LeaveCalculationDAO {
     String sql = null;
     BigDecimal accrualday = BigDecimal.ZERO;
     String hql = null;
-    int a = 0;
     try {
       accrualday = accrualdays;
 

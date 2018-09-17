@@ -5,6 +5,7 @@ import java.util.Map;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
 import org.activiti.engine.impl.persistence.entity.TaskEntity;
+import org.openbravo.activiti.ActivitiConstants;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -38,8 +39,8 @@ public class LeaveManagementListener implements TaskListener, ApplicationContext
     boolean approved = (boolean) variablesMap.get("requestApproved");
     if (approved) {
       try {
-        String id = (String) variablesMap.get("absenceAttendanceId");
-        String absenceType = (String) variablesMap.get("leaveType");
+        String id = variablesMap.get(ActivitiConstants.TARGET_IDENTIFIER).toString();
+        String absenceType = variablesMap.get("leaveType").toString();
         EHCMAbsenceAttendance absenceAttendanceOB = leaveManagementDAO.getAbsenceAttendanceById(id);
         EHCMAbsenceType absenceTypeOB = leaveManagementDAO.findAbsenceType(absenceType);
         EHCMAbsenceTypeAccruals absenceAccuralOB = leaveManagementDAO

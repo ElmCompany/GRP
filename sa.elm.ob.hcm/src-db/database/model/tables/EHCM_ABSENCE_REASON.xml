@@ -49,6 +49,10 @@
         <default/>
         <onCreateDefault/>
       </column>
+      <column name="EUT_DEFLOOKUPS_TYPELN_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
       <foreign-key foreignTable="EHCM_ABSENCE_TYPE" name="EHCM_ABSENCERES_ABSTY">
         <reference local="EHCM_ABSENCE_TYPE_ID" foreign="EHCM_ABSENCE_TYPE_ID"/>
       </foreign-key>

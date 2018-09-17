@@ -94,6 +94,26 @@
         <onCreateDefault/>
       </column>
       <column name="LOOKUP_GENDER" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+       <default/>
+       <onCreateDefault/>
+      </column>
+      <column name="FIRSTNAME_EN" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="FATHERNAME_EN" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="GRANDFATHER_EN" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="FOURTHNAME_EN" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
+      <column name="FAMILY_EN" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
         <default/>
         <onCreateDefault/>
       </column>

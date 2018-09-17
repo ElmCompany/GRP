@@ -291,7 +291,7 @@ public class AbsenceDecisionReactivateDAOImpl implements AbsenceDecisionReactiva
         st.setString(7, absence.getDecisionType());
       }
       st.setString(8, absence.getId());
-      st.setBoolean(9, availabledays);
+      st.setString(9, "0");
       if (originalDecisionAbsence.getSubtype() != null)
         st.setString(10, originalDecisionAbsence.getSubtype().getId());
       else

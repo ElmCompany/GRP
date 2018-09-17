@@ -136,7 +136,7 @@ BEGIN
 
 	--Available leave taken
 	--select ehcm_checkavailableleave (p_employee_id , p_startdate, p_enddate, p_absencetpe_id, p_client_id, p_leaverequest,ELTA,p_absenceattendId,false,p_subtype_id) into ETLA from dual;
-   select p_availableleavedays into ETLA  from ehcm_getavailed_availablelev (p_employee_id , p_startdate, p_enddate, p_absencetpe_id, p_client_id, p_leaverequest,ELTA,p_absenceattendId,false,p_subtype_id);
+   select p_availableleavedays into ETLA  from ehcm_getavailed_availablelev (p_employee_id , p_startdate, p_enddate, p_absencetpe_id, p_client_id, p_leaverequest,ELTA,p_absenceattendId,'0',p_subtype_id);
 
     insert into ehcm_absencerule_formula (id, code, value) values (5, 'ETLA', ETLA);
 	--RAISE notice ' ETLA => %',ETLA; --OBTG:-20501--	
@@ -252,7 +252,7 @@ BEGIN
 				--RAISE notice 'Condition v_remabsid => %',v_remabsid; --OBTG:-20501--
 				
                -- select ehcm_checkavailableleave (p_employee_id , p_startdate, p_enddate, v_remabsid, p_client_id, p_leaverequest,ELTA,p_absenceattendId,false,p_subtype_id) into v_remavailabledays from dual;
-                 select p_availableleavedays  into v_remavailabledays   from ehcm_getavailed_availablelev (p_employee_id , p_startdate, p_enddate, v_remabsid, p_client_id, p_leaverequest,ELTA,p_absenceattendId,false,p_subtype_id);
+                 select p_availableleavedays  into v_remavailabledays   from ehcm_getavailed_availablelev (p_employee_id , p_startdate, p_enddate, v_remabsid, p_client_id, p_leaverequest,ELTA,p_absenceattendId,'0',p_subtype_id);
                 select replace(v_condition,substr(v_condition,strpos(v_condition,'ATRL('),((strpos(v_condition,')'))
 				-(strpos(v_condition,'ATRL('))+1) ) ,v_remavailabledays::text) into v_condition;
 				--RAISE notice 'Condition ATRL => %',v_condition; --OBTG:-20501--
@@ -267,7 +267,7 @@ BEGIN
 				select ehcm_absence_type_id into v_remabsid  from ehcm_absence_type  where    value=v_abscode and ad_client_id=p_client_id;
 				--RAISE notice 'Condition v_remabsid => %',v_remabsid; --OBTG:-20501--
 				--select from ehcm_checkavailableleave (p_employee_id , p_startdate, p_enddate, v_remabsid, p_client_id, p_leaverequest,ELTA,p_absenceattendId,true,p_subtype_id) into v_remavailabledays from dual;
-                select p_availedleavedays into v_remavailabledays  from ehcm_getavailed_availablelev (p_employee_id , p_startdate, p_enddate, v_remabsid, p_client_id, p_leaverequest,ELTA,p_absenceattendId,true,p_subtype_id) ;
+                select p_availedleavedays into v_remavailabledays  from ehcm_getavailed_availablelev (p_employee_id , p_startdate, p_enddate, v_remabsid, p_client_id, p_leaverequest,ELTA,p_absenceattendId,'1',p_subtype_id) ;
                 select replace(v_condition,substr(v_condition,strpos(v_condition,'ATADL('),((strpos(v_condition,')'))
 				-(strpos(v_condition,'ATADL('))+1) ) ,v_remavailabledays::text) into v_condition;
 				--RAISE notice 'Condition ATRL => %',v_condition; --OBTG:-20501--

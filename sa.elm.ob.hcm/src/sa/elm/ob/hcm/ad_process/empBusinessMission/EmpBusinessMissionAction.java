@@ -70,6 +70,15 @@ public class EmpBusinessMissionAction implements Process {
 
       EhcmEmpPerInfo person = OBDal.getInstance().get(EhcmEmpPerInfo.class,
           empBusinessMissionObj.getEmployee().getId());
+      // check whether the employee is suspended or not
+      if (empBusinessMissionObj.getEmployee().getEmploymentStatus()
+          .equals(DecisionTypeConstants.EMPLOYMENTSTATUS_SUSPENDED)) {
+        obError.setType("Error");
+        obError.setTitle("Error");
+        obError.setMessage(OBMessageUtils.messageBD("EHCM_emplo_suspend"));
+        bundle.setResult(obError);
+        return;
+      }
 
       if (decisionType.equals(DecisionTypeConstants.DECISION_TYPE_BUSINESSMISSION_PAYMENT)) {
         if (empBusinessMissionObj.getPaymentAmt() == null) {

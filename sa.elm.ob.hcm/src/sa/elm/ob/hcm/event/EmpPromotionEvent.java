@@ -121,20 +121,21 @@ public class EmpPromotionEvent extends EntityPersistenceEventObserver {
       }
 
       log.debug("canstdate:" + promotion.getCancelDate().compareTo(promotion.getStartDate()));
-      if (promotion.getDecisionType().equals("CA")) {
-        if (!event.getPreviousState(canceldate).equals(event.getCurrentState(canceldate))) {
-          if (promotion.getCancelDate().compareTo(promotion.getStartDate()) == -1
-              || promotion.getCancelDate().compareTo(promotion.getStartDate()) == 0) {
-            throw new OBException(OBMessageUtils.messageBD("EHCM_EmpProm_CancelDate"));
-          }
-        }
-        if (!event.getPreviousState(startdate).equals(event.getCurrentState(startdate))) {
-          if (promotion.getCancelDate().compareTo(promotion.getStartDate()) == -1
-              || promotion.getCancelDate().compareTo(promotion.getStartDate()) == 0) {
-            throw new OBException(OBMessageUtils.messageBD("EHCM_EmpProm_CancelDate"));
-          }
-        }
-      }
+      // Removed the cancel date validation
+      // if (promotion.getDecisionType().equals("CA")) {
+      // if (!event.getPreviousState(canceldate).equals(event.getCurrentState(canceldate))) {
+      // if (promotion.getCancelDate().compareTo(promotion.getStartDate()) == -1
+      // || promotion.getCancelDate().compareTo(promotion.getStartDate()) == 0) {
+      // throw new OBException(OBMessageUtils.messageBD("EHCM_EmpProm_CancelDate"));
+      // }
+      // }
+      // if (!event.getPreviousState(startdate).equals(event.getCurrentState(startdate))) {
+      // if (promotion.getCancelDate().compareTo(promotion.getStartDate()) == -1
+      // || promotion.getCancelDate().compareTo(promotion.getStartDate()) == 0) {
+      // throw new OBException(OBMessageUtils.messageBD("EHCM_EmpProm_CancelDate"));
+      // }
+      // }
+      // }
       if (!event.getPreviousState(startdate).equals(event.getCurrentState(startdate))
           || !event.getPreviousState(decisionType).equals(event.getCurrentState(decisionType))) {
         if (promotion.getDecisionType().equals("CR") || promotion.getDecisionType().equals("UP")) {
@@ -218,7 +219,8 @@ public class EmpPromotionEvent extends EntityPersistenceEventObserver {
             info.setMaxResult(1);
             if (info.list().size() > 0) {
               EmploymentInfo empinfo = info.list().get(0);
-              if (empinfo.getPosition() != null) {
+              if (empinfo.getPosition() != null
+                  && !empinfo.getPosition().getId().equals(promotion.getPosition().getId())) {
                 chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO
                     .chkPositionAvailableOrNot(promotion.getEhcmEmpPerinfo(), empinfo.getPosition(),
                         promotion.getStartDate(), null, promotion.getDecisionType(), false);
@@ -287,12 +289,13 @@ public class EmpPromotionEvent extends EntityPersistenceEventObserver {
           throw new OBException(OBMessageUtils.messageBD("EHCM_EmpTras_NewPos"));
       }
       log.debug("cancom:" + promotion.getCancelDate().compareTo(promotion.getStartDate()));
-      if (promotion.getDecisionType().equals("CA")) {
-        if (promotion.getCancelDate().compareTo(promotion.getStartDate()) == -1
-            || promotion.getCancelDate().compareTo(promotion.getStartDate()) == 0) {
-          throw new OBException(OBMessageUtils.messageBD("EHCM_EmpProm_CancelDate"));
-        }
-      }
+      // Removed the cancel date validation
+      // if (promotion.getDecisionType().equals("CA")) {
+      // if (promotion.getCancelDate().compareTo(promotion.getStartDate()) == -1
+      // || promotion.getCancelDate().compareTo(promotion.getStartDate()) == 0) {
+      // throw new OBException(OBMessageUtils.messageBD("EHCM_EmpProm_CancelDate"));
+      // }
+      // }
       if (promotion.getStartDate() != null) {
         if (promotion.getDecisionType().equals("CR") || promotion.getDecisionType().equals("UP")) {
           OBQuery<EmploymentInfo> info = OBDal.getInstance().createQuery(EmploymentInfo.class,
@@ -382,7 +385,9 @@ public class EmpPromotionEvent extends EntityPersistenceEventObserver {
           info.setMaxResult(1);
           if (info.list().size() > 0) {
             EmploymentInfo empinfo = info.list().get(0);
-            if (empinfo.getPosition() != null) {
+            if (empinfo.getPosition() != null
+                && !empinfo.getPosition().getId().equals(promotion.getPosition().getId())) {
+
               chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO
                   .chkPositionAvailableOrNot(promotion.getEhcmEmpPerinfo(), empinfo.getPosition(),
                       promotion.getStartDate(), null, promotion.getDecisionType(), false);

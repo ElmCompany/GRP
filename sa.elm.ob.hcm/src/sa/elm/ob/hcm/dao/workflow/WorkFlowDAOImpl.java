@@ -53,11 +53,13 @@ public class WorkFlowDAOImpl implements WorkFlowDAO {
       } else if (empUserId != null) {
         employeeOB = getEmployeeProfileByUserId(empUserId);
       }
-      for (EmploymentInfo emloymentInfo : employeeOB.getEhcmEmploymentInfoList()) {
-        if (emloymentInfo.isEnabled()) {
-          lineManagerId = emloymentInfo.getEhcmEmpSupervisor() != null
-              ? emloymentInfo.getEhcmEmpSupervisor().getEmployee().getId()
-              : "";
+      if (employeeOB != null) {
+        for (EmploymentInfo emloymentInfo : employeeOB.getEhcmEmploymentInfoList()) {
+          if (emloymentInfo.isEnabled()) {
+            lineManagerId = emloymentInfo.getEhcmEmpSupervisor() != null
+                ? emloymentInfo.getEhcmEmpSupervisor().getEmployee().getId()
+                : "";
+          }
         }
       }
     } catch (Exception e) {

@@ -2,12 +2,14 @@ package sa.elm.ob.hcm.services.leave;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.openbravo.activiti.ActivitiConstants;
 import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.erpCommon.utility.OBMessageUtils;
@@ -46,10 +48,6 @@ import sa.elm.ob.utility.util.UtilityDAO;
 public class LeaveManagementServiceImpl implements LeaveManagementService {
   private static final String OPEN_BRAVO_DATE_FORMAT = "dd-MM-yyyy";
   private static final String OPEN_BRAVO_GREG_DATE_FORMAT = "yyyy-MM-dd hh:mm:ss";
-
-  private final String LEAVE_MANAGEMENT_WORKFLOW_KEY = "leaveManagementWorkflow";
-
-  private final String CANCEL_LEAVE_MANAGEMENT_WORKFLOW_KEY = "cancelLeaveManagementWorkflow";
 
   @Autowired
   private ViewLeaveDAO viewLeaveDAO;
@@ -118,19 +116,19 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
       viewLeaveDTO = new ViewLeaveDTO();
       viewLeaveDTO.setAbsenceType(absenceAttendance.getEhcmAbsenceType().getJobGroupName());
       if (null != absenceAttendance.getStartDate()) {
-        viewLeaveDTO.setStartDate(DateUtils.convertDateToString(OPEN_BRAVO_DATE_FORMAT,
-            absenceAttendance.getStartDate()));
+        viewLeaveDTO.setStartDate(UtilityDAO.convertTohijriDate(DateUtils
+            .convertDateToString(OPEN_BRAVO_GREG_DATE_FORMAT, absenceAttendance.getStartDate())));
       }
       if (null != absenceAttendance.getEndDate()) {
-        viewLeaveDTO.setEndDate(
-            DateUtils.convertDateToString(OPEN_BRAVO_DATE_FORMAT, absenceAttendance.getEndDate()));
+        viewLeaveDTO.setEndDate(UtilityDAO.convertTohijriDate(DateUtils
+            .convertDateToString(OPEN_BRAVO_GREG_DATE_FORMAT, absenceAttendance.getEndDate())));
       }
       viewLeaveDTO.setPendingUser(absenceAttendance.getAuthorizedPerson());
       viewLeaveDTO.setStatus(absenceAttendance.getDecisionStatus());
       viewLeaveDTO.setPeriod(absenceAttendance.getAbsenceDays());
       if (null != absenceAttendance.getDecisionDate()) {
-        viewLeaveDTO.setRequestDate(DateUtils.convertDateToString(OPEN_BRAVO_DATE_FORMAT,
-            absenceAttendance.getDecisionDate()));
+        viewLeaveDTO.setRequestDate(UtilityDAO.convertTohijriDate(DateUtils.convertDateToString(
+            OPEN_BRAVO_GREG_DATE_FORMAT, absenceAttendance.getDecisionDate())));
       }
       viewLeaveList.add(viewLeaveDTO);
 
@@ -196,8 +194,10 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
         viewLeaveAccuralDTO.setEmpName(objEmployeeeInfo.getName());
         viewLeaveAccuralDTO.setEmpNo(objEmployeeeInfo.getSearchKey());
         if (jsonObjectDates.length() > 0) {
-          viewLeaveAccuralDTO.setStartDate(jsonObjectDates.getString("startdate"));
-          viewLeaveAccuralDTO.setEndDate(jsonObjectDates.getString("enddate"));
+          viewLeaveAccuralDTO
+              .setStartDate(UtilityDAO.convertTohijriDate(jsonObjectDates.getString("startdate")));
+          viewLeaveAccuralDTO
+              .setEndDate(UtilityDAO.convertTohijriDate(jsonObjectDates.getString("enddate")));
         }
 
       } catch (NumberFormatException | JSONException e) {
@@ -361,17 +361,24 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
   private List<LeaveRequestDTO> mapLeaveRequest(List<EHCMAbsenceAttendance> absenceDecisionList) {
 
     List<LeaveRequestDTO> leaveRequestList = new ArrayList<LeaveRequestDTO>();
-    LeaveRequestDTO leaveRequestDTO = null;
     for (EHCMAbsenceAttendance absenceAttance : absenceDecisionList) {
-      leaveRequestDTO = new LeaveRequestDTO();
+      LeaveRequestDTO leaveRequestDTO = new LeaveRequestDTO();
+      leaveRequestDTO.setUserName(absenceAttance.getEhcmEmpPerinfo().getSearchKey());
+      leaveRequestDTO.setLetterNo(absenceAttance.getLetterNo());
+
+      if (absenceAttance.getLetterDate() != null)
+        leaveRequestDTO.setLetterDate(UtilityDAO.convertTohijriDate(DateUtils
+            .convertDateToString(OPEN_BRAVO_GREG_DATE_FORMAT, absenceAttance.getLetterDate())));
+
       leaveRequestDTO.setDecisionNumber(absenceAttance.getDecisionNo());
-      leaveRequestDTO.setAbsenceType(absenceAttance.getEhcmAbsenceType().getJobGroupName());
-      leaveRequestDTO.setStartDate(UtilityDAO.convertTohijriDate(
-          DateUtils.convertDateToString(OPEN_BRAVO_DATE_FORMAT, absenceAttance.getStartDate())));
+      leaveRequestDTO.setAbsenceType(absenceAttance.getEhcmAbsenceType().getSearchKey());
+      leaveRequestDTO.setStartDate(UtilityDAO.convertTohijriDate(DateUtils
+          .convertDateToString(OPEN_BRAVO_GREG_DATE_FORMAT, absenceAttance.getStartDate())));
       leaveRequestDTO.setEndDate(UtilityDAO.convertTohijriDate(
-          DateUtils.convertDateToString(OPEN_BRAVO_DATE_FORMAT, absenceAttance.getEndDate())));
+          DateUtils.convertDateToString(OPEN_BRAVO_GREG_DATE_FORMAT, absenceAttance.getEndDate())));
       leaveRequestDTO.setAbsenceDays(absenceAttance.getAbsenceDays().intValue());
-      leaveRequestDTO.setAbsenceReason(absenceAttance.getEhcmAbsenceReason().getAbsenceReason());
+      leaveRequestDTO.setAbsenceReason(absenceAttance.getEhcmAbsenceReason() == null ? ""
+          : absenceAttance.getEhcmAbsenceReason().getAbsenceReason());
       leaveRequestDTO.setRemarks(absenceAttance.getRemarks());
       leaveRequestList.add(leaveRequestDTO);
     }
@@ -429,12 +436,6 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
 
   @Override
   public List<LeaveRequestDTO> getLeaveRequestByUserName(String userName) {
-    List<LeaveRequestDTO> leaveRequestList = getLeaveRequestByuserName(userName);
-    return leaveRequestList;
-  }
-
-  private List<LeaveRequestDTO> getLeaveRequestByuserName(String userName) {
-
     List<EHCMAbsenceAttendance> absenceDecisionList = leaveManagementDAO
         .getLeaveRequestByDecisionNoOrByUsername(null, userName);
     List<LeaveRequestDTO> leaveRequestList = mapLeaveRequest(absenceDecisionList);
@@ -510,6 +511,7 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
   // Saving the request in the transaction table and starting the workflow
   private void createLeaveRequestWithApproval(String username, LeaveRequestDTO leaveRequestDTO,
       String decisionType, String taskTitle) throws BusinessException, SystemException {
+
     EHCMAbsenceType absenceTypeOB = findAbsenceType(leaveRequestDTO.getAbsenceType());
     final String userLang = SecurityUtils.getUserLanguage();
     if (absenceTypeOB == null)
@@ -551,21 +553,32 @@ public class LeaveManagementServiceImpl implements LeaveManagementService {
     }
 
     Map<String, Object> variablesMap = new HashMap<String, Object>();
-    variablesMap.put("username", username);
-    variablesMap.put("taskTitle", taskTitle);
+    variablesMap.put(ActivitiConstants.TARGET_IDENTIFIER, absenceAttendanceOB.getId());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_USERNAME, username);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_NAME, employeeOB.getName());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_SUBJECT, taskTitle);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_LETTER_NUMBER,
+        leaveRequestDTO.getLetterNo());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TAKS_REQUEST_DATE,
+        sa.elm.ob.utility.util.Utility
+            .convertTohijriDate(DateUtils.convertDateToString("yyyy-MM-dd", new Date())));
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_STATUS, Constants.REQUEST_IN_PROGRESS);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_TYPE, Constants.LEAVE_REQUEST);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_EMAIL, employeeOB.getEmail());
+
     variablesMap.put("firstLineManager", firstLineManagerId);
     variablesMap.put("secondLineManager", secondLineManagerId);
     variablesMap.put("departmentManager", departmentManagerId);
     variablesMap.put("isDepManager", isDepMng);
     variablesMap.put("isSecDepManager", isSecDepMng);
     variablesMap.put("leaveType", leaveRequestDTO.getAbsenceType());
-    variablesMap.put("absenceAttendanceId", absenceAttendanceOB.getId());
-    variablesMap.put("emailAddress", employeeOB.getEmail());
 
     if (decisionType.equals(Constants.CANCEL_DECISION)) {
-      workflowUtilityService.startWorkflow(CANCEL_LEAVE_MANAGEMENT_WORKFLOW_KEY, variablesMap);
+      workflowUtilityService.startWorkflow(
+          sa.elm.ob.utility.util.Constants.CANCEL_LEAVE_MANAGEMENT_WORKFLOW_KEY, variablesMap);
     } else {
-      workflowUtilityService.startWorkflow(LEAVE_MANAGEMENT_WORKFLOW_KEY, variablesMap);
+      workflowUtilityService.startWorkflow(
+          sa.elm.ob.utility.util.Constants.LEAVE_MANAGEMENT_WORKFLOW_KEY, variablesMap);
     }
   }
 

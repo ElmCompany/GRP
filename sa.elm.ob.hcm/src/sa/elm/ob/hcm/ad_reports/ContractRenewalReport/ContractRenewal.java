@@ -143,7 +143,7 @@ public class ContractRenewal extends HttpSecureAppServlet {
         parameters.put("inpClientId", vars.getClient());
         parameters.put("HDeptname", EmployeesBusinessMissionDAO.getUserDepartment(vars.getUser()));
         strReportName = "@basedesign@/sa/elm/ob/hcm/ad_reports/ContractRenewalReport/ContractRenewalReport.jrxml";
-        String strOutput = "pdf";
+        String strOutput = "xls";
         String strFileName = "ContractRenewalReport";
 
         renderJR(vars, response, strReportName, strFileName, strOutput, parameters, data, null);

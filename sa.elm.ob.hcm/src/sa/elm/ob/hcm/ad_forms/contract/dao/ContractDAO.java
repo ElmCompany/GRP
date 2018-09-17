@@ -1,6 +1,5 @@
 package sa.elm.ob.hcm.ad_forms.contract.dao;
 
-import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -252,16 +251,16 @@ public class ContractDAO {
     ResultSet rs = null;
     String isExists = "N";
     try {
-      ps = conn.prepareStatement(
-          "select startdate from ehcm_contract where ehcm_emp_perinfo_id ='" + inpEmployeeId
-              + "' and ((to_date(to_char(startdate,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date('"
-              + fromDate + "')"
-              + " and to_date(to_char(coalesce (expirydate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') "
-              + "<= to_date('" + endDate
-              + "','dd-MM-yyyy')) or (to_date(to_char( coalesce (expirydate,to_date('21-06-2058','dd-MM-yyyy')) ,'dd-MM-yyyy'),'dd-MM-yyyy') "
-              + ">= to_date('" + fromDate
-              + "') and to_date(to_char(startdate,'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date('"
-              + endDate + "','dd-MM-yyyy'))) and ehcm_contract_id not in('" + contractId + "') ");
+      ps = conn.prepareStatement("select startdate from ehcm_contract where ehcm_emp_perinfo_id ='"
+          + inpEmployeeId
+          + "' and ((to_date(to_char(startdate,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date('" + fromDate
+          + "')"
+          + " and to_date(to_char(coalesce (expirydate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') "
+          + "<= to_date('" + endDate
+          + "','dd-MM-yyyy')) or (to_date(to_char( coalesce (expirydate,to_date('21-06-2058','dd-MM-yyyy')) ,'dd-MM-yyyy'),'dd-MM-yyyy') "
+          + ">= to_date('" + fromDate
+          + "') and to_date(to_char(startdate,'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date('" + endDate
+          + "','dd-MM-yyyy'))) and ehcm_contract_id not in('" + contractId + "') ");
       log4j.debug("checkQuery:" + ps.toString());
       rs = ps.executeQuery();
       if (rs.next()) {
@@ -838,9 +837,8 @@ public class ContractDAO {
             .append(" and concat(info.name,' ',info.fathername,' ',info.grandfathername) ilike '%")
             .append(searchAttr.getString("fname")).append("%'");
       if (searchAttr.has("aname"))
-        whereClause
-            .append(
-                " and concat(info.arabicname,' ',info.arabicfatname,' ',info.arbgrafaname) ilike '%")
+        whereClause.append(
+            " and concat(info.arabicname,' ',info.arabicfatname,' ',info.arbgrafaname) ilike '%")
             .append(searchAttr.getString("aname")).append("%'");
       if (searchAttr.has("empno"))
         whereClause.append(" and info.value ilike '%").append(searchAttr.getString("empno"))
@@ -884,72 +882,23 @@ public class ContractDAO {
 
   public ContractVO checkcontractval(String Clientid, String empid, String inpContractId) {
 
-    PreparedStatement ps, st = null;
+    PreparedStatement st = null;
     ResultSet rs = null;
     String isExists = "N";
-    String strQuery = "";
-    SQLQuery query = null;
-    int minservice = 0;
-    int maxservice = 0;
-    String startdate = null;
-    String expirydate = null;
-    BigInteger days = new BigInteger("0");
-    BigInteger day = new BigInteger("0");
+    String minservice = null;
+    String maxservice = null;
     ContractVO vo = null;
-    SimpleDateFormat dateYearFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-    JSONObject result = new JSONObject();
     try {
-      ps = conn.prepareStatement(
-          "select count(trxstatus) as trx,startdate,expirydate from ehcm_contract where (trxstatus = 'Issued' or ehcm_contract_id =?) and ehcm_emp_perinfo_id = ? group by startdate,expirydate");
-
-      ps.setString(1, inpContractId);
-      ps.setString(2, empid);
-      rs = ps.executeQuery();
-      log4j.debug("query" + ps.toString());
-      while (rs.next()) {
-
-        startdate = rs.getDate("startdate").toString();
-
-        expirydate = rs.getDate("expirydate").toString();
-
-      }
-
-      expirydate = convertTohijriDate(dateYearFormat.format(dateYearFormat.parse(expirydate)));
-
-      expirydate = getOneDayAddHijiriDate(
-          expirydate.split("-")[2] + expirydate.split("-")[1] + expirydate.split("-")[0], Clientid);
-
-      Date strStartDate = dateYearFormat.parse(startdate);
-
-      Date strExpiryDate = dateYearFormat
-          .parse(sa.elm.ob.hcm.util.UtilityDAO.convertToGregorian_tochar((expirydate)));
-
-      result = sa.elm.ob.hcm.util.UtilityDAO.CalculateAge(strStartDate, strExpiryDate, Clientid);
-      int Years = Integer.parseInt(result.getString("Years"));
-      int Months = Integer.parseInt(result.getString("Months"));
-      int Days = Integer.parseInt(result.getString("Days"));
 
       st = conn.prepareStatement(
           "select em_ehcm_mincontractservice,em_ehcm_maxcontractservice from ad_client where ad_client_id = ?");
       st.setString(1, Clientid);
       rs = st.executeQuery();
       if (rs.next()) {
-        minservice = rs.getInt("em_ehcm_mincontractservice");
-        maxservice = rs.getInt("em_ehcm_maxcontractservice");
+        minservice = rs.getString("em_ehcm_mincontractservice");
+        maxservice = rs.getString("em_ehcm_maxcontractservice");
 
-      }
-      if (Years >= minservice && Years <= maxservice) {
-        if (Years == maxservice) {
-          if (Months > 0 || Days > 0) {
-            isExists = "Y";
-          } else {
-            isExists = "N";
-          }
-        }
-
-      } else {
-        isExists = "Y";
       }
       vo = new ContractVO();
       vo.setMinservice(minservice);

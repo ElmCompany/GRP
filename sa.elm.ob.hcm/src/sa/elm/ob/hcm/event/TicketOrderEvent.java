@@ -51,6 +51,10 @@ public class TicketOrderEvent extends EntityPersistenceEventObserver {
         throw new OBException(OBMessageUtils.messageBD("EHCM_Ticketorder_datevalidation"));
       }
 
+      if (ticketOrder.getDecisionType().equals("CA") && (ticketOrder.getCancelDate() == null)) {
+        throw new OBException(OBMessageUtils.messageBD("EHCM_TO_Cancel_date"));
+      }
+
       // Check whether original decision number is available or not
       if (!(ticketOrder.getDecisionType().equals("CR"))
           && (ticketOrder.getOriginalDecisionNo() == null)) {
@@ -164,6 +168,9 @@ public class TicketOrderEvent extends EntityPersistenceEventObserver {
     try {
       EHCMticketordertransaction ticketOrder = (EHCMticketordertransaction) event
           .getTargetInstance();
+      if (ticketOrder.getDecisionType().equals("CA") && (ticketOrder.getCancelDate() == null)) {
+        throw new OBException(OBMessageUtils.messageBD("EHCM_TO_Cancel_date"));
+      }
       if (ticketOrder.getTravelstartdate().compareTo(ticketOrder.getTravelenddate()) > 0) {
         throw new OBException(OBMessageUtils.messageBD("EHCM_Ticketorder_datevalidation"));
       }

@@ -26,6 +26,7 @@ import sa.elm.ob.hcm.EHCMAbsenceTypeAction;
 import sa.elm.ob.hcm.EHCMEmployeeStatusV;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EmploymentInfo;
+import sa.elm.ob.hcm.ad_callouts.common.UpdateEmpDetailsInCallouts;
 import sa.elm.ob.hcm.ad_callouts.dao.EndofEmploymentCalloutDAO;
 import sa.elm.ob.hcm.ad_callouts.dao.EndofEmploymentCalloutDAOImpl;
 import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
@@ -95,6 +96,7 @@ public class AbsenceDecisionCallout extends SimpleCallout {
        * get Latest active EmploymentInfo by using EmployeeId and set the value based on Employment
        * Info
        */
+      UpdateEmpDetailsInCallouts callouts = new UpdateEmpDetailsInCallouts();
       EmploymentInfo empinfo = null;
       OBQuery<EmploymentInfo> empInfo = OBDal.getInstance().createQuery(EmploymentInfo.class,
           " ehcmEmpPerinfo.id='" + employeeId + "' and enabled='Y' order by creationDate desc ");
@@ -189,25 +191,12 @@ public class AbsenceDecisionCallout extends SimpleCallout {
           info.addResult("inpabsenceDays", "0");
           info.addResult("inpenddate", "");
         } else {
-          info.addResult("inpempName", "");
-          info.addResult("inpempStatus", "");
-          info.addResult("inpempType", "");
-          info.addResult("inphireDate", "");
-          info.addResult("inpehcmGradeclassId", null);
-          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Department_ID').setValue('')");
-          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Section_ID').setValue('')");
-          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Ehcm_Grade_ID').setValue('')");
-          info.addResult("JSEXECUTE",
-              "form.getFieldFromColumnName('Ehcm_Position_ID').setValue('')");
-          info.addResult("inpjobTitle", "");
-          info.addResult("JSEXECUTE",
-              "form.getFieldFromColumnName('Employmentgrade').setValue('')");
-          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Assigned_Dept').setValue('')");
+          callouts.SetEmpDetailsNull(info);
           info.addResult("JSEXECUTE",
               "form.getFieldFromColumnName('Ehcm_Payscaleline_ID').setValue('')");
-          info.addResult("JSEXECUTE",
-              "form.getFieldFromColumnName('Ehcm_Gradeclass_ID').setValue('')");
+          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Assigned_Dept').setValue('')");
         }
+
       }
       if ((lastfieldChanged.equals("inpdecisionType")
           || lastfieldChanged.equals("inporiginalDecisionNo")

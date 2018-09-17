@@ -369,7 +369,7 @@ public class PersonalPaymentMethodDAO implements PaymentMethodDAO {
         if (vo.getpaymenttypename() != null)
           sql += " and pptm.paymenttypename ilike '%" + vo.getpaymenttypename() + "%'";
         if (vo.getcurrency() != null)
-          sql += " and cr.iso_code ilike  '%" + vo.getcurrency() + "'";
+          sql += " and cr.iso_code ilike  '%" + vo.getcurrency() + "%'";
         if (vo.getDefaultval() != null)
           sql += " and ppm.isdefault ='" + vo.getDefaultval() + "'";
       }
@@ -717,6 +717,27 @@ public class PersonalPaymentMethodDAO implements PaymentMethodDAO {
       OBQuery<EfinBankBranch> count = OBDal.getInstance().createQuery(EfinBankBranch.class,
           "as e where e.efinBank.id=:BankId ");
       count.setNamedParameter("BankId", bankId);
+      branchList = count.list();
+    } catch (Exception e) {
+      log4j.debug("Exception getBankBranch :" + e);
+    }
+
+    return branchList;
+
+  }
+
+  /**
+   * Lists all the branches.
+   * 
+   * @param clientId
+   * @return
+   */
+  public List<EfinBankBranch> getBankBranchOnBank(String clientId) {
+    List<EfinBankBranch> branchList = null;
+    try {
+      OBQuery<EfinBankBranch> count = OBDal.getInstance().createQuery(EfinBankBranch.class,
+          "as e where e.client.id=:clientId ");
+      count.setNamedParameter("clientId", clientId);
       branchList = count.list();
     } catch (Exception e) {
       log4j.debug("Exception getBankBranch :" + e);

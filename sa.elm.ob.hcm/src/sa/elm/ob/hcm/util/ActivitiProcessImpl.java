@@ -11,16 +11,28 @@ import org.activiti.engine.TaskService;
 import org.activiti.engine.impl.persistence.entity.TaskEntity;
 import org.activiti.engine.task.Task;
 import org.openbravo.activiti.ActivitiConstants;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import sa.elm.ob.hcm.EhcmEmpPerInfo;
+import sa.elm.ob.hcm.dao.profile.EmployeeProfileDAO;
+import sa.elm.ob.hcm.selfservice.dto.tasks.TaskDTO;
+import sa.elm.ob.hcm.services.profile.EmployeeProfileService;
 import sa.elm.ob.utility.util.Constants;
 
 /**
  * Implementation of Activiti Workflow Operations
  * 
  */
-@Component
+@Service
 public class ActivitiProcessImpl implements ActivitiProcess {
+
+  @Autowired
+  EmployeeProfileService employeeProfileService;
+
+  @Autowired
+  EmployeeProfileDAO employeeProfileDAO;
+
   /**
    * Starts the workflow process for the given process key
    */
@@ -113,12 +125,12 @@ public class ActivitiProcessImpl implements ActivitiProcess {
   }
 
   @Override
-  public List<Task> getTaskAssignedToUser(String username) {
+  public List<Task> getTaskAssignedToUser(String userId) {
     final TaskService taskService = getProcessEngine().getTaskService();
 
-    List<Task> tasksList = taskService.createTaskQuery().taskAssignee(username).orderByDueDate()
-        .desc().list();
-    // Filter the tasks which belong to this role Id
+    List<Task> tasksList = new ArrayList<>();
+    tasksList = taskService.createTaskQuery().taskAssignee(userId).orderByDueDate().desc().list();
+
     return tasksList;
   }
 
@@ -127,6 +139,50 @@ public class ActivitiProcessImpl implements ActivitiProcess {
     final TaskService taskService = getProcessEngine().getTaskService();
 
     return taskService.getVariables(taskId);
+  }
+
+  @Override
+  public List<TaskDTO> getTasksByUser(String username) {
+
+    EhcmEmpPerInfo manger = employeeProfileDAO.getEmployeeProfileByUser(username);
+
+    List<Task> tasks = getTaskAssignedToUser(manger.getId());
+    List<TaskDTO> tasksDTO = new ArrayList<>();
+
+    for (Task task : tasks) {
+      Map<String, Object> variables = getTaskDetails(task.getId());
+      TaskDTO taskDTO = new TaskDTO();
+      taskDTO.setTaskId(task.getId());
+      taskDTO.setSubject(variables.get(Constants.TASK_SUBJECT).toString());
+      taskDTO.setRequester(variables.get(Constants.TASK_REQUESTER_NAME).toString());
+      taskDTO.setLetterNo(variables.get(Constants.TASK_LETTER_NUMBER).toString());
+      taskDTO.setRequestDate(variables.get(Constants.TAKS_REQUEST_DATE).toString());
+      taskDTO.setStatus(variables.get(Constants.TASK_STATUS).toString());
+      taskDTO.setIdentifierId(variables.get(ActivitiConstants.TARGET_IDENTIFIER).toString());
+      tasksDTO.add(taskDTO);
+    }
+    return tasksDTO;
+  }
+
+  @Override
+  public List<TaskDTO> getTasksByRole(String roleId) {
+
+    List<Task> tasks = getTasksAssignedToRole(roleId);
+    List<TaskDTO> tasksDTO = new ArrayList<>();
+
+    for (Task task : tasks) {
+      Map<String, Object> variables = getTaskDetails(task.getId());
+      TaskDTO taskDTO = new TaskDTO();
+      taskDTO.setTaskId(task.getId());
+      taskDTO.setSubject(variables.get(Constants.TASK_SUBJECT).toString());
+      taskDTO.setRequester(variables.get(Constants.TASK_REQUESTER_NAME).toString());
+      taskDTO.setLetterNo(variables.get(Constants.TASK_LETTER_NUMBER).toString());
+      taskDTO.setRequestDate(variables.get(Constants.TAKS_REQUEST_DATE).toString());
+      taskDTO.setStatus(variables.get(Constants.TASK_STATUS).toString());
+      taskDTO.setIdentifierId(variables.get(ActivitiConstants.TARGET_IDENTIFIER).toString());
+      tasksDTO.add(taskDTO);
+    }
+    return tasksDTO;
   }
 
   @Override
@@ -209,12 +265,10 @@ public class ActivitiProcessImpl implements ActivitiProcess {
   @Override
   public List<Task> getTasksAssignedToRole(String roleId) {
     final TaskService taskService = getProcessEngine().getTaskService();
-    List<Task> tasks = taskService.createTaskQuery().taskCandidateGroup(roleId).orderByTaskId()
-        .desc().list();
-    if (tasks.size() > 0) {
-      return tasks;
-    }
-    return null;
+    List<Task> tasks = new ArrayList<>();
+    tasks = taskService.createTaskQuery().taskCandidateGroup(roleId).orderByTaskId().desc().list();
+
+    return tasks;
   }
 
   @Override
@@ -237,5 +291,34 @@ public class ActivitiProcessImpl implements ActivitiProcess {
 
     final TaskService taskService = getProcessEngine().getTaskService();
     taskService.claim(taskId, username);
+  }
+
+  @Override
+  public void deleteTasksByRole(String roleId) {
+    List<Task> tasks = getTasksAssignedToRole(roleId);
+    List<String> tasksId = new ArrayList<>();
+
+    for (Task task : tasks) {
+      tasksId.add(task.getId());
+    }
+
+    final TaskService taskService = getProcessEngine().getTaskService();
+    taskService.deleteTasks(tasksId, true);
+
+  }
+
+  @Override
+  public void deleteTasksByUser(String username) {
+    EhcmEmpPerInfo manger = employeeProfileDAO.getEmployeeProfileByUser(username);
+    List<Task> tasks = getTaskAssignedToUser(manger.getId());
+    List<String> tasksId = new ArrayList<>();
+
+    for (Task task : tasks) {
+      tasksId.add(task.getId());
+    }
+
+    final TaskService taskService = getProcessEngine().getTaskService();
+    taskService.deleteTasks(tasksId, true);
+
   }
 }

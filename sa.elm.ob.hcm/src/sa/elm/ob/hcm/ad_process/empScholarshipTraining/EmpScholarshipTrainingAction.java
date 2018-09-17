@@ -69,6 +69,15 @@ public class EmpScholarshipTrainingAction implements Process {
 
       EhcmEmpPerInfo person = OBDal.getInstance().get(EhcmEmpPerInfo.class,
           empScholarshipObj.getEmployee().getId());
+      // check whether the employee is suspended or not
+      if (empScholarshipObj.getEmployee().getEmploymentStatus()
+          .equals(DecisionTypeConstants.EMPLOYMENTSTATUS_SUSPENDED)) {
+        obError.setType("Error");
+        obError.setTitle("Error");
+        obError.setMessage(OBMessageUtils.messageBD("EHCM_emplo_suspend"));
+        bundle.setResult(obError);
+        return;
+      }
 
       if (!empScholarshipObj.isSueDecision()) {
 

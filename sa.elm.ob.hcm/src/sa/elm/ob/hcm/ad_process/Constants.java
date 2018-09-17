@@ -66,10 +66,15 @@ public class Constants {
   public static String UPDATE_PERSONAL_INFORMATION = "UPI";
   public static String UPDATE_ADDRESS = "UA";
   public static String UPDATE_DEPENDENT = "UD";
+  public static String ADD_DEPENDENT = "AD";
+  public static String REMOVE_DEPENDENT = "RD";
+  public static String CHANGE_BANK_DETAILS = "UBD";
+  public static String UPDATE_CONTACT_INFORMATION = "UCI";
   public static String UPDATE_QUALIFICATION = "UQ";
   public static String UPDATE_CERTIFICATION = "UC";
   public static String CREATE_BUSINESS_TRIP = "CBT";
   public static String DECISION_TYPE_BUSINESSMISSION_PAYMENT = "BP";
+  public static String LEAVE_REQUEST = "LR";
 
   // days In Year
   public static int NoOfDaysInYear = 355;
@@ -88,4 +93,9 @@ public class Constants {
   public static String TOTALPERIODOFSERVICE = "TPS";
 
   public static String PROMOTIONBALANCE = "LPD";
+
+  // Workflow status
+  public static String REQUEST_IN_PROGRESS = "RINP";
+  public static String REQUEST_APPROVED = "RAPP";
+  public static String REQUEST_REJECTED = "RREJ";
 }

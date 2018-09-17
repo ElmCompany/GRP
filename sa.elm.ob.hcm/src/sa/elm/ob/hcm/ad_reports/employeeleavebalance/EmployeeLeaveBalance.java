@@ -54,7 +54,6 @@ public class EmployeeLeaveBalance extends HttpSecureAppServlet {
             EmployeesBusinessMissionDAO.getEmployeesList(vars.getClient()));
         request.setAttribute("AbsenceTypeList",
             EmployeeLeaveBalanceDAO.getAbsenceType(vars.getClient()));
-
         depls = PositionTransactionsDetailsDAO.getDepartmentCode(vars.getClient());
         request.setAttribute("DepartmentList", depls);
 
@@ -109,7 +108,7 @@ public class EmployeeLeaveBalance extends HttpSecureAppServlet {
             EmployeesBusinessMissionDAO.getUserDepartment(vars.getUser()));
 
         strReportName = "@basedesign@/sa/elm/ob/hcm/ad_reports/employeeleavebalance/BalanceLeaveReport.jrxml";
-        String strOutput = "pdf";
+        String strOutput = "xls";
 
         renderJR(vars, response, strReportName, strOutput, parameters, null, null);
       }

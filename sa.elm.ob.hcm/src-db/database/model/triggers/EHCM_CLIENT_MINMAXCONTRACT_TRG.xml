@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+  <database name="TRIGGER EHCM_CLIENT_MINMAXCONTRACT_TRG">
+    <trigger name="EHCM_CLIENT_MINMAXCONTRACT_TRG" table="AD_CLIENT" fires="before" insert="true" update="true" delete="false" foreach="row">
+      <body><![CDATA[BEGIN
+IF TG_OP='INSERT' or TG_OP='UPDATE' THEN
+	--Minimum contract service cannot be greater than Maximum contract service
+	IF(:new.em_ehcm_mincontractservice > :new.em_ehcm_maxcontractservice) THEN
+		 RAISE_APPLICATION_ERROR(-20000, '@EHCM_MinMaxContract@');
+	END IF;
+END IF;			
+END EHCM_CLIENT_MINMAXCONTRACT_TRG
+]]></body>
+    </trigger>
+  </database>

@@ -20,7 +20,7 @@ import sa.elm.ob.hcm.EhcmJoiningWorkRequest;
 import sa.elm.ob.hcm.EhcmPosition;
 import sa.elm.ob.hcm.EmployeeDelegation;
 import sa.elm.ob.hcm.EmploymentInfo;
-import sa.elm.ob.hcm.ad_process.Constants;
+import sa.elm.ob.hcm.ad_process.EmpExtendService.DAO.ExtendServiceHandlerDAO;
 import sa.elm.ob.hcm.ad_process.assignedOrReleasePosition.AssingedOrReleaseEmpInPositionDAO;
 import sa.elm.ob.hcm.ad_process.assignedOrReleasePosition.AssingedOrReleaseEmpInPositionDAOImpl;
 import sa.elm.ob.hcm.properties.Resource;
@@ -43,6 +43,7 @@ public class EmpTransferreactivateDAO {
     EmploymentInfo info = null;
     EmploymentInfo prevEmpinfo = null;
     EmployeeDelegation delegation = null;
+    Date enddate = null;
     try {
       OBContext.setAdminMode();
       AssingedOrReleaseEmpInPositionDAO assingedOrReleaseEmpInPositionDAO = new AssingedOrReleaseEmpInPositionDAOImpl();
@@ -85,31 +86,30 @@ public class EmpTransferreactivateDAO {
           prevEmpinfo.setEnabled(true);
           prevEmpinfo.setAlertStatus("ACT");
           prevEmpinfo.setUpdated(new java.util.Date());
+          ExtendServiceHandlerDAO.updateEmpRecord(empTransfer.getEhcmEmpPerinfo().getId(),
+              info.getId());
+          // update End Date for previous record
+          enddate = ExtendServiceHandlerDAO.updateEndDateInEmploymentInfo(
+              empTransfer.getEhcmEmpPerinfo().getId(), empTransfer.getClient().getId(),
+              info.getId());
+          prevEmpinfo.setEndDate(enddate);
 
-          if (prevEmpinfo.getChangereason().equals("H") || prevEmpinfo.getEhcmEmpPromotion() != null
-              || (prevEmpinfo.getEhcmEmpSuspension() != null
-                  && prevEmpinfo.getChangereason().equals(Constants.SUSPENSION_END))
-              || prevEmpinfo.getChangereason().equals("JWRSEC")) {
-            prevEmpinfo.setEndDate(null);
-          } else if (prevEmpinfo.getEhcmEmpTransfer() != null) {
-            if (prevEmpinfo.getEhcmEmpTransfer().getEndDate() != null) {
-              prevEmpinfo.setEndDate(prevEmpinfo.getEhcmEmpTransfer().getEndDate());
-            } else {
-              prevEmpinfo.setEndDate(null);
-            }
-          } else if (prevEmpinfo.getEhcmEmpTransferSelf() != null) {
-            if (prevEmpinfo.getEhcmEmpTransferSelf().getEndDate() != null) {
-              prevEmpinfo.setEndDate(prevEmpinfo.getEhcmEmpTransferSelf().getEndDate());
-            } else {
-              prevEmpinfo.setEndDate(null);
-            }
-          } else if (prevEmpinfo.getEhcmEmpSuspension() != null) {
-            if (prevEmpinfo.getEhcmEmpSuspension().getEndDate() != null) {
-              prevEmpinfo.setEndDate(prevEmpinfo.getEhcmEmpSuspension().getEndDate());
-            } else {
-              prevEmpinfo.setEndDate(null);
-            }
-          }
+          /*
+           * if (prevEmpinfo.getChangereason().equals("H") || prevEmpinfo.getEhcmEmpPromotion() !=
+           * null || (prevEmpinfo.getEhcmEmpSuspension() != null &&
+           * prevEmpinfo.getChangereason().equals(Constants.SUSPENSION_END)) ||
+           * prevEmpinfo.getChangereason().equals("JWRSEC")) { prevEmpinfo.setEndDate(null); } else
+           * if (prevEmpinfo.getEhcmEmpTransfer() != null) { if
+           * (prevEmpinfo.getEhcmEmpTransfer().getEndDate() != null) {
+           * prevEmpinfo.setEndDate(prevEmpinfo.getEhcmEmpTransfer().getEndDate()); } else {
+           * prevEmpinfo.setEndDate(null); } } else if (prevEmpinfo.getEhcmEmpTransferSelf() !=
+           * null) { if (prevEmpinfo.getEhcmEmpTransferSelf().getEndDate() != null) {
+           * prevEmpinfo.setEndDate(prevEmpinfo.getEhcmEmpTransferSelf().getEndDate()); } else {
+           * prevEmpinfo.setEndDate(null); } } else if (prevEmpinfo.getEhcmEmpSuspension() != null)
+           * { if (prevEmpinfo.getEhcmEmpSuspension().getEndDate() != null) {
+           * prevEmpinfo.setEndDate(prevEmpinfo.getEhcmEmpSuspension().getEndDate()); } else {
+           * prevEmpinfo.setEndDate(null); } }
+           */
         }
       }
     }
@@ -227,8 +227,8 @@ public class EmpTransferreactivateDAO {
         // update assigned employee in employee position
 
         // update for old info record as inactive
-        EmpTransferIssueDecisionDAO.updateEndDateforOldRecord(employInfo, vars,
-            empTransfer.getOriginalDecisionsNo(), decisionType, joinReqId);
+        EmpTransferIssueDecisionDAO.updateEndDateforOldRecord(employInfo, vars, empTransfer,
+            decisionType, joinReqId);
 
         if (decisionType.equals("UP"))
           EmpTransferIssueDecisionDAO.updateOldEmpTransferInAct(empTransfer);

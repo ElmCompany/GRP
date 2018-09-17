@@ -119,6 +119,8 @@
    <INPUT type="hidden" name="inpempCategory" id="inpempCategory" value="<%= request.getAttribute("inpempCategory") %>"></INPUT>
    <INPUT type="hidden" name="inpHireDate" id="inpHireDate" value="<%= request.getAttribute("inpHireDate") %>"></INPUT>
    <INPUT type="hidden" name="inpActive" id="inpActive" value=""></INPUT>
+      <INPUT type="hidden" name="inpprimarychk" id="inpprimarychk" value="<%= request.getAttribute("inpprimarychk") %>"></INPUT>
+   
    <INPUT type="hidden" name="inpEmployeeIsActive" id="inpEmployeeIsActive" value="<%= request.getAttribute("inpEmployeeIsActive") %>"></INPUT>
     <INPUT type="hidden" name="inpEmpStatus" id="inpEmpStatus" value="<%= request.getAttribute("inpEmpStatus") %>"></INPUT>
       <INPUT type="hidden" id="inpEmployeeStatus" name="inpEmployeeStatus" value="<%= request.getAttribute("inpEmployeeStatus") %>"></INPUT>
@@ -127,8 +129,10 @@
       <INPUT type="hidden" name="selectCountryName" id="selectCountryName" value="<%= request.getAttribute("inpCountryName") %>"></INPUT>
     <INPUT type="hidden" name="selectCityId" id="selectCityId" value="<%= request.getAttribute("inpCityId") %>"></INPUT>
       <INPUT type="hidden" name="selectCityName" id="selectCityName" value="<%= request.getAttribute("inpCityName") %>"></INPUT>
+      
        <INPUT type="hidden" name="selectSecCountryId" id="selectSecCountryId" value="<%= request.getAttribute("inpSecCountryId") %>"></INPUT>
       <INPUT type="hidden" name="selectSecCountryName" id="selectSecCountryName" value="<%= request.getAttribute("inpSecCountryName") %>"></INPUT>
+      
     <INPUT type="hidden" name="selectSecCityId" id="selectSecCityId" value="<%= request.getAttribute("inpSecCityId") %>"></INPUT>
       <INPUT type="hidden" name="selectSecCityName" id="selectSecCityName" value="<%= request.getAttribute("inpSecCityName") %>"></INPUT>
        <INPUT type="hidden" name="select2AdstyleId" id="select2AdstyleId" value="<%= request.getAttribute("inpAddressStyleId") %>"></INPUT>
@@ -390,8 +394,10 @@
                             </TD>
                             <TD class="TitleCell" align="right" style="min-width:110px;"><span class="LabelText" ><%= Resource.getProperty("hcm.primary",lang)%></span></TD>
                             <TD class="TextBox_ContentCell" colspan=3>
-                                <input type="checkbox" id="primarychk" checked="checked"></input>
+                                <input type="checkbox" id="primarychk" name="primarychk" <%if(request.getAttribute("inpprimarychk").equals("Y")){%> checked <%} %> onclick="disableprimaryflag(this.value);enableForm();"></input>
                             </TD> 
+                            
+                            
                         </TR>
                         <TR>
                             <TD class="TitleCell" align="right" style="min-width:110px;"><span class="LabelText" ><%= Resource.getProperty("hcm.startdate",lang)%></span></TD>
@@ -712,11 +718,13 @@ var changesFlag = 0;
     });
     else reloadTab(tab);
   }
- 
+ //  Main_ToolBar_Button_Icon Main_ToolBar_Button_Icon_Refresh
 function enableSaveButton(flag) {
     if (flag == 'true' ) {
         document.getElementById('buttonSave').className = 'Main_ToolBar_Button_Icon Main_ToolBar_Button_Icon_Save';
         $('#linkButtonSave_Relation, #linkButtonSave_New, #linkButtonSave').attr("class", "Main_ToolBar_Button");
+        
+        
     }
     else if (flag == 'false') {
         document.getElementById('buttonSave').className = 'Main_ToolBar_Button_Icon Main_ToolBar_Button_Icon_Save_disabled';
@@ -747,7 +755,8 @@ function enableForm() {
 function onClickRefresh() {
     hideMessage();
     document.getElementById("inpAction").value = "EditView";
-    if (changesFlag == 1 &&  savevaliddata())
+    if (changesFlag == 1 &&  savevaliddata() && (( document.getElementById('inpAddressStyle').value !=0 )  &&  ( document.getElementById('inpStartDate1').value !="")  && (document.getElementById('inpCountry').value !=0) && (document.getElementById('inpCity').value !=0)
+            && ( document.getElementById('inpAdd1').value !="" ) && ( document.getElementById('inpPostBox').value !="" ) && ( document.getElementById('inpStartDate2').value !="")))
         OBAsk('<%= Resource.getProperty("hcm.changedvaluessave", lang) %>', function(result) {
             if (result){
                 document.getElementById("SubmitType").value="Save";
@@ -888,7 +897,7 @@ function changeseccountry(index){
       var country = document.getElementById("inpCountry").value;
       var city= document.getElementById("inpCity").value;
       
-      if(addressstyle == '0' || address1 == "" || postbox == "" || startdate == "" || country == '0' || city == '0'){
+      if(addressstyle == '' || address1 == "" || postbox == "" || startdate == "" || country == '' || city == ''){
           mandatory = '1';
       }
        if(document.getElementById('inpCancelHiring').value == "true" )
@@ -896,7 +905,6 @@ function changeseccountry(index){
           chkCancel = '1';
       }
       if(validdate == '1' || validhiredate=='1' || mandatory =='1' || chkCancel =='1'){
-          
             return false;
       }
      
@@ -914,6 +922,11 @@ function disableactiveflag(index){
         document.getElementById("inpEndDate2").readOnly= true;
     } 
 }
+function disableprimaryflag(index){
+    document.getElementById("inpprimarychk").value=document.getElementById("primarychk").checked;
+  
+}
+
 function checkvalidstartdate(startdate,hiredate) 
 {   
     var fdate = startdate.split("-");

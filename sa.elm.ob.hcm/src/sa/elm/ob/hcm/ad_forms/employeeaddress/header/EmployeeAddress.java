@@ -94,16 +94,21 @@ public class EmployeeAddress extends HttpSecureAppServlet {
 
         empaddrs.setUpdated(new java.util.Date());
         empaddrs.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
+
         empaddrs.setAddressStyle(OBDal.getInstance().get(EhcmAddressStyle.class,
-            request.getParameter("inpAddressStyle").toString()));
+            Utility.nullToEmpty(request.getParameter("inpAddressStyle")).toString()));
         empaddrs
             .setStartDate(dao.convertGregorian(request.getParameter("inpStartDate1").toString()));
         empaddrs.setCountry(
             OBDal.getInstance().get(Country.class, request.getParameter("inpCountry").toString()));
         empaddrs.setCity(
             OBDal.getInstance().get(City.class, request.getParameter("inpCity").toString()));
+
         empaddrs.setAddressLine1(request.getParameter("inpAdd1"));
         empaddrs.setPostBox(request.getParameter("inpPostBox"));
+        empaddrs.setSECStartdate(
+            dao.convertGregorian(request.getParameter("inpStartDate2").toString()));
+
         empaddrs.setEhcmEmpPerinfo(
             OBDal.getInstance().get(EhcmEmpPerInfo.class, request.getParameter("inpEmployeeId")));
         empaddrs.setAddressLine2(request.getParameter("inpAdd2"));
@@ -116,8 +121,7 @@ public class EmployeeAddress extends HttpSecureAppServlet {
         } else {
           empaddrs.setEndDate(null);
         }
-        empaddrs.setSECStartdate(
-            dao.convertGregorian(request.getParameter("inpStartDate2").toString()));
+
         if (request.getParameter("inpEndDate2") != null
             && request.getParameter("inpEndDate2") != "") {
           empaddrs
@@ -128,19 +132,30 @@ public class EmployeeAddress extends HttpSecureAppServlet {
         empaddrs.setSECDistrict(request.getParameter("inpSecDistrict"));
         empaddrs.setSECStreet(request.getParameter("inpSecStreet"));
         empaddrs.setSECCCountry(OBDal.getInstance().get(Country.class,
-            request.getParameter("inpSecCountry").toString()));
-        if (request.getParameter("inpSecCity") != null)
+            Utility.nullToEmpty(request.getParameter("inpSecCountry")).toString()));
+        if (request.getParameter("inpSecCity") != null) {
           empaddrs.setSECCCity(
               OBDal.getInstance().get(City.class, request.getParameter("inpSecCity").toString()));
+        } else {
+          empaddrs.setSECCCity(null);
+        }
+
         empaddrs.setSECAddress1(request.getParameter("inpSecAdd1"));
         empaddrs.setSECAddress2(request.getParameter("inpSecAdd2"));
         empaddrs.setSECPostalcode(request.getParameter("inpSecPostalcode"));
         empaddrs.setSECPostbox(request.getParameter("inpSecPostbox"));
+
         if (request.getParameter("inpActive").equals("true")) {
           empaddrs.setActive(true);
         } else if (request.getParameter("inpActive").equals("false")) {
           empaddrs.setActive(false);
         }
+        if (request.getParameter("inpprimarychk").equals("true")) {
+          empaddrs.setPrimaryCk(true);
+        } else if (request.getParameter("inpprimarychk").equals("false")) {
+          empaddrs.setPrimaryCk(false);
+        }
+
         OBDal.getInstance().save(empaddrs);
         OBDal.getInstance().flush();
         OBDal.getInstance().commitAndClose();
@@ -237,14 +252,29 @@ public class EmployeeAddress extends HttpSecureAppServlet {
               vo.getCountryId() == null ? "" : dao.countryName(vo.getCountryId()));
           request.setAttribute("inpSecCountryId",
               vo.getSecCountryId() == null ? "" : vo.getSecCountryId());
-          request.setAttribute("inpSecCountryName",
-              vo.getSecCountryId() == null ? "" : dao.countryName(vo.getSecCountryId()));
+
+          if (vo.getSecCountryId() == null || vo.getSecCountryId() == "") {
+            request.setAttribute("inpSecCountryName", "");
+          } else {
+            request.setAttribute("inpSecCountryName",
+                vo.getSecCountryId() == null ? "" : dao.countryName(vo.getSecCountryId()));
+          }
+
           request.setAttribute("inpCityId", vo.getCityId() == null ? "" : vo.getCityId());
+
           request.setAttribute("inpCityName",
               vo.getCityId() == null ? "" : dao.cityName(vo.getCityId()));
+
           request.setAttribute("inpSecCityId", vo.getSecCityId() == null ? "" : vo.getSecCityId());
-          request.setAttribute("inpSecCityName",
-              vo.getSecCityId() == null ? "" : dao.cityName(vo.getSecCityId()));
+
+          if (vo.getSecCityId() == null || vo.getSecCityId() == "") {
+            request.setAttribute("inpSecCityName", "");
+          } else {
+            request.setAttribute("inpSecCityName",
+                vo.getSecCityId() == null ? "" : dao.cityName(vo.getSecCityId()));
+          }
+          log4j.debug("sec city value:" + vo.getSecCityId());
+
           request.setAttribute("inpDistrict", vo.getDistrict());
           request.setAttribute("inpStreet", vo.getStreet());
           request.setAttribute("inpAdd1", vo.getAddress1());
@@ -253,6 +283,9 @@ public class EmployeeAddress extends HttpSecureAppServlet {
           request.setAttribute("inpPostalcode", vo.getPostalCode());
           request.setAttribute("inpStartDate2", vo.getStartDate1());
           request.setAttribute("inpEndDate2", vo.getEndDate1());
+          request.setAttribute("inpprimarychk", vo.getCheckbox());
+          log4j.debug("primarychk:" + vo.getCheckbox());
+
           log4j.debug("activeflag:" + vo.getActive());
           log4j.debug("endate2:" + vo.getEndDate1());
 
@@ -280,6 +313,8 @@ public class EmployeeAddress extends HttpSecureAppServlet {
           request.setAttribute("today", date);
 
           request.setAttribute("inpEmployeeId", request.getParameter("inpEmployeeId"));
+          request.setAttribute("inpprimarychk", "Y");
+
           request.setAttribute("inpActiveflag", "Y");
           request.setAttribute("inpCityId", "");
           request.setAttribute("inpSecCityId", "");

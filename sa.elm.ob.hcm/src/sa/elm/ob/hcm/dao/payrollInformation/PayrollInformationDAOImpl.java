@@ -283,7 +283,8 @@ public class PayrollInformationDAOImpl implements PayrollInformationDAO {
     changeBankOB.setCreatedBy(userOB);
     changeBankOB.setUpdated(new java.util.Date());
     changeBankOB.setUpdatedBy(userOB);
-    changeBankOB.setAssignedDepartment(employmentInfoOB.getAssignedDepartment());
+    //changeBankOB.setAssignedDepartmen(employmentInfoOB.getAssignedDepartment());
+     
     changeBankOB.setEmployeeType(employeeOB.getEhcmActiontype().getPersonType());
     changeBankOB.setEmployeeName(employeeOB.getArabicfullname());
     changeBankOB.setHireDate(employeeOB.getHiredate());

@@ -1,5 +1,6 @@
 package sa.elm.ob.hcm.services.profile;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,7 @@ import sa.elm.ob.hcm.EhcmDependents;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.GenericActivitiData;
 import sa.elm.ob.hcm.ad_process.Constants;
-import sa.elm.ob.hcm.dao.activiti.CommonActivitiDAO;
+import sa.elm.ob.hcm.dao.activiti.SelfServiceTransactionDAO;
 import sa.elm.ob.hcm.dao.profile.EmployeeProfileDAO;
 import sa.elm.ob.hcm.dao.profile.EmployeeProfileUpdateDAO;
 import sa.elm.ob.hcm.dto.profile.AddressInformationDTO;
@@ -26,9 +27,12 @@ import sa.elm.ob.hcm.selfservice.security.SecurityUtils;
 import sa.elm.ob.hcm.services.workflow.WorkflowUtilityService;
 import sa.elm.ob.hcm.util.MessageKeys;
 import sa.elm.ob.hcm.util.UtilityDAO;
+import sa.elm.ob.utility.util.DateUtils;
+import sa.elm.ob.utility.util.Utility;
 
-@Service("employeeProfileUpdateService")
+@Service
 public class EmployeeProfileUpdateServiceImpl implements EmployeeProfileUpdateService {
+
   private final String UPDATE_PROFILE_WORKFLOW_KEY = "updateProfileWorkflow";
   @Autowired
   private EmployeeProfileUpdateDAO employeeProfileUpdateDAO;
@@ -37,7 +41,7 @@ public class EmployeeProfileUpdateServiceImpl implements EmployeeProfileUpdateSe
   private EmployeeProfileDAO employeeProfileDAO;
 
   @Autowired
-  private CommonActivitiDAO commonActivitiDAO;
+  private SelfServiceTransactionDAO commonActivitiDAO;
 
   @Autowired
   private WorkflowUtilityService workflowUtilityService;
@@ -113,10 +117,11 @@ public class EmployeeProfileUpdateServiceImpl implements EmployeeProfileUpdateSe
   }
 
   @Override
-  public Boolean removeDependent(String userName, String dependentId)
+  public Boolean removeDependent(String userName, String nationalId)
       throws BusinessException, SystemException {
 
-    employeeProfileUpdateDAO.removeDependent(userName, dependentId);
+    checkEmployee(userName);
+    employeeProfileUpdateDAO.removeDependent(userName, nationalId);
 
     return true;
   }
@@ -133,12 +138,21 @@ public class EmployeeProfileUpdateServiceImpl implements EmployeeProfileUpdateSe
   }
 
   @Override
-  public EhcmDependents getDependentByNationalId(String userName, String NationalID)
+  public DependentInformationDTO getDependentByNationalId(String userName, String NationalID)
       throws SystemException, BusinessException {
 
     EhcmDependents ehcmDependents = employeeProfileUpdateDAO.findDependentByNationalId(userName,
         NationalID);
-    return ehcmDependents;
+
+    DependentInformationDTO empDependent = new DependentInformationDTO();
+    empDependent.setFirstNameEn(ehcmDependents.getFirstName());
+    empDependent.setFatherNameEn(ehcmDependents.getFathername());
+    empDependent.setGrandFatherNameEn(ehcmDependents.getGrandfather());
+    empDependent.setFamilyNameEn(ehcmDependents.getFamily());
+    empDependent.setDob(String.valueOf(ehcmDependents.getDob()));
+    empDependent.setGender(ehcmDependents.getGender());
+    empDependent.setNationalId(ehcmDependents.getNationalidentifier());
+    return empDependent;
   }
 
   @Override
@@ -163,12 +177,17 @@ public class EmployeeProfileUpdateServiceImpl implements EmployeeProfileUpdateSe
 
     Map<String, Object> variablesMap = new HashMap<String, Object>();
     variablesMap.put(ActivitiConstants.TARGET_IDENTIFIER, storedData.getId());
-    variablesMap.put("userName", SecurityUtils.loggedInUserName());
-    variablesMap.put("taskTitle", "Update Profile");
-    variablesMap.put("taskType", Constants.UPDATE_PROFILE);
-    variablesMap.put("emailAddress", employeeOB.getEmail());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_USERNAME, userName);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_NAME, employeeOB.getName());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_SUBJECT, "Update Profile");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_LETTER_NUMBER, "");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TAKS_REQUEST_DATE,
+        Utility.convertTohijriDate(DateUtils.convertDateToString("yyyy-MM-dd", new Date())));
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_STATUS, Constants.REQUEST_IN_PROGRESS);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_TYPE, Constants.UPDATE_PROFILE);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_EMAIL, employeeOB.getEmail());
 
-    workflowUtilityService.startWorkflow(UPDATE_PROFILE_WORKFLOW_KEY, variablesMap);
+    startWorkflow(variablesMap);
 
     return true;
   }
@@ -204,12 +223,17 @@ public class EmployeeProfileUpdateServiceImpl implements EmployeeProfileUpdateSe
 
     Map<String, Object> variablesMap = new HashMap<String, Object>();
     variablesMap.put(ActivitiConstants.TARGET_IDENTIFIER, storedData.getId());
-    variablesMap.put("userName", SecurityUtils.loggedInUserName());
-    variablesMap.put("taskTitle", "Update Employee Dependent");
-    variablesMap.put("taskType", Constants.UPDATE_DEPENDENT);
-    variablesMap.put("emailAddress", employeeOB.getEmail());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_USERNAME, userName);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_NAME, employeeOB.getName());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_SUBJECT, "Update Employee Dependent");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_LETTER_NUMBER, "");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TAKS_REQUEST_DATE,
+        Utility.convertTohijriDate(DateUtils.convertDateToString("yyyy-MM-dd", new Date())));
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_STATUS, Constants.REQUEST_IN_PROGRESS);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_TYPE, Constants.UPDATE_DEPENDENT);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_EMAIL, employeeOB.getEmail());
 
-    workflowUtilityService.startWorkflow(UPDATE_PROFILE_WORKFLOW_KEY, variablesMap);
+    startWorkflow(variablesMap);
 
     return true;
   }
@@ -226,12 +250,18 @@ public class EmployeeProfileUpdateServiceImpl implements EmployeeProfileUpdateSe
 
     Map<String, Object> variablesMap = new HashMap<String, Object>();
     variablesMap.put(ActivitiConstants.TARGET_IDENTIFIER, storedData.getId());
-    variablesMap.put("userName", SecurityUtils.loggedInUserName());
-    variablesMap.put("taskTitle", "Update Personal Information");
-    variablesMap.put("taskType", Constants.UPDATE_PERSONAL_INFORMATION);
-    variablesMap.put("emailAddress", employeeOB.getEmail());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_USERNAME, userName);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_NAME, employeeOB.getName());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_SUBJECT, "Update Personal Information");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_LETTER_NUMBER, "");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TAKS_REQUEST_DATE,
+        Utility.convertTohijriDate(DateUtils.convertDateToString("yyyy-MM-dd", new Date())));
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_STATUS, Constants.REQUEST_IN_PROGRESS);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_TYPE,
+        Constants.UPDATE_PERSONAL_INFORMATION);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_EMAIL, employeeOB.getEmail());
 
-    workflowUtilityService.startWorkflow(UPDATE_PROFILE_WORKFLOW_KEY, variablesMap);
+    startWorkflow(variablesMap);
 
     return true;
   }
@@ -249,12 +279,110 @@ public class EmployeeProfileUpdateServiceImpl implements EmployeeProfileUpdateSe
 
     Map<String, Object> variablesMap = new HashMap<String, Object>();
     variablesMap.put(ActivitiConstants.TARGET_IDENTIFIER, storedData.getId());
-    variablesMap.put("userName", userName);
-    variablesMap.put("taskTitle", "Update Address");
-    variablesMap.put("taskType", Constants.UPDATE_ADDRESS);
-    variablesMap.put("emailAddress", employeeOB.getEmail());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_USERNAME, userName);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_NAME, employeeOB.getName());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_SUBJECT, "Update Address");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_LETTER_NUMBER, "");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TAKS_REQUEST_DATE,
+        Utility.convertTohijriDate(DateUtils.convertDateToString("yyyy-MM-dd", new Date())));
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_STATUS, Constants.REQUEST_IN_PROGRESS);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_TYPE, Constants.UPDATE_ADDRESS);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_EMAIL, employeeOB.getEmail());
 
-    workflowUtilityService.startWorkflow(UPDATE_PROFILE_WORKFLOW_KEY, variablesMap);
+    startWorkflow(variablesMap);
+
+    return true;
+  }
+
+  private void startWorkflow(Map<String, Object> variablesMap) {
+    workflowUtilityService
+        .startWorkflow(sa.elm.ob.utility.util.Constants.UPDATE_PROFILE_WORKFLOW_KEY, variablesMap);
+  }
+
+  @Override
+  public Boolean updateContactInformationWithWorkflow(String userName,
+      EmployeeAdditionalInformationDTO additionalInformationDTO)
+      throws BusinessException, SystemException {
+
+    EhcmEmpPerInfo employeeOB = employeeProfileDAO.getEmployeeProfileByUser(userName);
+
+    jsonInString = utilityDAO.convertObjectTojsonString(additionalInformationDTO);
+
+    GenericActivitiData storedData = storeDataInTransaction(userName, jsonInString,
+        Constants.ADD_DEPENDENT);
+
+    Map<String, Object> variablesMap = new HashMap<String, Object>();
+    variablesMap.put(ActivitiConstants.TARGET_IDENTIFIER, storedData.getId());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_USERNAME, userName);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_NAME, employeeOB.getName());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_SUBJECT, "Update Contact Information");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_LETTER_NUMBER, "");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TAKS_REQUEST_DATE,
+        Utility.convertTohijriDate(DateUtils.convertDateToString("yyyy-MM-dd", new Date())));
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_STATUS, Constants.REQUEST_IN_PROGRESS);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_TYPE,
+        Constants.UPDATE_CONTACT_INFORMATION);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_EMAIL, employeeOB.getEmail());
+
+    startWorkflow(variablesMap);
+
+    return true;
+  }
+
+  @Override
+  public Boolean addDependentWithWorkflow(String username,
+      DependentInformationDTO dependentInformationDTO) {
+
+    EhcmEmpPerInfo employeeOB = employeeProfileDAO.getEmployeeProfileByUser(username);
+
+    jsonInString = utilityDAO.convertObjectTojsonString(dependentInformationDTO);
+
+    GenericActivitiData storedData = storeDataInTransaction(username, jsonInString,
+        Constants.ADD_DEPENDENT);
+
+    Map<String, Object> variablesMap = new HashMap<String, Object>();
+    variablesMap.put(ActivitiConstants.TARGET_IDENTIFIER, storedData.getId());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_USERNAME, username);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_NAME, employeeOB.getName());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_SUBJECT, "Add new Dependent");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_LETTER_NUMBER, "");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TAKS_REQUEST_DATE,
+        Utility.convertTohijriDate(DateUtils.convertDateToString("yyyy-MM-dd", new Date())));
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_STATUS, Constants.REQUEST_IN_PROGRESS);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_TYPE, Constants.ADD_DEPENDENT);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_EMAIL, employeeOB.getEmail());
+
+    startWorkflow(variablesMap);
+
+    return true;
+  }
+
+  @Override
+  public Boolean removeDependentWithWorkflow(String username, String nationalId)
+      throws SystemException, BusinessException {
+
+    EhcmEmpPerInfo employeeOB = employeeProfileDAO.getEmployeeProfileByUser(username);
+
+    DependentInformationDTO dependent = getDependentByNationalId(username, nationalId);
+
+    jsonInString = utilityDAO.convertObjectTojsonString(dependent);
+
+    GenericActivitiData storedData = storeDataInTransaction(username, jsonInString,
+        Constants.REMOVE_DEPENDENT);
+
+    Map<String, Object> variablesMap = new HashMap<String, Object>();
+    variablesMap.put(ActivitiConstants.TARGET_IDENTIFIER, storedData.getId());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_USERNAME, username);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_NAME, employeeOB.getName());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_SUBJECT, "Remove Dependent");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_LETTER_NUMBER, "");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TAKS_REQUEST_DATE,
+        Utility.convertTohijriDate(DateUtils.convertDateToString("yyyy-MM-dd", new Date())));
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_STATUS, Constants.REQUEST_IN_PROGRESS);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_TYPE, Constants.REMOVE_DEPENDENT);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_EMAIL, employeeOB.getEmail());
+
+    startWorkflow(variablesMap);
 
     return true;
   }

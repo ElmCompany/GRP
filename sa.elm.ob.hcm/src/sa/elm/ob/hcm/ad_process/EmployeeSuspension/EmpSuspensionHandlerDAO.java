@@ -141,7 +141,6 @@ public class EmpSuspensionHandlerDAO {
     int millSec = 1 * 24 * 3600 * 1000;
     EHCMEmpSupervisor supervisorId = null;
     AssingedOrReleaseEmpInPositionDAO positionEmpHist = new AssingedOrReleaseEmpInPositionDAOImpl();
-    int a = 0;
     try {
       OBQuery<EmploymentInfo> empInfo = OBDal.getInstance().createQuery(EmploymentInfo.class,
           " ehcmEmpPerinfo.id=:employeeId and enabled='Y'  and alertStatus='ACT' and changereason='SUS' and ehcmEmpSuspension.id='"
@@ -157,7 +156,7 @@ public class EmpSuspensionHandlerDAO {
         objCloneEmplyment
             .setChangereasoninfo(objSuspension.getSuspensionEndReason().getSearchKey());
         if (!objSuspension.isJoinWorkRequestRequired()) {
-          objCloneEmplyment.setStartDate(objSuspension.getJoinDate());
+          objCloneEmplyment.setStartDate(new Date(objSuspension.getEndDate().getTime() + millSec));
         } else {
           objCloneEmplyment.setStartDate(joinReqId.getJoindate());
         }
@@ -200,6 +199,11 @@ public class EmpSuspensionHandlerDAO {
         }
 
         OBDal.getInstance().save(empinfo);
+
+        // make current suspension as active
+        objSuspension.setEnabled(true);
+        OBDal.getInstance().save(objSuspension);
+
         // make old suspension as inactive
         oldSuspension.setEnabled(false);
         OBDal.getInstance().save(oldSuspension);

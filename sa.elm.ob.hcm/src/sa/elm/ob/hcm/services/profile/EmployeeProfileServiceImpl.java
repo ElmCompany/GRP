@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.openbravo.dal.service.OBDal;
-import org.openbravo.model.ad.access.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -342,12 +341,6 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
   public PersonalInformationDTO getPersonalInformation(String username) {
     EmployeeProfileDTO employeeProfileDTO = getEmployeeProfileByUser(username);
     return employeeProfileDTO.getBasicDetails();
-  }
-
-  @Override
-  public User findEmployeeUser(String username) {
-    employeeProfileDAO.getEmployeeProfileByUser(username);
-    return null;
   }
 
 }

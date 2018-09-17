@@ -132,16 +132,23 @@ public class Dependents extends HttpSecureAppServlet {
           String age = request.getParameter("inpAgeMY").toString();
           depent.setAge((long) Integer.parseInt(age));
         }
-        if (request.getParameter("inpGender") != null && request.getParameter("inpGender") != "")
+        if (request.getParameter("inpGender") != null && request.getParameter("inpGender") != "") {
+          // String a = request.getParameter("inpGendersel").toString();
           depent.setGender(request.getParameter("inpGender").toString());
+
+        }
         if (request.getParameter("inpNatIdf") != null && request.getParameter("inpNatIdf") != "")
           depent.setNationalidentifier(request.getParameter("inpNatIdf").toString());
         if (request.getParameter("inpStartDate") != null
             && request.getParameter("inpStartDate") != "")
           depent.setStartDate(
               empdao.convertGregorian(request.getParameter("inpStartDate").toString()));
-        if (request.getParameter("inpEndDate") != null && request.getParameter("inpEndDate") != "")
+        if (request.getParameter("inpEndDate") != null
+            && request.getParameter("inpEndDate") != "") {
           depent.setEndDate(empdao.convertGregorian(request.getParameter("inpEndDate").toString()));
+        } else {
+          depent.setEndDate(null);
+        }
         if (request.getParameter("inpPhoneNo") != null
             && request.getParameter("inpPhoneNo") != "") {
           depent.setPhoneno(request.getParameter("inpPhoneNo").toString());
@@ -153,6 +160,37 @@ public class Dependents extends HttpSecureAppServlet {
           depent.setLocation(request.getParameter("inpLocation").toString());
         else
           depent.setLocation("");
+
+        if (request.getParameter("inpFirstNameEn") != null
+            && request.getParameter("inpFirstNameEn") != "") {
+          depent.setFirstnameEn(request.getParameter("inpFirstNameEn").toString());
+        } else {
+          depent.setFirstnameEn("");
+        }
+        if (request.getParameter("inpFatherNameEn") != null
+            && request.getParameter("inpFatherNameEn") != "") {
+          depent.setFathernameEn(request.getParameter("inpFatherNameEn").toString());
+        } else {
+          depent.setFathernameEn("");
+        }
+        if (request.getParameter("inpGrandFatherEn") != null
+            && request.getParameter("inpGrandFatherEn") != "") {
+          depent.setGrandfatherEn(request.getParameter("inpGrandFatherEn").toString());
+        } else {
+          depent.setGrandfatherEn("");
+        }
+        if (request.getParameter("inpFourthNameEn") != null
+            && request.getParameter("inpFourthNameEn") != "") {
+          depent.setFourthnameEn(request.getParameter("inpFourthNameEn").toString());
+        } else {
+          depent.setFourthnameEn("");
+        }
+        if (request.getParameter("inpFamilyEn") != null
+            && request.getParameter("inpFamilyEn") != "") {
+          depent.setFamilyEn(request.getParameter("inpFamilyEn").toString());
+        } else {
+          depent.setFamilyEn("");
+        }
 
         OBDal.getInstance().save(depent);
         OBDal.getInstance().flush();
@@ -215,6 +253,12 @@ public class Dependents extends HttpSecureAppServlet {
             request.setAttribute("inpAddressId", dao1.getEmployeeAddressId(employeeId));
           request.setAttribute("inpLocation", Utility.nullToEmpty(depvo.getLocation()));
 
+          request.setAttribute("inpFirstNameEn", Utility.nullToEmpty(depvo.getFirstnameEn()));
+          request.setAttribute("inpFatherNameEn", Utility.nullToEmpty(depvo.getFathernameEn()));
+          request.setAttribute("inpGrandFatherEn", Utility.nullToEmpty(depvo.getGrandfatherEn()));
+          request.setAttribute("inpFourthNameEn", Utility.nullToEmpty(depvo.getFourthnameEn()));
+          request.setAttribute("inpFamilyEn", Utility.nullToEmpty(depvo.getFamilyEn()));
+
           // employee details
           EhcmEmpPerInfo objEmployee = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
           request.setAttribute("inpEmployeeIsActive", objEmployee.isEnabled());
@@ -254,6 +298,12 @@ public class Dependents extends HttpSecureAppServlet {
           request.setAttribute("inpEndDate", "");
           request.setAttribute("inpPhoneno", "");
           request.setAttribute("inpLocation", "");
+
+          request.setAttribute("inpFirstNameEn", "");
+          request.setAttribute("inpFatherNameEn", "");
+          request.setAttribute("inpGrandFatherEn", "");
+          request.setAttribute("inpFourthNameEn", "");
+          request.setAttribute("inpFamilyEn", "");
           if (employeeId.equals("") || employeeId.equals("null") || employeeId.equals(""))
             request.setAttribute("inpAddressId", null);
           else

@@ -30,8 +30,8 @@ import org.openbravo.dal.service.OBQuery;
 import org.openbravo.erpCommon.utility.poc.EmailManager;
 import org.openbravo.utils.CryptoUtility;
 
+import sa.elm.ob.hcm.EHCMDeflookupsTypeLn;
 import sa.elm.ob.hcm.EhcmDocuments;
-import sa.elm.ob.hcm.EhcmEmpDocType;
 import sa.elm.ob.hcm.ad_forms.documents.vo.DocumentsVO;
 import sa.elm.ob.utility.util.Utility;
 
@@ -156,11 +156,21 @@ public class DocumentsDAO {
       docvo.add(dcvo);
 
       // Documents list
+      /*
+       * sqlQuery =
+       * "SELECT doc.ehcm_documents_id as id,dt.name as doctype,(select eut_convert_to_hijri(to_char(doc.issueddate,'YYYY-MM-DD HH24:MI:SS'))) as issueddate,"
+       * +
+       * "(select eut_convert_to_hijri(to_char(doc.validdate,'YYYY-MM-DD HH24:MI:SS'))) as validdate,doc.isoriginal,f.name as docname,f.path"
+       * + " FROM ehcm_documents doc  join c_file f on doc.c_file_id=f.c_file_id " +
+       * "JOIN ehcm_emp_doctype dt on dt.ehcm_emp_doctype_id=doc.doctype " +
+       * "where ehcm_emp_perinfo_id = '" + employeeId + "'";
+       */
       sqlQuery = "SELECT doc.ehcm_documents_id as id,dt.name as doctype,(select eut_convert_to_hijri(to_char(doc.issueddate,'YYYY-MM-DD HH24:MI:SS'))) as issueddate,"
           + "(select eut_convert_to_hijri(to_char(doc.validdate,'YYYY-MM-DD HH24:MI:SS'))) as validdate,doc.isoriginal,f.name as docname,f.path"
           + " FROM ehcm_documents doc  join c_file f on doc.c_file_id=f.c_file_id "
-          + "JOIN ehcm_emp_doctype dt on dt.ehcm_emp_doctype_id=doc.doctype "
+          + "LEFT JOIN EHCM_Deflookups_TypeLn dt on dt.EHCM_Deflookups_TypeLn_id=doc.doctype "
           + "where ehcm_emp_perinfo_id = '" + employeeId + "'";
+
       sqlQuery += whereClause;
       sqlQuery += orderClause;
       sqlQuery += " limit " + rows + " offset " + offset;
@@ -296,16 +306,24 @@ public class DocumentsDAO {
     return true;
   }
 
-  public boolean checkValidData(String docTypeId, Date issuedDate, Date validDate) {
+  public boolean checkValidData(String empId, String docId, String docTypeId, Date issuedDate,
+      Date validDate) {
     OBQuery<EhcmDocuments> docList = null;
     try {
+      String datestr = "2058-01-26 00:00:00";
+      Date date = new SimpleDateFormat("yyyy-MM-dd").parse(datestr);
+      Date valid = validDate;
+      if (valid == null)
+        valid = date;
       docList = OBDal.getInstance().createQuery(EhcmDocuments.class,
-          "as e where e.doctype=:docId and ((e.issueddate >=:issued and e.validdate <=:valid) "
-              + "or (e.issueddate <=:valid and e.validdate >=:issued)"
-              + "or (e.issueddate >=:issued and e.validdate >=:issued))");
-      docList.setNamedParameter("docId", docTypeId);
+          "as e where e.doctype=:doctypeId and e.id!=:docId and e.ehcmEmpPerinfo.id=:employeeId and"
+              + " ((e.issueddate >=:issued and to_date(to_char(coalesce (e.validdate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <=:valid) or"
+              + " (e.issueddate <=:valid and to_date(to_char(coalesce (e.validdate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') >=:issued))");
+      docList.setNamedParameter("doctypeId", docTypeId);
       docList.setNamedParameter("issued", issuedDate);
-      docList.setNamedParameter("valid", validDate);
+      docList.setNamedParameter("valid", valid);
+      docList.setNamedParameter("employeeId", empId);
+      docList.setNamedParameter("docId", docId);
       log4j.debug(docList.list().size());
       if (docList.list().size() > 0) {
         return true;
@@ -317,16 +335,25 @@ public class DocumentsDAO {
     return false;
   }
 
+  /*
+   * public static String getDocumentType(String docTypeId) { OBQuery<EhcmEmpDocType> docList =
+   * null; String returndata = null; try { docList =
+   * OBDal.getInstance().createQuery(EhcmEmpDocType.class, " as e where e.id='" + docTypeId + "'");
+   * docList.setMaxResult(1); log4j.debug(docList); returndata =
+   * docList.list().get(0).getValidationCode() + "-" + docList.list().get(0).getName(); } catch
+   * (Exception e) { e.printStackTrace(); log4j.debug("Exception getDocumentTypeList :" + e); }
+   * return returndata; }
+   */
   public static String getDocumentType(String docTypeId) {
-    OBQuery<EhcmEmpDocType> docList = null;
+    OBQuery<EHCMDeflookupsTypeLn> docList = null;
     String returndata = null;
     try {
-      docList = OBDal.getInstance().createQuery(EhcmEmpDocType.class,
+      docList = OBDal.getInstance().createQuery(EHCMDeflookupsTypeLn.class,
           " as e where e.id='" + docTypeId + "'");
       docList.setMaxResult(1);
       log4j.debug(docList);
-      returndata = docList.list().get(0).getValidationCode() + "-"
-          + docList.list().get(0).getName();
+      if (docList.count() > 0)
+        returndata = docList.list().get(0).getSearchKey() + "-" + docList.list().get(0).getName();
     } catch (Exception e) {
       e.printStackTrace();
       log4j.debug("Exception getDocumentTypeList :" + e);
@@ -346,16 +373,18 @@ public class DocumentsDAO {
       jsob = new JSONObject();
       StringBuilder countQuery = new StringBuilder(), selectQuery = new StringBuilder(),
           fromQuery = new StringBuilder();
-      countQuery.append(" select count(distinct doc.ehcm_emp_doctype_id) as count ");
+
+      countQuery.append(" select count(distinct doc.EHCM_Deflookups_TypeLn_id) as count ");
       selectQuery.append(
-          " select distinct doc.code as docCode , doc.name as docName, doc.ehcm_emp_doctype_id as docId ");
-      fromQuery.append(" from ehcm_emp_doctype doc" + " where doc.ad_org_id in ("
-          + Utility.getChildOrg(clientId, orgId)
-          + ") and doc.ad_org_id in( select ad_org_id from ad_role_orgaccess where ad_role_id = ? and ad_client_id = ? ) "
-          + "and doc.ad_client_id=?");
+          " select distinct doc.value as docCode , doc.name as docName, doc.EHCM_Deflookups_TypeLn_id as docId ");
+      fromQuery.append(
+          " from EHCM_Deflookups_TypeLn doc join EHCM_Deflookups_Type h on doc.Ehcm_deflookups_type_id=h.Ehcm_deflookups_type_id "
+              + " where doc.ad_org_id in (" + Utility.getChildOrg(clientId, orgId)
+              + ") and doc.ad_org_id in( select ad_org_id from ad_role_orgaccess where ad_role_id = ? and ad_client_id = ? ) "
+              + "and doc.ad_client_id=? and h.reference='EDT' ");
 
       if (searchTerm != null && !searchTerm.equals(""))
-        fromQuery.append(" and ( doc.code ilike '%" + searchTerm.toLowerCase() + "%' )");
+        fromQuery.append(" and ( doc.value ilike '%" + searchTerm.toLowerCase() + "%' )");
 
       st = conn.prepareStatement(countQuery.append(fromQuery).toString());
 
@@ -370,7 +399,7 @@ public class DocumentsDAO {
       jsob.put("totalRecords", totalRecords - 1);
 
       if (totalRecords > 0) {
-        fromQuery.append(" order by doc.code limit ? offset ? ");
+        fromQuery.append(" order by doc.value limit ? offset ? ");
         st = conn.prepareStatement((selectQuery.append(fromQuery)).toString());
         st.setString(1, roleId);
         st.setString(2, clientId);
@@ -414,7 +443,11 @@ public class DocumentsDAO {
     ResultSet rs = null;
     List<DocumentsVO> ls = new ArrayList<DocumentsVO>();
     try {
-      String qry = "select code,name,ehcm_emp_doctype_id,isactive from ehcm_emp_doctype where ad_client_id=?  order by code";
+      // String qry = "select code,name,ehcm_emp_doctype_id,isactive from ehcm_emp_doctype where
+      // ad_client_id=? order by code";
+      String qry = "select l.value,l.name,l.EHCM_Deflookups_TypeLn_id,l.isactive from EHCM_Deflookups_TypeLn l"
+          + " join EHCM_Deflookups_Type h on l.Ehcm_deflookups_type_id = h.Ehcm_deflookups_type_id "
+          + " where l.ad_client_id=? and h.reference='EDT' order by l.value";
       // log4j.debug("id:" + id);
       /*
        * if (id == null || id.equals("") || id.equals("null")) { qry += "order by name"; } else {
@@ -431,10 +464,10 @@ public class DocumentsDAO {
       rs = st.executeQuery();
       while (rs.next()) {
         DocumentsVO dVO = new DocumentsVO();
-        dVO.setCode(Utility.nullToEmpty(rs.getString("code")));
+        dVO.setCode(Utility.nullToEmpty(rs.getString("value")));
         dVO.setName(Utility.nullToEmpty(rs.getString("name")));
         dVO.setDoctypact(Utility.nullToEmpty(rs.getString("isactive")));
-        dVO.setDoctypId(Utility.nullToEmpty(rs.getString("ehcm_emp_doctype_id")));
+        dVO.setDoctypId(Utility.nullToEmpty(rs.getString("EHCM_Deflookups_TypeLn_id")));
 
         ls.add(dVO);
       }

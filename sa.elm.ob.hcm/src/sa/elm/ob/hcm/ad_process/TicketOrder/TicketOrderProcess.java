@@ -1,6 +1,7 @@
 package sa.elm.ob.hcm.ad_process.TicketOrder;
 
 import org.openbravo.base.exception.OBException;
+import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.erpCommon.utility.OBError;
 import org.openbravo.erpCommon.utility.OBMessageUtils;
@@ -11,6 +12,7 @@ import com.itextpdf.text.log.Logger;
 import com.itextpdf.text.log.LoggerFactory;
 
 import sa.elm.ob.hcm.EHCMticketordertransaction;
+import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
 
 /**
  * 
@@ -29,6 +31,8 @@ public class TicketOrderProcess implements Process {
         .get(EHCMticketordertransaction.class, processid);
     OBError obError = new OBError();
     try {
+      OBContext.setAdminMode(true);
+
       if ((ticketorder.getPayrollProcessLine() != null)
           && ticketorder.getDecisionType().equals("TP")) {
         if (!(ticketorder.getPayrollProcessLine().getPayrollProcessHeader().getStatus().equals("UP")
@@ -42,6 +46,15 @@ public class TicketOrderProcess implements Process {
           bundle.setResult(obError);
           return;
         }
+      }
+      // check whether the employee is suspended or not
+      if (ticketorder.getEmployee().getEmploymentStatus()
+          .equals(DecisionTypeConstants.EMPLOYMENTSTATUS_SUSPENDED)) {
+        obError.setType("Error");
+        obError.setTitle("Error");
+        obError.setMessage(OBMessageUtils.messageBD("EHCM_emplo_suspend"));
+        bundle.setResult(obError);
+        return;
       }
 
       if (ticketorder.getDecisionType().equals("CA") && ticketorder.isSueDecision().equals(false)) {
@@ -79,6 +92,8 @@ public class TicketOrderProcess implements Process {
     } catch (Exception e) {
       LOG.error(" Exception in Ticket Order Process : " + e);
       throw new OBException(OBMessageUtils.messageBD("HB_INTERNAL_ERROR"));
+    } finally {
+      OBContext.restorePreviousMode();
     }
   }
 

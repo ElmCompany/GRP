@@ -24,7 +24,6 @@ public class DecisionBalanceLineCallout extends SimpleCallout {
     String lastfieldChanged = vars.getStringParameter("inpLastFieldChanged");
     String absenceTypeId = vars.getStringParameter("inpehcmAbsenceTypeId");
     String decisionType = vars.getStringParameter("inpdecisionType");
-    int a = 0;
     try {
 
       if (lastfieldChanged.equals("inpehcmAbsenceTypeId")) {

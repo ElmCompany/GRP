@@ -50,8 +50,9 @@ public class EmployeeLeaveBalanceDAO {
       }
       if (jsonArray.length() > 0)
         jsob.put("data", jsonArray);
-      else
-        jsob.put("data", "");
+      /*
+       * else jsob.put("data", "");
+       */
     } catch (OBException e) {
       log4j.error("Exception while getAbsenceType:" + e);
       throw new OBException(e.getMessage());

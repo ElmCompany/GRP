@@ -2,10 +2,12 @@ package sa.elm.ob.hcm.services.payroll;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.openbravo.activiti.ActivitiConstants;
 import org.openbravo.dal.core.OBContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import sa.elm.ob.hcm.EhcmChangeBank;
 import sa.elm.ob.hcm.EhcmChangeBankV;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EmploymentInfo;
+import sa.elm.ob.hcm.ad_process.Constants;
 import sa.elm.ob.hcm.ad_process.ChangeBank.ChangeBankProcessDAO;
 import sa.elm.ob.hcm.dao.managerSelfService.ManagerSelfServiceDAO;
 import sa.elm.ob.hcm.dao.payrollInformation.PayrollInformationDAO;
@@ -37,13 +40,14 @@ import sa.elm.ob.hcm.selfservice.security.SecurityUtils;
 import sa.elm.ob.hcm.services.workflow.WorkflowUtilityService;
 import sa.elm.ob.hcm.util.MessageKeys;
 import sa.elm.ob.utility.util.DateUtils;
+import sa.elm.ob.utility.util.Utility;
 import sa.elm.ob.utility.util.UtilityDAO;
 
 @Service("payrollInformationService")
 public class PayrollInformationServiceImpl implements PayrollInformationService {
 
   private static final String OPEN_BRAVO_YEAR_DATE_FORMAT = "yyyy-MM-dd";
-  private final String CHANGE_BANK_DETAILS_WORKFLOW_KEY = "changeBankDetailsWorkflow";
+
   @Autowired
   private EmployeeProfileDAO employeeProfileDAO;
 
@@ -335,18 +339,32 @@ public class PayrollInformationServiceImpl implements PayrollInformationService 
   @Override
   public Boolean submitChangeBankDetailsRequestWithApproval(String username,
       BankDetailsDTO bankDetailsDTO) throws BusinessException, SystemException {
+
     final String userLang = SecurityUtils.getUserLanguage();
+
     EhcmChangeBank changeBankOB = createChangeBankDetails(username, bankDetailsDTO);
+
     if (changeBankOB == null) {
       throw new BusinessException(
           Resource.getProperty(MessageKeys.CHANGE_BANK_NOT_CREATED, userLang));
     }
 
-    Map<String, Object> variablesMap = new HashMap<String, Object>();
-    variablesMap.put("username", username);
-    variablesMap.put("changeBankId", changeBankOB.getId());
+    EhcmEmpPerInfo employeeOB = employeeProfileDAO.getEmployeeProfileByUser(username);
 
-    workflowUtilityService.startWorkflow(CHANGE_BANK_DETAILS_WORKFLOW_KEY, variablesMap);
+    Map<String, Object> variablesMap = new HashMap<String, Object>();
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_USERNAME, username);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_NAME, employeeOB.getName());
+    variablesMap.put(ActivitiConstants.TARGET_IDENTIFIER, changeBankOB.getId());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_SUBJECT, "Change Bank Details");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_LETTER_NUMBER, "");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TAKS_REQUEST_DATE,
+        Utility.convertTohijriDate(DateUtils.convertDateToString("yyyy-MM-dd", new Date())));
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_STATUS, Constants.REQUEST_IN_PROGRESS);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_TYPE, Constants.CHANGE_BANK_DETAILS);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_EMAIL, employeeOB.getEmail());
+
+    workflowUtilityService.startWorkflow(
+        sa.elm.ob.utility.util.Constants.CHANGE_BANK_DETAILS_WORKFLOW_KEY, variablesMap);
     return true;
   }
 

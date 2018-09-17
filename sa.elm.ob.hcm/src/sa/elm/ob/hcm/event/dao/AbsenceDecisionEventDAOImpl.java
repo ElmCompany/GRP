@@ -58,6 +58,8 @@ public class AbsenceDecisionEventDAOImpl implements AbsenceDecisionEventDAO {
           empLevLnQry.setNamedParameter("absenceattendanceId",
               absence.getOriginalDecisionNo().getId());
         }
+        empLevLnQry.setFilterOnReadableClients(false);
+        empLevLnQry.setFilterOnReadableOrganization(false);
         empLeaveLnQryList = empLevLnQry.list();
         if (empLeaveLnQryList.size() > 0) {
           count = BigInteger.valueOf(empLeaveLnQryList.size());

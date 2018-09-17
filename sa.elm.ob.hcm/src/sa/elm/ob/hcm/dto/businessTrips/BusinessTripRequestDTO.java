@@ -10,7 +10,7 @@ public class BusinessTripRequestDTO extends GenericDTO implements Serializable {
    * 
    */
   private static final long serialVersionUID = -8091756958587893165L;
-  private BusinessPaymentDTO paymentDetails; 
+  private BusinessPaymentDTO paymentDetails;
   private String letterNo;
   private String letterDate;
   private String missionType;
@@ -29,8 +29,8 @@ public class BusinessTripRequestDTO extends GenericDTO implements Serializable {
   private Boolean ticketsProvided;
   private Boolean roundTrip;
   private String taskDescription;
+  private String orginalDecNo;
 
-  
   public BusinessPaymentDTO getPaymentDetails() {
     return paymentDetails;
   }
@@ -181,6 +181,14 @@ public class BusinessTripRequestDTO extends GenericDTO implements Serializable {
 
   public void setTaskDescription(String taskDescription) {
     this.taskDescription = taskDescription;
+  }
+
+  public String getOrginalDecNo() {
+    return orginalDecNo;
+  }
+
+  public void setOrginalDecNo(String orginalDecNo) {
+    this.orginalDecNo = orginalDecNo;
   }
 
 }

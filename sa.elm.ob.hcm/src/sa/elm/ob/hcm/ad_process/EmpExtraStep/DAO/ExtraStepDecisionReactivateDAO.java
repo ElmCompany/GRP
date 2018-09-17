@@ -24,8 +24,7 @@ import sa.elm.ob.hcm.EhcmJoiningWorkRequest;
 import sa.elm.ob.hcm.EmployeeDelegation;
 import sa.elm.ob.hcm.EmploymentInfo;
 import sa.elm.ob.hcm.ehcmpayscaleline;
-import sa.elm.ob.hcm.ad_process.assignedOrReleasePosition.AssingedOrReleaseEmpInPositionDAO;
-import sa.elm.ob.hcm.ad_process.assignedOrReleasePosition.AssingedOrReleaseEmpInPositionDAOImpl;
+import sa.elm.ob.hcm.ad_process.EmpExtendService.DAO.ExtendServiceHandlerDAO;
 import sa.elm.ob.hcm.util.UtilityDAO;
 
 public class ExtraStepDecisionReactivateDAO {
@@ -43,13 +42,11 @@ public class ExtraStepDecisionReactivateDAO {
 
   public static void deleteEmpInfo(EhcmEmployeeExtraStep empExtraStep, String decisionType) {
     List<EmploymentInfo> empInfoList = null;
-    List<EmploymentInfo> prevEmpInfoList = null;
     EmploymentInfo info = null;
     EmploymentInfo prevEmpinfo = null;
     EmployeeDelegation delegation = null;
     try {
       OBContext.setAdminMode();
-      AssingedOrReleaseEmpInPositionDAO assingedOrReleaseEmpInPositionDAO = new AssingedOrReleaseEmpInPositionDAOImpl();
       OBQuery<EmploymentInfo> empInfoObj = OBDal.getInstance().createQuery(EmploymentInfo.class,
           "  ehcmEmpPerinfo.id = :employeeId  order by creationDate desc ");
       empInfoObj.setNamedParameter("employeeId", empExtraStep.getEhcmEmpPerinfo().getId());
@@ -77,6 +74,8 @@ public class ExtraStepDecisionReactivateDAO {
           prevEmpinfo.setEnabled(true);
           prevEmpinfo.setAlertStatus("ACT");
           prevEmpinfo.setUpdated(new java.util.Date());
+          ExtendServiceHandlerDAO.updateEmpRecord(empExtraStep.getEhcmEmpPerinfo().getId(),
+              info.getId());
 
           if (prevEmpinfo.getChangereason().equals("H") || prevEmpinfo.getEhcmEmpPromotion() != null
               || prevEmpinfo.getEhcmEmpSuspension() != null
@@ -118,10 +117,10 @@ public class ExtraStepDecisionReactivateDAO {
   public static int insertLineinEmploymentInfo(EhcmEmployeeExtraStep extraStepProcess,
       VariablesSecureApp vars, String decisionType) {
     EmploymentInfo info = null;
-    Date dateafter = null;
     List<EmploymentInfo> empInfoList = new ArrayList<EmploymentInfo>();
     int count = 0;
-    EHCMEmpSupervisor supervisorId = null;
+    boolean isExtraStep = true;
+    int oneDay = 1 * 24 * 3600 * 1000;
     try {
       OBContext.setAdminMode();
 
@@ -158,53 +157,16 @@ public class ExtraStepDecisionReactivateDAO {
           employInfo.setChangereason("ES");
         else
           employInfo.setChangereason("ES");
-        employInfo.setDepartmentName(extraStepProcess.getDepartmentCode().getName());
-        employInfo.setDeptcode(extraStepProcess.getDepartmentCode());
-        employInfo.setGrade(extraStepProcess.getGrade());
+        UtilityDAO.insertActEmplymntInfoDetailsInIssueDecision(extraStepProcess.getEhcmEmpPerinfo(),
+            employInfo, isExtraStep, false);
         ehcmpayscaleline line = OBDal.getInstance().get(ehcmpayscaleline.class,
             extraStepProcess.getNewgradepoint().getId());
         employInfo.setEhcmPayscale(line.getEhcmPayscale());
-        employInfo.setEmpcategory(extraStepProcess.getGradeClassifications().getId());
-        employInfo.setEmployeeno(extraStepProcess.getEhcmEmpPerinfo().getSearchKey());
         employInfo.setEhcmPayscaleline(line);
-        employInfo.setEmploymentgrade(extraStepProcess.getEmploymentGrade());
-        employInfo.setJobcode(extraStepProcess.getPosition().getEhcmJobs());
-        employInfo.setPosition(extraStepProcess.getPosition());
-        employInfo.setJobtitle(extraStepProcess.getPosition().getJOBName().getJOBTitle());
-        employInfo.setLocation(info.getLocation());
-        if (info.getEhcmPayrollDefinition() != null)
-          employInfo.setEhcmPayrollDefinition(info.getEhcmPayrollDefinition());
-        if (extraStepProcess.getSectionCode() != null) {
-          employInfo.setSectionName(extraStepProcess.getSectionCode().getName());
-          employInfo.setSectioncode(extraStepProcess.getSectionCode());
-        }
-        employInfo.setEhcmEmpPerinfo(extraStepProcess.getEhcmEmpPerinfo());
         employInfo.setStartDate(extraStepProcess.getStartDate());
-        employInfo.setAlertStatus("ACT");
         employInfo.setEhcmEmpExtrastep(extraStepProcess);
         employInfo.setDecisionNo(extraStepProcess.getDecisionNo());
         employInfo.setDecisionDate(extraStepProcess.getDecisionDate());
-        supervisorId = UtilityDAO.getSupervisorforEmployee(
-            extraStepProcess.getEhcmEmpPerinfo().getId(), extraStepProcess.getClient().getId());
-        employInfo.setEhcmEmpSupervisor(supervisorId);
-
-        /* secondary */
-
-        employInfo.setSecpositionGrade(info.getSecpositionGrade());
-        employInfo.setSecjobno(info.getSecjobno());
-        employInfo.setSecjobcode(info.getSecjobcode());
-        employInfo.setSecjobtitle(info.getSecjobtitle());
-        employInfo.setSECDeptCode(info.getSECDeptCode());
-        employInfo.setSECDeptName(info.getSECDeptName());
-        employInfo.setSECSectionCode(info.getSECSectionCode());
-        employInfo.setSECSectionName(info.getSECSectionName());
-        employInfo.setSECLocation(info.getSECLocation());
-        employInfo.setSECStartdate(info.getSECStartdate());
-        employInfo.setSECEnddate(info.getSECEnddate());
-        employInfo.setSECDecisionNo(info.getSECDecisionNo());
-        employInfo.setSECDecisionDate(info.getSECDecisionDate());
-        employInfo.setSECChangeReason(info.getSECChangeReason());
-        employInfo.setSECEmploymentNumber(info.getSECEmploymentNumber());
 
         // Update the enddate for old hiring record.
         if (decisionType.equals("CR")) {
@@ -219,7 +181,7 @@ public class ExtraStepDecisionReactivateDAO {
 
           if (empinfo.getEndDate() == null) {
             Date startdate = empinfo.getStartDate();
-            dateBefore = new Date(extraStepProcess.getStartDate().getTime() - 1 * 24 * 3600 * 1000);
+            dateBefore = new Date(extraStepProcess.getStartDate().getTime() - oneDay);
 
             if (startdate.compareTo(extraStepProcess.getStartDate()) == 0)
               empinfo.setEndDate(empinfo.getStartDate());
@@ -268,11 +230,9 @@ public class ExtraStepDecisionReactivateDAO {
   public static EmploymentInfo updateEmpInfo(EhcmEmployeeExtraStep empExtraStep,
       EmploymentInfo oldempInfo, EmploymentInfo currentInfo, VariablesSecureApp vars,
       String decisionType, String lang, Date JoinStartDate, EhcmJoiningWorkRequest joinReqId) {
-    Date dateafter = null;
-    String transferType = null;
+
     EmploymentInfo employInfo = currentInfo;
     EmploymentInfo prevemployInfo = oldempInfo;
-    EhcmJoiningWorkRequest joinRequestId = null;
     EHCMEmpSupervisor supervisorId = null;
     try {
 
@@ -285,7 +245,6 @@ public class ExtraStepDecisionReactivateDAO {
         employInfo.setEhcmPayscaleline(prevemployInfo.getEhcmPayscaleline());
         employInfo.setLocation(prevemployInfo.getLocation());
         employInfo.setEndDate(null);
-        Date startdate = employInfo.getStartDate();
         Date dateBefore = new Date(empExtraStep.getStartDate().getTime() - 1 * 24 * 3600 * 1000);
         if (prevemployInfo.getChangereason().equals("H")
             || prevemployInfo.getEhcmEmpPromotion() != null
@@ -310,6 +269,8 @@ public class ExtraStepDecisionReactivateDAO {
           } else {
             prevemployInfo.setEndDate(dateBefore);
           }
+        } else {
+          prevemployInfo.setEndDate(dateBefore);
         }
 
         if (prevemployInfo.getEhcmPayrollDefinition() != null)

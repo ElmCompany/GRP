@@ -144,29 +144,32 @@ public class EmployeeProfileUpdateDAOImpl implements EmployeeProfileUpdateDAO {
 
   @Override
   public void updateEmployeeDependent(EhcmEmpPerInfo employeeOB,
-      DependentInformationDTO ehcmDependent) throws SystemException {
+      DependentInformationDTO dependentInformationDTO) throws SystemException {
 
     try {
       OBContext.setAdminMode();
       // find dependent
-      EhcmDependents ehcmDependents = findDependentByNationalId(ehcmDependent.getNationalId(),
-          employeeOB);
+      EhcmDependents ehcmDependents = findDependentByNationalId(
+          dependentInformationDTO.getNationalId(), employeeOB);
 
-      ehcmDependents.setRelationship(ehcmDependent.getRelationship());
-      ehcmDependents.setFirstName(ehcmDependent.getFirstNameEn());
-      ehcmDependents.setFathername(ehcmDependent.getFatherNameAr());
-      ehcmDependents.setGrandfather(ehcmDependent.getGrandFatherNameAr());
-      ehcmDependents.setFamily(ehcmDependent.getFatherNameAr());
-      if (null != ehcmDependent.getDob()) {
+      ehcmDependents.setRelationship(dependentInformationDTO.getRelationship());
+      ehcmDependents.setFirstName(dependentInformationDTO.getFirstNameEn());
+      ehcmDependents.setFathername(dependentInformationDTO.getFatherNameAr());
+      ehcmDependents.setGrandfather(dependentInformationDTO.getGrandFatherNameAr());
+      ehcmDependents.setFamily(dependentInformationDTO.getFatherNameAr());
+      if (null != dependentInformationDTO.getDob()) {
         try {
-          ehcmDependents.setDob(
-              DateUtils.convertStringToDate(OPEN_BRAVO_DATE_FORMAT, ehcmDependent.getDob()));
+          ehcmDependents.setDob(DateUtils.convertStringToDate(OPEN_BRAVO_DATE_FORMAT,
+              dependentInformationDTO.getDob()));
         } catch (ParseException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
       }
-      ehcmDependents.setGender(ehcmDependent.getGender());
+      ehcmDependents
+          .setLookupGender(lookUpDAO.findSubLookupByCode(dependentInformationDTO.getGender()));
+      // TODO: remove this line after removing not null constraint in the table.
+      ehcmDependents.setGender(dependentInformationDTO.getGender());
       OBDal.getInstance().save(ehcmDependents);
       OBDal.getInstance().flush();
     } catch (OBException e) {
@@ -270,6 +273,7 @@ public class EmployeeProfileUpdateDAOImpl implements EmployeeProfileUpdateDAO {
       ehcmDependents.setUpdated(new java.util.Date());
       ehcmDependents.setUpdatedBy(employeeOB.getUpdatedBy());
       OBDal.getInstance().save(ehcmDependents);
+      OBDal.getInstance().flush();
     } catch (Exception e) {
       e.printStackTrace();
       throw new OBException(e.getMessage());
@@ -279,7 +283,7 @@ public class EmployeeProfileUpdateDAOImpl implements EmployeeProfileUpdateDAO {
   }
 
   @Override
-  public void removeDependent(String userName, String dependentId)
+  public void removeDependent(String userName, String nationalId)
       throws SystemException, BusinessException {
 
     final String userLang = SecurityUtils.getUserLanguage();
@@ -287,7 +291,7 @@ public class EmployeeProfileUpdateDAOImpl implements EmployeeProfileUpdateDAO {
       OBContext.setAdminMode();
       // find dependent
       EhcmEmpPerInfo employeeOB = employeeProfileDAO.getEmployeeProfileByUser(userName);
-      EhcmDependents ehcmDependents = findDependentByNationalId(dependentId, employeeOB);
+      EhcmDependents ehcmDependents = findDependentByNationalId(nationalId, employeeOB);
       if (ehcmDependents == null)
         throw new BusinessException(
             Resource.getProperty(MessageKeys.DEPENDENT_NOT_AVAILABLE, userLang));

@@ -4,7 +4,8 @@
  * Contributor(s): Gopalakrishnan
  *************************************************************************
 -->
- <%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+ <%@page import="sa.elm.ob.hcm.ad_forms.employment.vo.EmploymentVO"%>
+<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@page import="sa.elm.ob.utility.util.Utility"%>
 <%@page import="java.util.List, java.util.ArrayList,java.util.Date"%>
 <%@page import="sa.elm.ob.hcm.ad_forms.employee.vo.EmployeeVO"%>
@@ -90,6 +91,10 @@
     <INPUT type="hidden" name="inpIssuance" id="inpIssuance" value="<%= request.getAttribute("inpIssuance") %>"></INPUT>
     <INPUT type="hidden" id="inpAddressId" name="inpAddressId" value="<%= request.getAttribute("inpAddressId") %>"></INPUT>
     <INPUT type="hidden" id="inpCancelHiring" name="inpCancelHiring" value="<%= request.getAttribute("cancelHiring") %>"></INPUT>
+     <INPUT type="hidden" name="strStatus" id="strStatus" value=""></INPUT>
+     <INPUT type="hidden" name="strChangeReason" id="strChangeReason" value=""></INPUT>
+    
+    
     <div id="NewVersionOverlay" style="display: none; position: absolute; z-index: 50000; background-color: black; opacity: .5; top: 0px; left: 0px; width: 100%; height: 100%; filter: alpha(opacity=50)"></div>
                                               <div id="CancelHiringDecision" align="center" style="display: none; width: 520px; height: 200px; background: white; z-index: 50001; border: 2px solid #ff9c30; box-shadow: 0 0 20px #333; border-radius: 5px; position: absolute; margin: auto; top: 0; right: 0; bottom: 0; left: 0;">
                                               
@@ -440,6 +445,32 @@ direction='ltr';
            document.getElementById("CancelHiringDecision").style.display="none";
 
         }
+    <%   String strStatusList =""; %>
+
+    <% List<EmploymentVO> status = (ArrayList<EmploymentVO>)request.getAttribute("inpStatusList"); 
+
+    strStatusList += '0'+ ":" +   Resource.getProperty("hcm.select",lang) + ";";
+      for (EmploymentVO vo : status){
+        strStatusList += vo.getStatus() + ":" +  vo.getArabicName() + ";";
+     } 
+   
+
+     if(strStatusList!=null && strStatusList!=""){ %>
+         document.getElementById("strStatus").value="<%=strStatusList.substring(0,strStatusList.lastIndexOf(";"))%>"; 
+    <% }%>
+    <%   String strChangeReasonList =""; %>
+
+    <% List<EmploymentVO> Reason = (ArrayList<EmploymentVO>)request.getAttribute("inpChangeReasonList"); 
+
+    strChangeReasonList += '0'+ ":" +   Resource.getProperty("hcm.select",lang) + ";";
+      for (EmploymentVO vo : Reason){
+        strChangeReasonList += vo.getStatus() + ":" +  vo.getArabicName() + ";";
+     } 
+   
+
+     if(strChangeReasonList!=null && strChangeReasonList!=""){ %>
+         document.getElementById("strChangeReason").value="<%=strChangeReasonList.substring(0,strChangeReasonList.lastIndexOf(";"))%>"; 
+    <% }%>
 </script>
 <script type="text/javascript" src="../web/js/jquery-1.7.2.min.js"></script>
 <script type="text/javascript" src="../web/js/ui/jquery.ui.core.js"></script>
@@ -457,5 +488,4 @@ direction='ltr';
 <script type="text/javascript" src="../web/sa.elm.ob.utility/js/jquery.calendars.package-2.0.2/jquery.calendars.picker.ext.js"></script>
 <script type="text/javascript" src="../web/sa.elm.ob.hcm/js/EmploymentList.js"></script>
 <script type="text/javascript" src="../web/js/jquery/jquery.jqGrid.min.js"></script>
-<script type="text/javascript" src="../web/sa.elm.ob.hcm/js/EmploymentList.js?t="<%=new Date() %>"></script>
 </HTML>

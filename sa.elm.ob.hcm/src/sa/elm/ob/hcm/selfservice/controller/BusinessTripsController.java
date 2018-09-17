@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import sa.elm.ob.hcm.dto.businessTrips.BusinessTripRequestDTO;
@@ -30,7 +29,6 @@ public class BusinessTripsController {
   private BusinessTripsService businessTripsService;
 
   @RequestMapping(value = "/{username}", method = RequestMethod.GET)
-  @ResponseBody
   public ResponseEntity<List<String>> getAllOriginalDecisionNoByUsername(
       @PathVariable("username") String username) {
 
@@ -40,7 +38,6 @@ public class BusinessTripsController {
   }
 
   @RequestMapping(value = "/decisionNo/{originalDecNo}", method = RequestMethod.GET)
-  @ResponseBody
   public ResponseEntity<BusinessTripRequestDTO> getBusinessTripRequestByOrginalDecNo(
       @PathVariable("originalDecNo") String originalDecNo) {
 
@@ -51,7 +48,6 @@ public class BusinessTripsController {
   }
 
   @RequestMapping(value = "/submit/{username}", method = RequestMethod.POST)
-  @ResponseBody
   public ResponseEntity<Boolean> submitBusinessTripRequest(
       @PathVariable("username") String username,
       @RequestBody BusinessTripRequestDTO businessTripRequestDTO)
@@ -63,8 +59,7 @@ public class BusinessTripsController {
     return new ResponseEntity<Boolean>(businessTripRequest, HttpStatus.OK);
   }
 
-  @RequestMapping(value = "/submit/cancel/{username}/decisionNo/{originalDecNo}", method = RequestMethod.GET)
-  @ResponseBody
+  @RequestMapping(value = "/submit/cancel/{username}/decisionNo/{originalDecNo}", method = RequestMethod.PUT)
   public ResponseEntity<Boolean> submitCancelBusinessTripRequest(
       @PathVariable("username") String username,
       @PathVariable("originalDecNo") String originalDecNo)
@@ -76,15 +71,14 @@ public class BusinessTripsController {
     return new ResponseEntity<Boolean>(businessTripRequest, HttpStatus.OK);
   }
 
-  @RequestMapping(value = "/submit/payment/{username}/decisionNo/{originalDecNo}", method = RequestMethod.GET)
-  @ResponseBody
+  @RequestMapping(value = "/submit/payment/{username}/decisionNo/{originalDecNo}", method = RequestMethod.PUT)
   public ResponseEntity<Boolean> submitPaymentBusinessTripRequest(
       @PathVariable("username") String username,
       @PathVariable("originalDecNo") String originalDecNo)
       throws BusinessException, SystemException {
 
     Boolean businessTripRequest = businessTripsService
-        .submitPaymentBusinessTripRequestWithWorkflow(username, originalDecNo, null);
+        .submitPaymentBusinessTripRequestWithWorkflow(username, originalDecNo);
 
     return new ResponseEntity<Boolean>(businessTripRequest, HttpStatus.OK);
   }

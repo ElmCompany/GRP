@@ -169,6 +169,10 @@
         <default><![CDATA[N]]></default>
         <onCreateDefault/>
       </column>
+      <column name="REACTIVATE" primaryKey="false" required="false" type="CHAR" size="1" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
       <foreign-key foreignTable="EHCM_EMP_SUSPENSION" name="EHCM_EMP_SUS_SUSPENSE">
         <reference local="ORIGINAL_DECISION_NO" foreign="EHCM_EMP_SUSPENSION_ID"/>
       </foreign-key>

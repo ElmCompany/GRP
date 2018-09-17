@@ -109,7 +109,7 @@ public class ViewLeaveDAOimpl implements ViewLeaveDAO {
       st.setInt(6, 1);
       st.setString(7, "CR");
       st.setString(8, null);
-      st.setBoolean(9, true);
+      st.setString(9, "1");
       st.setString(10, "");// subtype need to add
       log.debug("st" + st.toString());
 

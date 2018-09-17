@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 
 import javax.servlet.ServletException;
 
+import org.apache.commons.lang.StringUtils;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.dal.service.OBQuery;
@@ -20,6 +21,7 @@ import sa.elm.ob.hcm.EhcmPosition;
 import sa.elm.ob.hcm.EmployeeDelegation;
 import sa.elm.ob.hcm.EmploymentInfo;
 import sa.elm.ob.hcm.Jobs;
+import sa.elm.ob.hcm.ad_callouts.common.UpdateEmpDetailsInCallouts;
 
 /**
  * 
@@ -51,7 +53,7 @@ public class EmployeeDelegationCallout extends SimpleCallout {
     ResultSet rs = null;
     log4j.debug("lastfield:" + inpLastFieldChanged);
     try {
-
+      UpdateEmpDetailsInCallouts callouts = new UpdateEmpDetailsInCallouts();
       EhcmEmpPerInfo employee = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
       empInfo = OBDal.getInstance().createQuery(EmploymentInfo.class, " ehcmEmpPerinfo.id='"
           + employeeId + "' and enabled='Y'  and alertStatus='ACT' order by created desc ");
@@ -76,6 +78,7 @@ public class EmployeeDelegationCallout extends SimpleCallout {
             info.addResult("inpnewDepartmentId", empinfo.getPosition().getDepartment().getId());
           }
         }
+
       }
       if (inpLastFieldChanged.equals("inpnewDepartmentId")) {
         log4j.debug("Changing newDepartMent");
@@ -90,42 +93,49 @@ public class EmployeeDelegationCallout extends SimpleCallout {
 
       }
       if (inpLastFieldChanged.equals("inpehcmEmpPerinfoId")) {
-        info.addResult("inpemployeeName", employee.getArabicfullname());
-        if (employee.getHiredate() != null) {
-          String query = " select eut_convert_to_hijri_timestamp('"
-              + dateFormat.format(employee.getHiredate()) + "')";
+        if (StringUtils.isNotEmpty(employeeId)) {
+          info.addResult("inpemployeeName", employee.getArabicfullname());
+          if (employee.getHiredate() != null) {
+            String query = " select eut_convert_to_hijri_timestamp('"
+                + dateFormat.format(employee.getHiredate()) + "')";
 
-          st = conn.prepareStatement(query);
-          rs = st.executeQuery();
-          if (rs.next())
-            info.addResult("inphireDate", rs.getString("eut_convert_to_hijri_timestamp"));
+            st = conn.prepareStatement(query);
+            rs = st.executeQuery();
+            if (rs.next())
+              info.addResult("inphireDate", rs.getString("eut_convert_to_hijri_timestamp"));
+
+          }
+          info.addResult("inpemployeeType", employee.getEhcmActiontype().getPersonType());
+
+          EHCMEmployeeStatusV employeeStatus = OBDal.getInstance().get(EHCMEmployeeStatusV.class,
+              employeeId);
+          if (employeeStatus != null)
+            info.addResult("inpempStatus", employeeStatus.getStatusvalue());
+          else
+            info.addResult("inpempStatus", "");
+
+        } else {
+          callouts.SetEmpDetailsNull(info);
+          info.addResult("JSEXECUTE",
+              "form.getFieldFromColumnName('Assigned_Department_ID').setValue('')");
+          info.addResult("JSEXECUTE",
+              "form.getFieldFromColumnName('NEW_Ehcm_Position_ID').setValue('')");
+          info.addResult("inpnewSectionId", "");
+          info.addResult("inpnewJobCode", "");
+          info.addResult("inpnewJobTitle", "");
+          info.addResult("inpnewJobNo", "");
+          info.addResult("inpnewPositionCode", "");
+          info.addResult("inporiginalDecisionNo", null);
+          info.addResult("inpdelegationType", "");
+          info.addResult("inpdecisionType", "CR");
 
         }
-        info.addResult("inpemployeeType", employee.getEhcmActiontype().getPersonType());
-
-        EHCMEmployeeStatusV employeeStatus = OBDal.getInstance().get(EHCMEmployeeStatusV.class,
-            employeeId);
-        if (employeeStatus != null)
-          info.addResult("inpempStatus", employeeStatus.getStatusvalue());
-        else
-          info.addResult("inpempStatus", "");
-        info.addResult("inpehcmGradeclassId", employee.getGradeClass().getId());
-        info.addResult("JSEXECUTE",
-            "form.getFieldFromColumnName('NEW_Ehcm_Position_ID').setValue('')");
-        info.addResult("inpnewSectionId", "");
-        info.addResult("inpnewJobCode", "");
-        info.addResult("inpnewJobTitle", "");
-        info.addResult("inpnewJobNo", "");
-        info.addResult("inpnewPositionCode", "");
-        info.addResult("inporiginalDecisionNo", null);
-        info.addResult("inpdelegationType", "");
-        info.addResult("inpdecisionType", "CR");
       }
 
       if (inpLastFieldChanged.equals("inpdelegationType")) {
         // info.addResult("inpnewEhcmPositionId", "");
         info.addResult("JSEXECUTE",
-            "form.getFieldFromColumnName('inpnewEhcmPositionId').setValue('')");
+            "form.getFieldFromColumnName('NEW_Ehcm_Position_ID').setValue('')");
         info.addResult("inpnewSectionId", "");
         info.addResult("inpnewJobCode", "");
         info.addResult("inpnewJobTitle", "");

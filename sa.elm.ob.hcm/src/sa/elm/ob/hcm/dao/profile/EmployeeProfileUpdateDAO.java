@@ -54,7 +54,7 @@ public interface EmployeeProfileUpdateDAO {
    * @param dependentId
    * @throws SystemException
    */
-  void removeDependent(String userName, String dependentId)
+  void removeDependent(String userName, String nationalId)
       throws SystemException, BusinessException;
 
   /**

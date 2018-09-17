@@ -120,7 +120,7 @@ public class EmployeesBusinessMission extends HttpSecureAppServlet {
         parameters.put("inpClientId", inpClientId);
 
         strReportName = "@basedesign@/sa/elm/ob/hcm/ad_reports/employeesbusinessmission/EmployeesBusinessMission.jrxml";
-        String strOutput = "pdf";
+        String strOutput = "xls";
 
         renderJR(vars, response, strReportName, strOutput, parameters, null, null);
       }

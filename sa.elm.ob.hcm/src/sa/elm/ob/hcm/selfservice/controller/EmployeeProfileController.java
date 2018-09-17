@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import sa.elm.ob.hcm.EhcmDependents;
 import sa.elm.ob.hcm.dto.profile.AddressInformationDTO;
 import sa.elm.ob.hcm.dto.profile.ContactInformationDTO;
 import sa.elm.ob.hcm.dto.profile.DependentInformationDTO;
@@ -127,15 +126,16 @@ public class EmployeeProfileController {
   public ResponseEntity<Boolean> addDependent(@PathVariable String username,
       @RequestBody DependentInformationDTO dependentInformationDTO)
       throws BusinessException, SystemException {
-    Boolean addDependent = employeeProfileUpdateService.addDependent(username,
+    Boolean addDependent = employeeProfileUpdateService.addDependentWithWorkflow(username,
         dependentInformationDTO);
     return new ResponseEntity<Boolean>(addDependent, HttpStatus.OK);
   }
 
-  @RequestMapping(value = "/{username}/dependent/{dependentId}", method = RequestMethod.DELETE)
-  public ResponseEntity<Boolean> removeDependent(@PathVariable("username") String username,
-      @PathVariable("dependentId") String dependentId) throws BusinessException, SystemException {
-    Boolean removeDependent = employeeProfileUpdateService.removeDependent(username, dependentId);
+  @RequestMapping(value = "/{username}/dependent/{nationalId}", method = RequestMethod.DELETE)
+  public ResponseEntity<Boolean> removeDependent(@PathVariable String username,
+      @PathVariable String nationalId) throws BusinessException, SystemException {
+    Boolean removeDependent = employeeProfileUpdateService.removeDependentWithWorkflow(username,
+        nationalId);
     return new ResponseEntity<Boolean>(removeDependent, HttpStatus.OK);
   }
 
@@ -160,19 +160,10 @@ public class EmployeeProfileController {
       @PathVariable("username") String username, @PathVariable String nationalNo)
       throws SystemException, BusinessException {
 
-    EhcmDependents dependent = employeeProfileUpdateService.getDependentByNationalId(username,
-        nationalNo);
+    DependentInformationDTO dependent = employeeProfileUpdateService
+        .getDependentByNationalId(username, nationalNo);
 
-    DependentInformationDTO empDependent = new DependentInformationDTO();
-    empDependent.setFirstNameEn(dependent.getFirstName());
-    empDependent.setFatherNameEn(dependent.getFathername());
-    empDependent.setGrandFatherNameEn(dependent.getGrandfather());
-    empDependent.setFamilyNameEn(dependent.getFamily());
-    empDependent.setDob(String.valueOf(dependent.getDob()));
-    empDependent.setGender(dependent.getGender());
-    empDependent.setNationalId(dependent.getNationalidentifier());
-
-    return new ResponseEntity<DependentInformationDTO>(empDependent, HttpStatus.OK);
+    return new ResponseEntity<DependentInformationDTO>(dependent, HttpStatus.OK);
   }
 
   @RequestMapping(value = "/photo/{username}", method = RequestMethod.PUT)

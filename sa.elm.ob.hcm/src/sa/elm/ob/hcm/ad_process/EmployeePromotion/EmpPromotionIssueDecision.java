@@ -10,7 +10,6 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
-import org.openbravo.base.exception.OBException;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.client.kernel.RequestContext;
 import org.openbravo.dal.core.OBContext;
@@ -61,24 +60,51 @@ public class EmpPromotionIssueDecision implements Process {
     OBQuery<EmploymentInfo> employmentInfo = null;
     DateFormat yearFormat = sa.elm.ob.utility.util.Utility.YearFormat;
     String lastPromotionDate = null;
+    Boolean isoverlapping = false;
+    String employeeId = promotion.getEhcmEmpPerinfo().getId();
+    String clientId = promotion.getClient().getId();
     try {
       OBContext.setAdminMode(true);
       log.debug("isSueDecision:" + promotion.isSueDecision());
       log.debug("getDecisionType:" + promotion.getDecisionType());
+      // check whether the employee is suspended or not
+      if (promotion.getEhcmEmpPerinfo().getEmploymentStatus()
+          .equals(DecisionTypeConstants.EMPLOYMENTSTATUS_SUSPENDED)) {
+        obError.setType("Error");
+        obError.setTitle("Error");
+        obError.setMessage(OBMessageUtils.messageBD("EHCM_emplo_suspend"));
+        bundle.setResult(obError);
+        return;
+      }
+      // check start date is overlapping with recent transaction of employee
+      if (promotion.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CREATE)) {
+        isoverlapping = sa.elm.ob.hcm.util.UtilityDAO.chkOverlapDecisionStartdate(employeeId,
+            promotion.getStartDate(), clientId);
+        if (isoverlapping) {
+          obError.setType("Error");
+          obError.setTitle("Error");
+          obError.setMessage(OBMessageUtils.messageBD("EHCM_Date_Overlapping"));
+          bundle.setResult(obError);
+          return;
+        }
+
+      }
 
       // checking position is available or not
       if (!promotion.getDecisionType().equals("CA")) {
         EhcmPosition position = OBDal.getInstance().get(EhcmPosition.class,
             promotion.getNewPosition().getId());
-        chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO.chkPositionAvailableOrNot(
-            promotion.getEhcmEmpPerinfo(), position, promotion.getStartDate(), null,
-            promotion.getDecisionType(), false);
-        if (chkPositionAvailableOrNot) {
-          obError.setType("Error");
-          obError.setTitle("Error");
-          obError.setMessage(OBMessageUtils.messageBD("EHCM_PosNotAvailable"));
-          bundle.setResult(obError);
-          return;
+        if (!position.getId().equals(promotion.getPosition().getId())) {
+          chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO.chkPositionAvailableOrNot(
+              promotion.getEhcmEmpPerinfo(), position, promotion.getStartDate(), null,
+              promotion.getDecisionType(), false);
+          if (chkPositionAvailableOrNot) {
+            obError.setType("Error");
+            obError.setTitle("Error");
+            obError.setMessage(OBMessageUtils.messageBD("EHCM_PosNotAvailable"));
+            bundle.setResult(obError);
+            return;
+          }
         }
       } else {/*
                * EhcmPosition currentPos = assingedOrReleaseEmpInPositionDAO.getRecentPosition(
@@ -89,15 +115,18 @@ public class EmpPromotionIssueDecision implements Process {
             .getRecentEmploymentInfo(promotion.getEhcmEmpPerinfo(),
                 promotion.getOriginalDecisionsNo(), null, null);
 
-        chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO.chkPositionAvailableOrNot(
-            promotion.getEhcmEmpPerinfo(), recentEmployeInfo.getPosition(),
-            promotion.getStartDate(), null, promotion.getDecisionType(), false);
-        if (chkPositionAvailableOrNot) {
-          obError.setType("Error");
-          obError.setTitle("Error");
-          obError.setMessage(OBMessageUtils.messageBD("EHCM_PosNotAvailable"));
-          bundle.setResult(obError);
-          return;
+        if (recentEmployeInfo != null && recentEmployeInfo.getPosition() != null
+            && !recentEmployeInfo.getPosition().getId().equals(promotion.getPosition().getId())) {
+          chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO.chkPositionAvailableOrNot(
+              promotion.getEhcmEmpPerinfo(), recentEmployeInfo.getPosition(),
+              promotion.getStartDate(), null, promotion.getDecisionType(), false);
+          if (chkPositionAvailableOrNot) {
+            obError.setType("Error");
+            obError.setTitle("Error");
+            obError.setMessage(OBMessageUtils.messageBD("EHCM_PosNotAvailable"));
+            bundle.setResult(obError);
+            return;
+          }
         }
       }
 
@@ -201,6 +230,7 @@ public class EmpPromotionIssueDecision implements Process {
         promotion.setSueDecision(true);
         promotion.setDecisionDate(new Date());
         promotion.setDecisionStatus("I");
+        promotion.getEhcmEmpPerinfo().setEmploymentStatus("AC");
         OBDal.getInstance().save(promotion);
         OBDal.getInstance().flush();
 
@@ -210,14 +240,14 @@ public class EmpPromotionIssueDecision implements Process {
         if (promotion.getDecisionType().equals("CR") && !promotion.isJoinWorkRequest()) {
 
           EmployeePromotionHandlerDAO.insertEmploymentInfo(promotion, info, vars, decisionType,
-              lang, null, null);
+              lang, null, null, false);
         }
 
         if (promotion.getDecisionType().equals("UP") && promotion.getOriginalDecisionsNo() != null
             && !promotion.getOriginalDecisionsNo().isJoinWorkRequest()) {
           log.debug(promotion.getOriginalDecisionsNo());
           EmployeePromotionHandlerDAO.insertEmploymentInfo(promotion, info, vars, decisionType,
-              lang, null, null);
+              lang, null, null, false);
           EmployeePromotionHandlerDAO.updateEnddateinEmpInfo(promotion, info, vars);
         }
         // cancel case

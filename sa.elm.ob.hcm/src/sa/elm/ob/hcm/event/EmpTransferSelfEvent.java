@@ -16,8 +16,8 @@ import org.openbravo.dal.service.OBDal;
 import org.openbravo.dal.service.OBQuery;
 import org.openbravo.erpCommon.utility.OBMessageUtils;
 
-import sa.elm.ob.hcm.EHCMEmpTransfer;
 import sa.elm.ob.hcm.EHCMEmpTransferSelf;
+import sa.elm.ob.hcm.EhcmPosition;
 import sa.elm.ob.hcm.EmploymentInfo;
 import sa.elm.ob.hcm.ad_process.assignedOrReleasePosition.AssingedOrReleaseEmpInPositionDAO;
 import sa.elm.ob.hcm.ad_process.assignedOrReleasePosition.AssingedOrReleaseEmpInPositionDAOImpl;
@@ -48,7 +48,10 @@ public class EmpTransferSelfEvent extends EntityPersistenceEventObserver {
           .getProperty(EHCMEmpTransferSelf.PROPERTY_DECISIONTYPE);
       final Property startdate = entities[0].getProperty(EHCMEmpTransferSelf.PROPERTY_STARTDATE);
       final Property enddate = entities[0].getProperty(EHCMEmpTransferSelf.PROPERTY_ENDDATE);
-      final Property person = entities[0].getProperty(EHCMEmpTransfer.PROPERTY_EHCMEMPPERINFO);
+      final Property person = entities[0].getProperty(EHCMEmpTransferSelf.PROPERTY_EHCMEMPPERINFO);
+
+      final Property positionObj = entities[0]
+          .getProperty(EHCMEmpTransferSelf.PROPERTY_NEWPOSITION);
 
       String empInfoId = "";
       Boolean chkPositionAvailableOrNot = false;
@@ -152,7 +155,8 @@ public class EmpTransferSelfEvent extends EntityPersistenceEventObserver {
             info.setMaxResult(1);
             if (info.list().size() > 0) {
               EmploymentInfo empinfo = info.list().get(0);
-              if (empinfo.getPosition() != null) {
+              if (empinfo.getPosition() != null
+                  && !empinfo.getPosition().getId().equals(transfer.getPosition().getId())) {
                 chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO
                     .chkPositionAvailableOrNot(transfer.getEhcmEmpPerinfo(), empinfo.getPosition(),
                         transfer.getStartDate(), null, transfer.getDecisionType(), false);
@@ -160,6 +164,26 @@ public class EmpTransferSelfEvent extends EntityPersistenceEventObserver {
                   throw new OBException(OBMessageUtils.messageBD("EHCM_EmpTrans_CantCancel"));
                 }
               }
+            }
+          }
+        }
+      }
+
+      if (!event.getPreviousState(person).equals(event.getCurrentState(person))
+          || !event.getPreviousState(decisionType).equals(event.getCurrentState(decisionType))
+          || !event.getPreviousState(positionObj).equals(event.getCurrentState(positionObj))
+          || !event.getPreviousState(startdate).equals(event.getCurrentState(startdate))
+          || (event.getPreviousState(enddate) != null
+              && !event.getPreviousState(enddate).equals(event.getCurrentState(enddate)))) {
+        if (transfer.getNewPosition() != null && !transfer.getDecisionType().equals("CA")) {
+          EhcmPosition position = OBDal.getInstance().get(EhcmPosition.class,
+              transfer.getNewPosition().getId());
+          if (position != null && !position.getId().equals(transfer.getPosition().getId())) {
+            chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO.chkPositionAvailableOrNot(
+                transfer.getEhcmEmpPerinfo(), position, transfer.getStartDate(),
+                transfer.getEndDate(), transfer.getDecisionType(), false);
+            if (chkPositionAvailableOrNot) {
+              throw new OBException(OBMessageUtils.messageBD("EHCM_PosNotAvailable"));
             }
           }
         }
@@ -252,7 +276,8 @@ public class EmpTransferSelfEvent extends EntityPersistenceEventObserver {
           info.setMaxResult(1);
           if (info.list().size() > 0) {
             EmploymentInfo empinfo = info.list().get(0);
-            if (empinfo.getPosition() != null) {
+            if (empinfo.getPosition() != null
+                && !empinfo.getPosition().getId().equals(transfer.getPosition().getId())) {
               chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO
                   .chkPositionAvailableOrNot(transfer.getEhcmEmpPerinfo(), empinfo.getPosition(),
                       transfer.getStartDate(), null, transfer.getDecisionType(), false);
@@ -260,6 +285,19 @@ public class EmpTransferSelfEvent extends EntityPersistenceEventObserver {
                 throw new OBException(OBMessageUtils.messageBD("EHCM_EmpTrans_CantCancel"));
               }
             }
+          }
+        }
+      }
+
+      if (transfer.getNewPosition() != null && !transfer.getDecisionType().equals("CA")) {
+        EhcmPosition position = OBDal.getInstance().get(EhcmPosition.class,
+            transfer.getNewPosition().getId());
+        if (position != null && !position.getId().equals(transfer.getPosition().getId())) {
+          chkPositionAvailableOrNot = assingedOrReleaseEmpInPositionDAO.chkPositionAvailableOrNot(
+              transfer.getEhcmEmpPerinfo(), position, transfer.getStartDate(),
+              transfer.getEndDate(), transfer.getDecisionType(), false);
+          if (chkPositionAvailableOrNot) {
+            throw new OBException(OBMessageUtils.messageBD("EHCM_PosNotAvailable"));
           }
         }
       }

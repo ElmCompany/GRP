@@ -24,6 +24,7 @@ import sa.elm.ob.hcm.EHCMEmpSecondment;
 import sa.elm.ob.hcm.EHCMEmployeeStatusV;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EmploymentInfo;
+import sa.elm.ob.hcm.ad_callouts.common.UpdateEmpDetailsInCallouts;
 import sa.elm.ob.utility.util.UtilityDAO;
 
 public class EmpSecondmentCallout extends SimpleCallout {
@@ -56,8 +57,9 @@ public class EmpSecondmentCallout extends SimpleCallout {
     DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     log4j.debug("lastfieldChanged:" + lastfieldChanged);
     try {
-
+      UpdateEmpDetailsInCallouts callouts = new UpdateEmpDetailsInCallouts();
       /* get secondment information */
+
       EHCMEmpSecondment secondinfo = OBDal.getInstance().get(EHCMEmpSecondment.class, secondmentId);
       /*
        * get Latest active EmploymentInfo by using EmployeeId and set the value based on Employment
@@ -131,147 +133,140 @@ public class EmpSecondmentCallout extends SimpleCallout {
             info.addResult("inpgovAgency", "");
           }
         } else {
-          info.addResult("inpempName", "");
-          info.addResult("inpempStatus", "");
-          info.addResult("inpempType", "");
-          info.addResult("inphireDate", "");
-          info.addResult("inpehcmGradeclassId", "");
-          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Department_ID').setValue('')");
-          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Section_ID').setValue('')");
-          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Ehcm_Grade_ID').setValue('')");
-          info.addResult("JSEXECUTE",
-              "form.getFieldFromColumnName('Ehcm_Position_ID').setValue('')");
-          info.addResult("inpjobTitle", "");
-          info.addResult("JSEXECUTE",
-              "form.getFieldFromColumnName('Employmentgrade').setValue('')");
-          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Assigned_Dept').setValue('')");
+          callouts.SetEmpDetailsNull(info);
           info.addResult("JSEXECUTE",
               "form.getFieldFromColumnName('Ehcm_Payscaleline_ID').setValue('')");
-          info.addResult("JSEXECUTE",
-              "form.getFieldFromColumnName('Ehcm_Gradeclass_ID').setValue('')");
+          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Assigned_Dept').setValue('')");
+
         }
       }
       if (lastfieldChanged.equals("inpdecisionType")) {
-        if (!inpdecisionType.equals("CR")) {
-          if (empinfo.getChangereason().equals("SEC") || empinfo.getChangereason().equals("EXSEC")
-              || empinfo.getChangereason().equals("COSEC")) {
-            OBQuery<EHCMEmpSecondment> objEmpQuery = OBDal.getInstance()
-                .createQuery(EHCMEmpSecondment.class, "as e where e.ehcmEmpPerinfo.id='"
-                    + employeeId
-                    + "' and e.enabled='Y' and e.issueDecision='Y'  order by e.creationDate desc");
-            objEmpQuery.setMaxResult(1);
-            if (objEmpQuery.list().size() > 0) {
-              EHCMEmpSecondment secondment = objEmpQuery.list().get(0);
-              log4j.debug("getDecisionNo():" + secondment.getId());
-              info.addResult("inporiginalDecisionsNo", secondment.getId());
-              info.addResult("inppaymentType", secondment.getPaymentType().getId());
+        if (StringUtils.isNotEmpty(employeeId)) {
+          if (!inpdecisionType.equals("CR")) {
+            if (empinfo.getChangereason().equals("SEC") || empinfo.getChangereason().equals("EXSEC")
+                || empinfo.getChangereason().equals("COSEC")) {
+              OBQuery<EHCMEmpSecondment> objEmpQuery = OBDal.getInstance()
+                  .createQuery(EHCMEmpSecondment.class, "as e where e.ehcmEmpPerinfo.id='"
+                      + employeeId
+                      + "' and e.enabled='Y' and e.issueDecision='Y'  order by e.creationDate desc");
+              objEmpQuery.setMaxResult(1);
+              if (objEmpQuery.list().size() > 0) {
+                EHCMEmpSecondment secondment = objEmpQuery.list().get(0);
+                log4j.debug("getDecisionNo():" + secondment.getId());
+                info.addResult("inporiginalDecisionsNo", secondment.getId());
+                info.addResult("inppaymentType", secondment.getPaymentType().getId());
 
+              }
             }
+            if (!inpdecisionType.equals("EX")) {
+              if (empinfo.getEhcmEmpSecondment() != null) {
+                log4j.debug("getPeriodType():" + empinfo.getEhcmEmpSecondment().getPeriodType());
+                log4j.debug("getPeriod():" + empinfo.getEhcmEmpSecondment().getPeriod());
+                info.addResult("inpperiodType", empinfo.getEhcmEmpSecondment().getPeriodType());
+                info.addResult("inpperiod", empinfo.getEhcmEmpSecondment().getPeriod());
+                // addded by gopal
+                // task 4011
+                if (empinfo.getEhcmEmpSecondment().getDecisionType().equals("CO")) {
+                  String query = " select eut_convert_to_hijri('"
+                      + dateFormat.format(empinfo.getEndDate()) + "')";
+
+                  st = conn.prepareStatement(query);
+                  rs = st.executeQuery();
+                  if (rs.next()) {
+                    inpstartdate = rs.getString("eut_convert_to_hijri");
+                    info.addResult("inpenddate", rs.getString("eut_convert_to_hijri"));
+                  }
+                } else {
+                  String query = " select eut_convert_to_hijri('"
+                      + dateFormat.format(empinfo.getEhcmEmpSecondment().getEndDate()) + "')";
+
+                  st = conn.prepareStatement(query);
+                  rs = st.executeQuery();
+                  if (rs.next()) {
+                    inpstartdate = rs.getString("eut_convert_to_hijri");
+                    info.addResult("inpenddate", rs.getString("eut_convert_to_hijri"));
+                  }
+                }
+
+              }
+            }
+          } else {
+            info.addResult("inporiginalDecisionsNo", null);
+            // info.addResult("inppaymentType", "BASIC");
+            /*
+             * info.addResult("JSEXECUTE",
+             * "form.getFieldFromColumnName('Original_Decisions_No').setValue('')");
+             */
           }
           if (!inpdecisionType.equals("EX")) {
-            if (empinfo.getEhcmEmpSecondment() != null) {
-              log4j.debug("getPeriodType():" + empinfo.getEhcmEmpSecondment().getPeriodType());
-              log4j.debug("getPeriod():" + empinfo.getEhcmEmpSecondment().getPeriod());
-              info.addResult("inpperiodType", empinfo.getEhcmEmpSecondment().getPeriodType());
-              info.addResult("inpperiod", empinfo.getEhcmEmpSecondment().getPeriod());
-              // addded by gopal
-              // task 4011
-              if (empinfo.getEhcmEmpSecondment().getDecisionType().equals("CO")) {
-                String query = " select eut_convert_to_hijri('"
-                    + dateFormat.format(empinfo.getEndDate()) + "')";
+            if (empinfo.getStartDate() != null) {
+              String query = " select eut_convert_to_hijri('"
+                  + dateFormat.format(empinfo.getStartDate()) + "')";
 
-                st = conn.prepareStatement(query);
-                rs = st.executeQuery();
-                if (rs.next()) {
-                  inpstartdate = rs.getString("eut_convert_to_hijri");
-                  info.addResult("inpenddate", rs.getString("eut_convert_to_hijri"));
-                }
-              } else {
-                String query = " select eut_convert_to_hijri('"
-                    + dateFormat.format(empinfo.getEhcmEmpSecondment().getEndDate()) + "')";
+              st = conn.prepareStatement(query);
+              rs = st.executeQuery();
+              if (rs.next()) {
+                inpstartdate = rs.getString("eut_convert_to_hijri");
+                info.addResult("inpstartdate", rs.getString("eut_convert_to_hijri"));
+              }
+            }
 
-                st = conn.prepareStatement(query);
-                rs = st.executeQuery();
-                if (rs.next()) {
-                  inpstartdate = rs.getString("eut_convert_to_hijri");
-                  info.addResult("inpenddate", rs.getString("eut_convert_to_hijri"));
-                }
+          } else if (inpdecisionType.equals("EX")) {
+            empInfo = OBDal.getInstance().createQuery(EmploymentInfo.class,
+                " ehcmEmpPerinfo.id='" + employeeId
+                    + "' and enabled='Y' and issecondment='Y' order by creationDate desc ");
+            log4j.debug("employeeId:" + employeeId);
+            log4j.debug("positiontype:" + empInfo.list().size());
+            if (empInfo.list().size() > 0) {
+              empinfo = empInfo.list().get(0);
+            }
+            if (empinfo != null) {
+              employmentInfoId = empinfo.getId();
+              info.addResult("inpdepartmentId", empinfo.getPosition().getDepartment().getId());
+              if (empinfo.getPosition().getSection() != null) {
+                info.addResult("inpsectionId", empinfo.getPosition().getSection().getId());
+              }
+              info.addResult("inpehcmGradeId", empinfo.getGrade().getId());
+              info.addResult("inpehcmPositionId", empinfo.getPosition().getId());
+              info.addResult("inpjobTitle", empinfo.getPosition().getJOBName().getJOBTitle());
+              info.addResult("inpemploymentgrade", empinfo.getEmploymentgrade().getId());
+              info.addResult("inpassignedDept", empinfo.getSECDeptName());
+              info.addResult("inpehcmGradestepsId",
+                  empinfo.getEhcmPayscale().getEhcmGradesteps().getId());
+              info.addResult("inpehcmPayscalelineId", empinfo.getEhcmPayscaleline().getId());
+            }
+            if (empinfo.getEndDate() != null) {
+              Date dateafter = new Date(empinfo.getEndDate().getTime() + 1 * 24 * 3600 * 1000);
+              String query = " select eut_convert_to_hijri('" + dateFormat.format(dateafter) + "')";
+
+              st = conn.prepareStatement(query);
+              rs = st.executeQuery();
+              if (rs.next()) {
+                info.addResult("inpstartdate", rs.getString("eut_convert_to_hijri"));
+                inpstartdate = rs.getString("eut_convert_to_hijri");
+              }
+              if (inpperiodType.equals("Y")) {
+                String startyear = inpstartdate.split("-")[2];
+                String startdate = inpstartdate.split("-")[0];
+                // int endday = Integer.valueOf(startdate) - 1;
+                int endyear = Integer.valueOf(startyear) + Integer.valueOf(inpperiod);
+                //
+                String enddate = endyear + inpstartdate.split("-")[1] + inpstartdate.split("-")[0];
+                log4j.debug("enddate:" + enddate);
+                enddate = getOneDayMinusHijiriDate(enddate, inpclient);
+                info.addResult("inpenddate", enddate);
+                //
+                log4j.debug("enddate:" + enddate);
               }
 
             }
           }
+          if (inpdecisionType.equals("CA") || inpdecisionType.equals("UP")) {
+            info.addResult("inpgovAgency", empinfo.getToGovernmentAgency());
+          }
         } else {
-          info.addResult("inporiginalDecisionsNo", null);
-          // info.addResult("inppaymentType", "BASIC");
-          /*
-           * info.addResult("JSEXECUTE",
-           * "form.getFieldFromColumnName('Original_Decisions_No').setValue('')");
-           */
-        }
-        if (!inpdecisionType.equals("EX")) {
-          if (empinfo.getStartDate() != null) {
-            String query = " select eut_convert_to_hijri('"
-                + dateFormat.format(empinfo.getStartDate()) + "')";
+          callouts.SetEmpDetailsNull(info);
 
-            st = conn.prepareStatement(query);
-            rs = st.executeQuery();
-            if (rs.next()) {
-              inpstartdate = rs.getString("eut_convert_to_hijri");
-              info.addResult("inpstartdate", rs.getString("eut_convert_to_hijri"));
-            }
-          }
-
-        } else if (inpdecisionType.equals("EX")) {
-          empInfo = OBDal.getInstance().createQuery(EmploymentInfo.class, " ehcmEmpPerinfo.id='"
-              + employeeId + "' and enabled='Y' and issecondment='Y' order by creationDate desc ");
-          log4j.debug("employeeId:" + employeeId);
-          log4j.debug("positiontype:" + empInfo.list().size());
-          if (empInfo.list().size() > 0) {
-            empinfo = empInfo.list().get(0);
-          }
-          if (empinfo != null) {
-            employmentInfoId = empinfo.getId();
-            info.addResult("inpdepartmentId", empinfo.getPosition().getDepartment().getId());
-            if (empinfo.getPosition().getSection() != null) {
-              info.addResult("inpsectionId", empinfo.getPosition().getSection().getId());
-            }
-            info.addResult("inpehcmGradeId", empinfo.getGrade().getId());
-            info.addResult("inpehcmPositionId", empinfo.getPosition().getId());
-            info.addResult("inpjobTitle", empinfo.getPosition().getJOBName().getJOBTitle());
-            info.addResult("inpemploymentgrade", empinfo.getEmploymentgrade().getId());
-            info.addResult("inpassignedDept", empinfo.getSECDeptName());
-            info.addResult("inpehcmGradestepsId",
-                empinfo.getEhcmPayscale().getEhcmGradesteps().getId());
-            info.addResult("inpehcmPayscalelineId", empinfo.getEhcmPayscaleline().getId());
-          }
-          if (empinfo.getEndDate() != null) {
-            Date dateafter = new Date(empinfo.getEndDate().getTime() + 1 * 24 * 3600 * 1000);
-            String query = " select eut_convert_to_hijri('" + dateFormat.format(dateafter) + "')";
-
-            st = conn.prepareStatement(query);
-            rs = st.executeQuery();
-            if (rs.next()) {
-              info.addResult("inpstartdate", rs.getString("eut_convert_to_hijri"));
-              inpstartdate = rs.getString("eut_convert_to_hijri");
-            }
-            if (inpperiodType.equals("Y")) {
-              String startyear = inpstartdate.split("-")[2];
-              String startdate = inpstartdate.split("-")[0];
-              // int endday = Integer.valueOf(startdate) - 1;
-              int endyear = Integer.valueOf(startyear) + Integer.valueOf(inpperiod);
-              //
-              String enddate = endyear + inpstartdate.split("-")[1] + inpstartdate.split("-")[0];
-              log4j.debug("enddate:" + enddate);
-              enddate = getOneDayMinusHijiriDate(enddate, inpclient);
-              info.addResult("inpenddate", enddate);
-              //
-              log4j.debug("enddate:" + enddate);
-            }
-
-          }
-        }
-        if (inpdecisionType.equals("CA") || inpdecisionType.equals("UP")) {
-          info.addResult("inpgovAgency", empinfo.getToGovernmentAgency());
         }
       }
       if (lastfieldChanged.equals("inpperiodType") || lastfieldChanged.equals("inpperiod")
@@ -466,7 +461,9 @@ public class EmpSecondmentCallout extends SimpleCallout {
           }
         }
       }
-    } catch (Exception e) {
+    } catch (
+
+    Exception e) {
       log4j.error("Exception in EmpSecondmentCallout Callout", e);
       info.addResult("ERROR", OBMessageUtils.messageBD("HB_INTERNAL_ERROR"));
     }

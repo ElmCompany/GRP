@@ -25,7 +25,7 @@
       <parameter name="p_absenceattendid" type="VARCHAR" mode="in">
         <default/>
       </parameter>
-      <parameter name="p_availeddays" type="boolean" mode="in">
+      <parameter name="p_availeddays" type="VARCHAR" mode="in">
         <default/>
       </parameter>
       <parameter name="p_subtype_id" type="VARCHAR" mode="in">

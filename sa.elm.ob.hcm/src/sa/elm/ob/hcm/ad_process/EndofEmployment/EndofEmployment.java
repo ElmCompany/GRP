@@ -27,7 +27,6 @@ import sa.elm.ob.hcm.EhcmterminationEmpV;
 import sa.elm.ob.hcm.EmployeeDelegation;
 import sa.elm.ob.hcm.EmploymentInfo;
 import sa.elm.ob.hcm.ehcmempstatus;
-import sa.elm.ob.hcm.ehcmpayscaleline;
 import sa.elm.ob.hcm.ad_process.Constants;
 import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
 import sa.elm.ob.hcm.ad_process.assignedOrReleasePosition.AssingedOrReleaseEmpInPositionDAO;
@@ -61,6 +60,22 @@ public class EndofEmployment implements Process {
 
       employeeId = termination.getEhcmEmpPerinfo().getId();
       EhcmterminationEmpV terminationView = termination.getEhcmEmpPerinfo();
+      // Check whether employee is terminated or not.
+      EmploymentInfo employmentInfo = null;
+      employmentInfo = Utility.getActiveEmployInfo(employeeId);
+      if (employmentInfo != null && employmentInfo.getEhcmEmpSuspension() != null
+          && employmentInfo.getEhcmEmpSuspension().getSuspensionEndReason() != null) {
+        if (employmentInfo.getEhcmEmpSuspension().getSuspensionEndReason().getSearchKey()
+            .equals(("T"))
+            || employmentInfo.getEhcmEmpSuspension().getSuspensionEndReason().getSearchKey()
+                .equals(("TRD"))) {
+          obError.setType("Error");
+          obError.setTitle("Error");
+          obError.setMessage(OBMessageUtils.messageBD("Ehcm_Employee_termination"));
+          bundle.setResult(obError);
+          return;
+        }
+      }
 
       // check Issued or not
       if (!termination.isSueDecision()) {
@@ -147,56 +162,14 @@ public class EndofEmployment implements Process {
           }
           employInfo.setChangereason("T");
           employInfo.setChangereasoninfo(termination.getEhcmTerminationReason().getSearchKey());
-
-          employInfo.setDepartmentName(termination.getDepartmentCode().getName());
-          employInfo.setDeptcode(termination.getDepartmentCode());
-          employInfo.setGrade(termination.getGrade());
-          ehcmpayscaleline line = OBDal.getInstance().get(ehcmpayscaleline.class,
-              termination.getEhcmPayscaleline().getId());
-          employInfo.setEhcmPayscale(line.getEhcmPayscale());
-          employInfo.setEmpcategory(termination.getEmployeeCategory().getId());
-          employInfo.setEmployeeno(terminationView.getEhcmEmpPerinfo().getSearchKey());
-          employInfo.setEhcmPayscaleline(line);
-          employInfo.setEmploymentgrade(termination.getEmploymentGrade());
-          employInfo.setJobcode(termination.getPosition().getEhcmJobs());
-          employInfo.setPosition(termination.getPosition());
-          employInfo.setJobtitle(termination.getPosition().getJOBName().getJOBTitle());
-          employInfo.setLocation(info.getLocation());
-          if (info.getEhcmPayrollDefinition() != null)
-            employInfo.setEhcmPayrollDefinition(info.getEhcmPayrollDefinition());
-          if (termination.getSectionCode() != null) {
-            employInfo.setSectionName(termination.getSectionCode().getName());
-            employInfo.setSectioncode(termination.getSectionCode());
-          }
-          employInfo.setEhcmEmpPerinfo(terminationView.getEhcmEmpPerinfo());
+          UtilityDAO.insertActEmplymntInfoDetailsInIssueDecision(
+              terminationView.getEhcmEmpPerinfo(), employInfo, false, true);
           employInfo.setStartDate(termination.getTerminationDate());
           employInfo.setEndDate(null);
           employInfo.setAlertStatus("TE");
           employInfo.setEhcmEmpTermination(termination);
           employInfo.setDecisionNo(termination.getDecisionNo());
           employInfo.setDecisionDate(termination.getDecisionDate());
-          supervisorId = UtilityDAO.getSupervisorforEmployee(
-              termination.getEhcmEmpPerinfo().getId(), termination.getClient().getId());
-          employInfo.setEhcmEmpSupervisor(supervisorId);
-          /* secondary */
-          employInfo.setSecpositionGrade(info.getSecpositionGrade());
-          employInfo.setSecpositionGrade(info.getSecpositionGrade());
-          employInfo.setSecjobno(info.getSecjobno());
-          employInfo.setSecjobcode(info.getSecjobcode());
-          employInfo.setSecjobtitle(info.getSecjobtitle());
-          employInfo.setSECDeptCode(info.getSECDeptCode());
-          employInfo.setSECDeptName(info.getSECDeptName());
-          if (info.getSECSectionCode() != null) {
-            employInfo.setSECSectionCode(info.getSECSectionCode());
-            employInfo.setSECSectionName(info.getSECSectionName());
-          }
-          employInfo.setSECLocation(info.getSECLocation());
-          employInfo.setSECStartdate(info.getSECStartdate());
-          employInfo.setSECEnddate(info.getSECEnddate());
-          employInfo.setSECDecisionNo(info.getSECDecisionNo());
-          employInfo.setSECDecisionDate(info.getSECDecisionDate());
-          employInfo.setSECChangeReason(info.getSECChangeReason());
-          employInfo.setSECEmploymentNumber(info.getSECEmploymentNumber());
 
           OBDal.getInstance().save(employInfo);
           OBDal.getInstance().flush();

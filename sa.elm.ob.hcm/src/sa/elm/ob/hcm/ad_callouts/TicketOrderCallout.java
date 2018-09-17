@@ -16,6 +16,7 @@ import sa.elm.ob.hcm.EHCMEmployeeStatusV;
 import sa.elm.ob.hcm.EHCMticketordertransaction;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EmploymentInfo;
+import sa.elm.ob.hcm.ad_callouts.common.UpdateEmpDetailsInCallouts;
 import sa.elm.ob.hcm.ad_callouts.dao.EndofEmploymentCalloutDAO;
 import sa.elm.ob.hcm.ad_callouts.dao.EndofEmploymentCalloutDAOImpl;
 import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
@@ -47,58 +48,66 @@ public class TicketOrderCallout extends SimpleCallout {
     DateFormat yearFormat = sa.elm.ob.utility.util.Utility.YearFormat;
 
     try {
+      UpdateEmpDetailsInCallouts callouts = new UpdateEmpDetailsInCallouts();
       EmploymentInfo empinfo = null;
       empinfo = Utility.getActiveEmployInfo(employeeId);
-      if (lastfieldChanged.equals("inpehcmEmpPerinfoId") && (StringUtils.isNotEmpty(employeeId))) {
+      if (lastfieldChanged.equals("inpehcmEmpPerinfoId")) {
+        if (StringUtils.isNotEmpty(employeeId)) {
 
-        EhcmEmpPerInfo employee = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
-        if (employee.getArabicfullname() != null)
-          info.addResult("inpempName", employee.getArabicfullname());
-        else
-          info.addResult("inpempName", null);
-        EHCMEmployeeStatusV employeeStatus = OBDal.getInstance().get(EHCMEmployeeStatusV.class,
-            employeeId);
-        if (employeeStatus != null)
-          info.addResult("inpempStatus", employeeStatus.getStatusvalue());
-        else
-          info.addResult("inpempStatus", "");
+          EhcmEmpPerInfo employee = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
+          if (employee.getArabicfullname() != null)
+            info.addResult("inpempName", employee.getArabicfullname());
+          else
+            info.addResult("inpempName", null);
+          EHCMEmployeeStatusV employeeStatus = OBDal.getInstance().get(EHCMEmployeeStatusV.class,
+              employeeId);
+          if (employeeStatus != null)
+            info.addResult("inpempStatus", employeeStatus.getStatusvalue());
+          else
+            info.addResult("inpempStatus", "");
 
-        info.addResult("inpehcmGradeclassId", employee.getGradeClass().getId());
-        info.addResult("inpempType", employee.getEhcmActiontype().getPersonType());
-        if (employee.getHiredate() != null) {
-          info.addResult("inphireDate",
-              (UtilityDAO.convertTohijriDate(dateFormat.format(employee.getHiredate()))));
-        }
-        if (empinfo != null) {
-          info.addResult("inpdepartmentId", empinfo.getPosition().getDepartment().getId());
-          if (empinfo.getPosition() != null && empinfo.getPosition().getSection() != null) {
-            info.addResult("inpsectionId", empinfo.getPosition().getSection().getId());
+          info.addResult("inpehcmGradeclassId", employee.getGradeClass().getId());
+          info.addResult("inpempType", employee.getEhcmActiontype().getPersonType());
+          if (employee.getHiredate() != null) {
+            info.addResult("inphireDate",
+                (UtilityDAO.convertTohijriDate(dateFormat.format(employee.getHiredate()))));
           }
-          info.addResult("inpehcmGradeId", empinfo.getGrade().getId());
-          info.addResult("inpehcmPositionId", empinfo.getPosition().getId());
-          info.addResult("inpjobTitle", empinfo.getPosition().getJOBName().getJOBTitle());
-          info.addResult("inpemploymentgrade", empinfo.getEmploymentgrade().getId());
-          info.addResult("inpassignedDept", empinfo.getSECDeptName());
-          info.addResult("inpehcmGradestepsId",
-              empinfo.getEhcmPayscale().getEhcmGradesteps().getId());
-          info.addResult("inpehcmPayscalelineId", empinfo.getEhcmPayscaleline().getId());
-          info.addResult("inporiginalDecisionsNo", "");
-          EndofEmploymentCalloutDAO endofemploymentobj = new EndofEmploymentCalloutDAOImpl();
+          if (empinfo != null) {
+            info.addResult("inpdepartmentId", empinfo.getPosition().getDepartment().getId());
+            if (empinfo.getPosition() != null && empinfo.getPosition().getSection() != null) {
+              info.addResult("inpsectionId", empinfo.getPosition().getSection().getId());
+            }
+            info.addResult("inpehcmGradeId", empinfo.getGrade().getId());
+            info.addResult("inpehcmPositionId", empinfo.getPosition().getId());
+            info.addResult("inpjobTitle", empinfo.getPosition().getJOBName().getJOBTitle());
+            info.addResult("inpemploymentgrade", empinfo.getEmploymentgrade().getId());
+            info.addResult("inpassignedDept", empinfo.getSECDeptName());
+            info.addResult("inpehcmGradestepsId",
+                empinfo.getEhcmPayscale().getEhcmGradesteps().getId());
+            info.addResult("inpehcmPayscalelineId", empinfo.getEhcmPayscaleline().getId());
+            info.addResult("inporiginalDecisionsNo", "");
+            EndofEmploymentCalloutDAO endofemploymentobj = new EndofEmploymentCalloutDAOImpl();
 
-          departmentId = empinfo.getPosition().getDepartment().getId();
-          strtDate = yearFormat.parse(yearFormat.format(new Date()));
+            departmentId = empinfo.getPosition().getDepartment().getId();
+            strtDate = yearFormat.parse(yearFormat.format(new Date()));
 
-          JSONObject authorizationInfoObj = endofemploymentobj
-              .getAuthorizationInfoDetails(departmentId, strtDate);
-          if ((authorizationInfoObj != null) && (authorizationInfoObj.length() > 0)) {
-            info.addResult("inpehcmAuthorizePersonId",
-                authorizationInfoObj.getString("authorizedPerson"));
-            info.addResult("inpauthorizePersonTitle",
-                authorizationInfoObj.getString("authorizedJobTitle"));
-          } else {
-            info.addResult("inpehcmAuthorizePersonId", "");
-            info.addResult("inpauthorizePersonTitle", "");
+            JSONObject authorizationInfoObj = endofemploymentobj
+                .getAuthorizationInfoDetails(departmentId, strtDate);
+            if ((authorizationInfoObj != null) && (authorizationInfoObj.length() > 0)) {
+              info.addResult("inpehcmAuthorizePersonId",
+                  authorizationInfoObj.getString("authorizedPerson"));
+              info.addResult("inpauthorizePersonTitle",
+                  authorizationInfoObj.getString("authorizedJobTitle"));
+            } else {
+              info.addResult("inpehcmAuthorizePersonId", "");
+              info.addResult("inpauthorizePersonTitle", "");
+            }
           }
+        } else {
+          callouts.SetEmpDetailsNull(info);
+          info.addResult("JSEXECUTE",
+              "form.getFieldFromColumnName('Ehcm_Payscaleline_ID').setValue('')");
+          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Assigned_Dept').setValue('')");
         }
       }
       if (lastfieldChanged.equals("inpdecisionType")

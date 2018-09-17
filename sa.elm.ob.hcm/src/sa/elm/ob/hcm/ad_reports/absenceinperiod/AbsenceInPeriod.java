@@ -116,7 +116,7 @@ public class AbsenceInPeriod extends HttpSecureAppServlet {
         parameters.put("inpClientId", vars.getClient());
 
         strReportName = "@basedesign@/sa/elm/ob/hcm/ad_reports/absenceinperiod/AbsenceInPeriod.jrxml";
-        String strOutput = "pdf";
+        String strOutput = "xls";
 
         renderJR(vars, response, strReportName, strOutput, parameters, null, null);
       }

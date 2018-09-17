@@ -432,23 +432,22 @@ public class EmployeeDAO {
 
   public EmployeeVO checkBpartnerValidation(String clientId, String orgId, String employeeId,
       String salText) {
-    Category CatId = null;
     EmployeeVO vo = new EmployeeVO();
     EhcmEmpPerInfo empObj = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
+    List<Category> categoryList = null;
+    Category categoryObj = null;
     try {
-      if (salText.equals("HE") || salText.equals("HSP") || salText.equals("HC")
-          || salText.equals("HA") || salText.equals("HP")) {
+      if (salText.equals("HE") || salText.equals("HC") || salText.equals("HP")) {
         OBQuery<Category> cat = OBDal.getInstance().createQuery(Category.class,
-            " name='Employee' and client.id =:clientId");
+            " as e where e.ehcmCategorytype='EMP' and e.client.id=:clientId order by e.creationDate desc");
         cat.setNamedParameter("clientId", clientId);
-        if (cat.list().size() > 0) {
-          for (Category cats : cat.list()) {
-            CatId = cats;
-            break;
-          }
+        cat.setMaxResult(1);
+        categoryList = cat.list();
+        if (categoryList.size() > 0) {
+          categoryObj = categoryList.get(0);
         }
       }
-      if (CatId == null) {
+      if (categoryObj == null) {
         vo.setCategorycode("false");
       } else {
         vo.setCategorycode("true");
@@ -2086,14 +2085,22 @@ public class EmployeeDAO {
       perinfo.setUpdatedBy(OBDal.getInstance().get(User.class, vars.getUser()));
       perinfo.setNationalityIdentifier(request.getParameter("inpNatIdf").toString());
       perinfo.setSearchKey(request.getParameter("inpEmpNo"));
-      perinfo.setCountry(
-          OBDal.getInstance().get(Country.class, request.getParameter("inpCountry").toString()));
-      perinfo
-          .setCity(OBDal.getInstance().get(City.class, request.getParameter("inpCity").toString()));
-      perinfo.setEhcmAddnationality(OBDal.getInstance().get(EhcmAddNationality.class,
-          request.getParameter("inpNat").toString()));
-      perinfo.setEhcmReligion(
-          OBDal.getInstance().get(EhcmReligion.class, request.getParameter("inpRel").toString()));
+      if (request.getParameter("inpCountry") != null) {
+        perinfo.setCountry(
+            OBDal.getInstance().get(Country.class, request.getParameter("inpCountry").toString()));
+      }
+      if (StringUtils.isNotEmpty(request.getParameter("inpCity"))) {
+        perinfo.setCity(
+            OBDal.getInstance().get(City.class, request.getParameter("inpCity").toString()));
+      }
+      if (StringUtils.isNotEmpty(request.getParameter("inpNat"))) {
+        perinfo.setEhcmAddnationality(OBDal.getInstance().get(EhcmAddNationality.class,
+            request.getParameter("inpNat").toString()));
+      }
+      if (StringUtils.isNotEmpty(request.getParameter("inpRel"))) {
+        perinfo.setEhcmReligion(
+            OBDal.getInstance().get(EhcmReligion.class, request.getParameter("inpRel").toString()));
+      }
       /* cat detail */
       perinfo.setEhcmActiontype(
           OBDal.getInstance().get(EhcmActiontype.class, request.getParameter("inpSalutation")));
@@ -2240,8 +2247,7 @@ public class EmployeeDAO {
     List<BusinessPartner> bpartnerList = null;
     try {
 
-      if (saluation.equals("HE") || saluation.equals("HSP") || saluation.equals("HC")
-          || saluation.equals("HA") || saluation.equals("HP")) {
+      if (saluation.equals("HE") || saluation.equals("HC") || saluation.equals("HA")) {
         OBQuery<BusinessPartner> bp = OBDal.getInstance().createQuery(BusinessPartner.class,
             " ehcmEmpPerinfo.id=:employeeId ");
         bp.setNamedParameter("employeeId", perinfo.getId());

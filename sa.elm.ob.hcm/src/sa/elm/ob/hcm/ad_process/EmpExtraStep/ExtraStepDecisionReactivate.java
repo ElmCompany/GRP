@@ -88,7 +88,7 @@ public class ExtraStepDecisionReactivate implements Process {
         info = Utility.getActiveEmployInfo(extraStepDecision.getEhcmEmpPerinfo().getId());
         ExtraStepDecisionReactivateDAO
             .insertLineinEmploymentInfo(extraStepDecision.getOriginalDecisionNo(), vars, "CR");
-        extraStepDecision.setDecisionType("CR");
+        extraStepDecision.setDecisionType("CA");
         extraStepDecision.setDecisionStatus("UP");
         extraStepDecision.setSueDecision(false);
         extraStepDecision.setDecisionDate(null);

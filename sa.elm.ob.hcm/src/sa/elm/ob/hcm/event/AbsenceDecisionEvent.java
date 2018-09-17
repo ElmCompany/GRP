@@ -77,6 +77,18 @@ public class AbsenceDecisionEvent extends EntityPersistenceEventObserver {
       int countOfHoliday = 0;
       int calDays = 0;
 
+      // checking absence start date should be greater than employee hiring startdate or not
+      if (!event.getPreviousState(startdate).equals(event.getCurrentState(startdate))
+          || !event.getPreviousState(employee).equals(event.getCurrentState(employee))) {
+        EmploymentInfo employinfo = sa.elm.ob.hcm.util.Utility
+            .getHiringEmployInfo(absence.getEhcmEmpPerinfo().getId());// sa.elm.ob.hcm.util.Utility
+        // .getActiveEmployInfo(absence.getEhcmEmpPerinfo().getId());
+        if (absence.getStartDate().compareTo(employinfo.getStartDate()) == -1
+            || absence.getStartDate().compareTo(employinfo.getStartDate()) == 0) {
+          throw new OBException(OBMessageUtils.messageBD("EHCM_EmpTransfer_StartDate"));
+        }
+      }
+
       // original decision no is mandatory
       if (!absence.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CREATE)) {
         if (absence.getOriginalDecisionNo() == null)
@@ -109,11 +121,11 @@ public class AbsenceDecisionEvent extends EntityPersistenceEventObserver {
         }
 
       }
-      if (!event.getPreviousState(startdate).equals(event.getCurrentState(startdate))) {
-        if (absence.getStartDate().compareTo(absence.getEhcmEmpPerinfo().getHiredate()) <= 0) {
-          throw new OBException(OBMessageUtils.messageBD("EHCM_AbsstdateGreatHire"));
-        }
-      }
+      /*
+       * if (!event.getPreviousState(startdate).equals(event.getCurrentState(startdate))) { if
+       * (absence.getStartDate().compareTo(absence.getEhcmEmpPerinfo().getHiredate()) <= 0) { throw
+       * new OBException(OBMessageUtils.messageBD("EHCM_AbsstdateGreatHire")); } }
+       */
       if (!event.getPreviousState(employee).equals(event.getCurrentState(employee))
           || !event.getPreviousState(absencetype).equals(event.getCurrentState(absencetype))) {
         if (absence.getEhcmAbsenceType().getGender() != null && (!absence.getEhcmAbsenceType()
@@ -226,16 +238,16 @@ public class AbsenceDecisionEvent extends EntityPersistenceEventObserver {
           }
         }
       }
-      if (!event.getPreviousState(startdate).equals(event.getCurrentState(startdate))
-          || !event.getPreviousState(employee).equals(event.getCurrentState(employee))) {
-        EmploymentInfo employinfo = absenceIssueDecisionDAO
-            .getHiringEmployInfo(absence.getEhcmEmpPerinfo());// sa.elm.ob.hcm.util.Utility
-        // .getActiveEmployInfo(absence.getEhcmEmpPerinfo().getId());
-        if (absence.getStartDate().compareTo(employinfo.getStartDate()) == -1
-            || absence.getStartDate().compareTo(employinfo.getStartDate()) == 0) {
-          throw new OBException(OBMessageUtils.messageBD("EHCM_EmpTransfer_StartDate"));
-        }
-      }
+      // if (!event.getPreviousState(startdate).equals(event.getCurrentState(startdate))
+      // || !event.getPreviousState(employee).equals(event.getCurrentState(employee))) {
+      // EmploymentInfo employinfo = absenceIssueDecisionDAO
+      // .getHiringEmployInfo(absence.getEhcmEmpPerinfo());// sa.elm.ob.hcm.util.Utility
+      // // .getActiveEmployInfo(absence.getEhcmEmpPerinfo().getId());
+      // if (absence.getStartDate().compareTo(employinfo.getStartDate()) == -1
+      // || absence.getStartDate().compareTo(employinfo.getStartDate()) == 0) {
+      // throw new OBException(OBMessageUtils.messageBD("EHCM_EmpTransfer_StartDate"));
+      // }
+      // }
 
       if (!absence.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CREATE)
           && !absence.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CUTOFF)
@@ -302,6 +314,16 @@ public class AbsenceDecisionEvent extends EntityPersistenceEventObserver {
       log.debug("chkleaveapprove save");
       String enddate = Utility.formatDate(absence.getEndDate());
 
+      // checking absence start date should be greater than employee hiring startdate or not
+      EmploymentInfo employinfo = sa.elm.ob.hcm.util.Utility
+          .getHiringEmployInfo(absence.getEhcmEmpPerinfo().getId()); // sa.elm.ob.hcm.util.Utility
+      // .getActiveEmployInfo(absence.getEhcmEmpPerinfo().getId());
+
+      if (absence.getStartDate().compareTo(employinfo.getStartDate()) == -1
+          || absence.getStartDate().compareTo(employinfo.getStartDate()) == 0) {
+        throw new OBException(OBMessageUtils.messageBD("EHCM_EmpTransfer_StartDate"));
+      }
+
       // original decision no is mandatory
       if (!absence.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CREATE)) {
         if (absence.getOriginalDecisionNo() == null)
@@ -322,6 +344,8 @@ public class AbsenceDecisionEvent extends EntityPersistenceEventObserver {
             "as e where e.ehcmEmpPerinfo.id='" + absence.getEhcmEmpPerinfo().getId()
                 + "' and e.ehcmAbsenceType.id='" + absence.getEhcmAbsenceType().getId()
                 + "' and e.decisionStatus='I' and e.enabled='Y'  order by e.creationDate desc");
+        objAttendQuery.setFilterOnReadableClients(false);
+        objAttendQuery.setFilterOnReadableOrganization(false);
         objAttendQuery.setMaxResult(1);
         if (objAttendQuery.list().size() == 0) {
           throw new OBException(OBMessageUtils.messageBD("EHCM_AbsDec_CantUpExCoCA"));
@@ -350,8 +374,12 @@ public class AbsenceDecisionEvent extends EntityPersistenceEventObserver {
           throw new OBException(OBMessageUtils.messageBD("EHCM_AlreadyLeaveTaken"));
         }
       }
-      System.out.println("absence.getStartDate()-->" + absence.getStartDate());
-      System.out.println("Absence hireDate-->" + absence.getEhcmEmpPerinfo().getHiredate());
+      /*
+       * // if given absence start date less than employee startdate then throw error if
+       * (absence.getStartDate().compareTo(absence.getEhcmEmpPerinfo().getHiredate()) <= 0) { throw
+       * new OBException(OBMessageUtils.messageBD("EHCM_AbsstdateGreatHire")); }
+       */
+
       // if given absence start date less than employee hiredate then throw error
       if (absence.getStartDate().compareTo(absence.getEhcmEmpPerinfo().getHiredate()) <= 0) {
         throw new OBException(OBMessageUtils.messageBD("EHCM_AbsstdateGreatHire"));
@@ -433,14 +461,14 @@ public class AbsenceDecisionEvent extends EntityPersistenceEventObserver {
         }
       }
 
-      EmploymentInfo employinfo = absenceIssueDecisionDAO
-          .getHiringEmployInfo(absence.getEhcmEmpPerinfo()); // sa.elm.ob.hcm.util.Utility
-      // .getActiveEmployInfo(absence.getEhcmEmpPerinfo().getId());
-
-      if (absence.getStartDate().compareTo(employinfo.getStartDate()) == -1
-          || absence.getStartDate().compareTo(employinfo.getStartDate()) == 0) {
-        throw new OBException(OBMessageUtils.messageBD("EHCM_EmpTransfer_StartDate"));
-      }
+      // EmploymentInfo employinfo = absenceIssueDecisionDAO
+      // .getHiringEmployInfo(absence.getEhcmEmpPerinfo()); // sa.elm.ob.hcm.util.Utility
+      // // .getActiveEmployInfo(absence.getEhcmEmpPerinfo().getId());
+      //
+      // if (absence.getStartDate().compareTo(employinfo.getStartDate()) == -1
+      // || absence.getStartDate().compareTo(employinfo.getStartDate()) == 0) {
+      // throw new OBException(OBMessageUtils.messageBD("EHCM_EmpTransfer_StartDate"));
+      // }
 
       if (!absence.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CREATE)
           && !absence.getDecisionType().equals(DecisionTypeConstants.DECISION_TYPE_CUTOFF)

@@ -2,8 +2,6 @@ package sa.elm.ob.hcm.services.profile;
 
 import java.util.List;
 
-import org.openbravo.model.ad.access.User;
-
 import sa.elm.ob.hcm.dto.profile.AddressInformationDTO;
 import sa.elm.ob.hcm.dto.profile.DependentInformationDTO;
 import sa.elm.ob.hcm.dto.profile.EmployeeProfileDTO;
@@ -38,12 +36,5 @@ public interface EmployeeProfileService {
    * @return the employee personal information
    */
   PersonalInformationDTO getPersonalInformation(String username);
-
-  /**
-   * Find user details
-   * 
-   * @param username
-   */
-  User findEmployeeUser(String username);
 
 }

@@ -235,17 +235,15 @@ public class EmployeeRetirement extends HttpSecureAppServlet {
 
         // Department Name && childDept
 
-        log4j.debug("inpEmpId>" + inpEmpId);
-        log4j.debug("inpDeptId>" + inpDeptId);
-        log4j.debug("inpEmpTypeId>" + inpEmpTypeId);
-        log4j.debug("inpEmpGradeFromId>" + inpEmpGradeFromId);
-        log4j.debug("inpEmpGradeToId>" + inpEmpGradeToId);
-        log4j.debug("inpLineManagerId>" + inpLineManagerId);
-        log4j.debug("inpGenderId>" + inpGenderId);
-        // log4j.debug("inpEndDate>" + inpEndDate);
-        log4j.debug("inpEndDateH>" + inpEndDateH);
-        log4j.debug("inpCurrentDate>" + inpCurrentDate);
-        log4j.debug("inpClientId>" + vars.getClient());
+        /*
+         * log4j.debug("inpEmpId>" + inpEmpId); log4j.debug("inpDeptId>" + inpDeptId);
+         * log4j.debug("inpEmpTypeId>" + inpEmpTypeId); log4j.debug("inpEmpGradeFromId>" +
+         * inpEmpGradeFromId); log4j.debug("inpEmpGradeToId>" + inpEmpGradeToId);
+         * log4j.debug("inpLineManagerId>" + inpLineManagerId); log4j.debug("inpGenderId>" +
+         * inpGenderId); // log4j.debug("inpEndDate>" + inpEndDate); log4j.debug("inpEndDateH>" +
+         * inpEndDateH); log4j.debug("inpCurrentDate>" + inpCurrentDate); log4j.debug("inpClientId>"
+         * + vars.getClient());
+         */
 
         HashMap<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("inpDateTemp", DateTemp);
@@ -279,7 +277,8 @@ public class EmployeeRetirement extends HttpSecureAppServlet {
         parameters.put("inpClient", vars.getClient());
 
         strReportName = "@basedesign@/sa/elm/ob/hcm/ad_reports/employeeretirement/EmployeeRetirement.jrxml";
-        String strOutput = "pdf";
+        String format = "xls";
+        String strOutput = format;
 
         renderJR(vars, response, strReportName, strOutput, parameters, null, null);
       }

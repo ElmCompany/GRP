@@ -292,7 +292,8 @@ function checkValidData() {
   }
   var IssuedDate = document.getElementById("inpIssuedDate").value;
   var isOriginalorDuplicate = document.getElementById('inpIsOriginal').value;
-  var checkValidData;
+  var checkValidData = "N";
+  var dateValidation = "N";
   if(IssuedDate == "" || isOriginalorDuplicate == ""){
       return false;
   }
@@ -301,19 +302,32 @@ function checkValidData() {
 		//url: contextPath+'/DocumentsAjax?action=CheckValidData',
 		url: contextPath+'/sa.elm.ob.hcm.ad_forms.documents.ajax/DocumentsAjax?inpAction=CheckValidData',             
 		data:{inpDocType:document.getElementById("inpDocType").value,inpIssuedDate:document.getElementById("inpIssuedDate").value,
-			inpValidDate:document.getElementById("inpValidDate").value},
+			inpValidDate:document.getElementById("inpValidDate").value,inpEmployeeId:document.getElementById("inpEmployeeId").value,
+			inpDocumentId:document.getElementById("inpDocumentId").value},
       	dataType:'json',
       async:false
 		}).done(function(response) {
 			checkValidData=response.isExists;
 		});
-	if(checkValidData=='Y'){
-		OBAlert('Already there exists an active document type with similar period Range, so its not possible to save current record.');
-		checkValidData='Y';
+	if(checkValidData=="Y"){
+		OBAlert('Already there exists an active document type with similar period range, so its not possible to save current record.');
+		checkValidData="N";
 		return false;
 	}
-	else{
-		checkValidData='N';
+	$.ajax({
+		type:'GET',
+		url: contextPath+'/sa.elm.ob.hcm.ad_forms.documents.ajax/DocumentsAjax?inpAction=DateValidation',             
+		data:{inpIssuedDate:document.getElementById("inpIssuedDate").value,
+			inpValidDate:document.getElementById("inpValidDate").value},
+      	dataType:'json',
+      async:false
+		}).done(function(response) {
+			dateValidation=response.isExists;
+		});
+	if(dateValidation=="Y"){
+		OBAlert('Issued Date is greater than Valid Date, so its not possible to save current record.');
+		dateValidation="N";
+		return false;
 	}
 
   return true;

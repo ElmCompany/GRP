@@ -19,6 +19,7 @@ import org.openbravo.service.db.DbUtility;
 
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EhcmExtendService;
+import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
 import sa.elm.ob.hcm.ad_process.EmpExtendService.DAO.ExtendServiceHandlerDAO;
 import sa.elm.ob.utility.util.Utility;
 
@@ -42,13 +43,37 @@ public class ExtendServiceProcess implements Process {
     int count = 0;
     String ClientId = extendServiceProcess.getClient().getId();
     DateFormat dateYearFormat = Utility.YearFormat;
+    DateFormat dateFormat = Utility.dateFormat;
+
     boolean isissued = false;
+    boolean decisionUsed = false;
     try {
 
       OBContext.setAdminMode(true);
       EhcmEmpPerInfo person = OBDal.getInstance().get(EhcmEmpPerInfo.class,
           extendServiceProcess.getEmployee().getId());
+      // check whether the employee is suspended or not
+      if (extendServiceProcess.getEmployee().getEmploymentStatus()
+          .equals(DecisionTypeConstants.EMPLOYMENTSTATUS_SUSPENDED)) {
+        obError.setType("Error");
+        obError.setTitle("Error");
+        obError.setMessage(OBMessageUtils.messageBD("EHCM_emplo_suspend"));
+        bundle.setResult(obError);
+        return;
+      }
 
+      if (extendServiceProcess.getOriginalDecisionNo() != null) {
+        decisionUsed = ExtendServiceHandlerDAO.chkOriginalDecisionUsed(
+            extendServiceProcess.getEmployee().getId(), ClientId,
+            extendServiceProcess.getOriginalDecisionNo().getId(), extendServiceId);
+        if (decisionUsed) {
+          obError.setType("Error");
+          obError.setTitle("Error");
+          obError.setMessage(OBMessageUtils.messageBD("Ehcm_OriginalDec_Used"));
+          bundle.setResult(obError);
+          return;
+        }
+      }
       // check selected Original Decision No is issued or not
       if (!extendServiceProcess.getDecisionType().equals("CR")) {
         isissued = ExtendServiceHandlerDAO.checkOriginalDecisionNoIssued(extendServiceProcess,
@@ -88,19 +113,20 @@ public class ExtendServiceProcess implements Process {
             bundle.setResult(obError);
             return;
           } else {
-            // check the employee eligible for extend
-            String dob_Date = ExtendServiceHandlerDAO
-                .convertTohijriDate(dateYearFormat.format(person.getDob()));
-            String effective_Date = ExtendServiceHandlerDAO
-                .convertTohijriDate(dateYearFormat.format(extendServiceProcess.getEffectivedate()));
-            boolean ageCalculation = ExtendServiceHandlerDAO.chkEmpExtendOrNot(effective_Date,
-                dob_Date, extendServiceProcess.getClient().getEhcmMaxempage().intValue());
-            if (ageCalculation) {
-              obError.setType("Error");
-              obError.setTitle("Error");
-              obError.setMessage(OBMessageUtils.messageBD("Ehcm_Extend_EmpAge"));
-              bundle.setResult(obError);
-              return;
+            if (extendServiceProcess.getDecisionType().equals("CR")) {
+              // check the employee eligible for extend
+              String effective_Date = dateFormat.format(extendServiceProcess.getEffectivedate());
+              String dob_Date = dateFormat.format(person.getDob());
+
+              boolean ageCalculation = ExtendServiceHandlerDAO.chkEmpExtendOrNot(effective_Date,
+                  dob_Date, extendServiceProcess.getClient().getEhcmMaxempage().intValue());
+              if (ageCalculation) {
+                obError.setType("Error");
+                obError.setTitle("Error");
+                obError.setMessage(OBMessageUtils.messageBD("Ehcm_Extend_EmpAge"));
+                bundle.setResult(obError);
+                return;
+              }
             }
             if (extendServiceProcess.getDecisionType().equals("CR")) {
               // check the extendallowed is possible for selected employee

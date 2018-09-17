@@ -27,6 +27,7 @@ import sa.elm.ob.hcm.EHCMScholarshipSummary;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EmployeeSuspension;
 import sa.elm.ob.hcm.EmploymentInfo;
+import sa.elm.ob.hcm.ad_callouts.common.UpdateEmpDetailsInCallouts;
 import sa.elm.ob.hcm.ad_callouts.dao.EmpJoinWorkReqCalloutDAO;
 import sa.elm.ob.hcm.ad_callouts.dao.EmpJoinWorkReqCalloutDAOimpl;
 import sa.elm.ob.hcm.util.Utility;
@@ -67,6 +68,7 @@ public class EmpJoinWorkReqCallout extends SimpleCallout {
     EmpJoinWorkReqCalloutDAO obj = new EmpJoinWorkReqCalloutDAOimpl();
 
     try {
+      UpdateEmpDetailsInCallouts callouts = new UpdateEmpDetailsInCallouts();
       String jnDateCnvrt = UtilityDAO.convertToGregorian(joinDate);
       jnDAte = yearFormat.parse(jnDateCnvrt);
 
@@ -124,149 +126,139 @@ public class EmpJoinWorkReqCallout extends SimpleCallout {
             info.addResult("inpassignedDept", empinfo.getSECDeptName());
             info.addResult("inpehcmPayscalelineId", empinfo.getEhcmPayscaleline().getId());
           }
-        } else {
-          info.addResult("inpempName", "");
-          info.addResult("inpempStatus", "");
-          info.addResult("inpempType", "");
-          info.addResult("inphireDate", "");
-          info.addResult("inpehcmGradeclassId", null);
-          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Department_ID').setValue('')");
-          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Section_ID').setValue('')");
-          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Ehcm_Grade_ID').setValue('')");
-          info.addResult("JSEXECUTE",
-              "form.getFieldFromColumnName('Ehcm_Position_ID').setValue('')");
-          info.addResult("inpjobTitle", "");
-          info.addResult("JSEXECUTE",
-              "form.getFieldFromColumnName('Employmentgrade').setValue('')");
-          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Assigned_Dept').setValue('')");
-          info.addResult("JSEXECUTE",
-              "form.getFieldFromColumnName('Ehcm_Payscaleline_ID').setValue('')");
-          info.addResult("JSEXECUTE",
-              "form.getFieldFromColumnName('Ehcm_Gradeclass_ID').setValue('')");
-        }
-        JSONObject getauthoriztionInfoDetailsobj = obj.getAuthorizationInfoDetails(departmentId,
-            jnDAte);
-        if (getauthoriztionInfoDetailsobj != null && getauthoriztionInfoDetailsobj.length() > 0) {
-          if (getauthoriztionInfoDetailsobj.has("authorizedPerson")) {
-            info.addResult("inpauthorisedPerson",
-                getauthoriztionInfoDetailsobj.getString("authorizedPerson"));
+          JSONObject getauthoriztionInfoDetailsobj = obj.getAuthorizationInfoDetails(departmentId,
+              jnDAte);
+          if (getauthoriztionInfoDetailsobj != null && getauthoriztionInfoDetailsobj.length() > 0) {
+            if (getauthoriztionInfoDetailsobj.has("authorizedPerson")) {
+              info.addResult("inpauthorisedPerson",
+                  getauthoriztionInfoDetailsobj.getString("authorizedPerson"));
+            } else {
+              info.addResult("inpauthorisedPerson", "");
+            }
+            if (getauthoriztionInfoDetailsobj.has("authorizedJobTitle")) {
+              info.addResult("inpauthorisesPersonJob",
+                  getauthoriztionInfoDetailsobj.getString("authorizedJobTitle"));
+            } else {
+              info.addResult("inpauthorisesPersonJob", "");
+            }
           } else {
             info.addResult("inpauthorisedPerson", "");
-          }
-          if (getauthoriztionInfoDetailsobj.has("authorizedJobTitle")) {
-            info.addResult("inpauthorisesPersonJob",
-                getauthoriztionInfoDetailsobj.getString("authorizedJobTitle"));
-          } else {
             info.addResult("inpauthorisesPersonJob", "");
           }
         } else {
-          info.addResult("inpauthorisedPerson", "");
-          info.addResult("inpauthorisesPersonJob", "");
+          callouts.SetEmpDetailsNull(info);
+          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Assigned_Dept').setValue('')");
+
         }
       }
 
       if (lastfieldChanged.equals("inporiginalDecisionNo")
           || lastfieldChanged.equals("inpjoindate")) {
-        // Employee Transfer
-        EHCMEmpTransfer empTransfer = OBDal.getInstance().get(EHCMEmpTransfer.class,
-            employmentViewId);
-        if (empTransfer != null) {
-          decisionDate = UtilityDAO
-              .convertTohijriDate(yearFormat.format(empTransfer.getStartDate()));
-          info.addResult("inpdecisionDate", decisionDate);
-        }
-        // Employee promotion
-        EHCMEmpPromotion promotion = OBDal.getInstance().get(EHCMEmpPromotion.class,
-            employmentViewId);
-        if (promotion != null) {
-          decisionDate = UtilityDAO.convertTohijriDate(yearFormat.format(promotion.getStartDate()));
-          info.addResult("inpdecisionDate", decisionDate);
-        }
-        // Employee Suspension
-        EmployeeSuspension suspension = OBDal.getInstance().get(EmployeeSuspension.class,
-            employmentViewId);
-        if (suspension != null) {
-          if (suspension.getSuspensionType().equals("SUS")) {
+        if (StringUtils.isNotEmpty(employeeId)) {
+          // Employee Transfer
+          EHCMEmpTransfer empTransfer = OBDal.getInstance().get(EHCMEmpTransfer.class,
+              employmentViewId);
+          if (empTransfer != null) {
             decisionDate = UtilityDAO
-                .convertTohijriDate(yearFormat.format(suspension.getStartDate()));
-            info.addResult("inpdecisionDate", decisionDate);
-          } else if (suspension.getSuspensionType().equals("SUE")) {
-            decisionDate = UtilityDAO
-                .convertTohijriDate(yearFormat.format(suspension.getJoinDate()));
+                .convertTohijriDate(yearFormat.format(empTransfer.getStartDate()));
             info.addResult("inpdecisionDate", decisionDate);
           }
-        }
-        // Hiring and secondment record
-        else if (empTransfer == null && promotion == null && suspension == null) {
-          if (!changeReason.equals("SCTR") && !changeReason.equals("BM")) {
-            info.addResult("inpdecisionDate", null);
-            OBQuery<EmploymentInfo> empInfoObj = OBDal.getInstance().createQuery(
-                EmploymentInfo.class, " ehcmEmpPerinfo.id=:employeeId and id =:EmploymentId");
-            empInfoObj.setNamedParameter("employeeId", employeeId);
-            empInfoObj.setNamedParameter("EmploymentId", employmentViewId);
-            employmentInfo = empInfoObj.list();
-            if (employmentInfo.size() > 0) {
-              if (changeReason.equals("H")) {// -mail
-                startDate = employmentInfo.get(0).getStartDate();
-              } else {// -mail
-                startDate = employmentInfo.get(0).getEndDate();
-                startDate = new Date(startDate.getTime() + 1 * 24 * 3600 * 1000);
+          // Employee promotion
+          EHCMEmpPromotion promotion = OBDal.getInstance().get(EHCMEmpPromotion.class,
+              employmentViewId);
+          if (promotion != null) {
+            decisionDate = UtilityDAO
+                .convertTohijriDate(yearFormat.format(promotion.getStartDate()));
+            info.addResult("inpdecisionDate", decisionDate);
+          }
+          // Employee Suspension
+          EmployeeSuspension suspension = OBDal.getInstance().get(EmployeeSuspension.class,
+              employmentViewId);
+          if (suspension != null) {
+            if (suspension.getSuspensionType().equals("SUS")) {
+              decisionDate = UtilityDAO
+                  .convertTohijriDate(yearFormat.format(suspension.getStartDate()));
+              info.addResult("inpdecisionDate", decisionDate);
+            } else if (suspension.getSuspensionType().equals("SUE")) {
+              decisionDate = UtilityDAO
+                  .convertTohijriDate(yearFormat.format(suspension.getJoinDate()));
+              info.addResult("inpdecisionDate", decisionDate);
+            }
+          }
+          // Hiring and secondment record
+          else if (empTransfer == null && promotion == null && suspension == null) {
+            if (!changeReason.equals("SCTR") && !changeReason.equals("BM")) {
+              info.addResult("inpdecisionDate", null);
+              OBQuery<EmploymentInfo> empInfoObj = OBDal.getInstance().createQuery(
+                  EmploymentInfo.class, " ehcmEmpPerinfo.id=:employeeId and id =:EmploymentId");
+              empInfoObj.setNamedParameter("employeeId", employeeId);
+              empInfoObj.setNamedParameter("EmploymentId", employmentViewId);
+              employmentInfo = empInfoObj.list();
+              if (employmentInfo.size() > 0) {
+                if (changeReason.equals("H")) {// -mail
+                  startDate = employmentInfo.get(0).getStartDate();
+                } else {// -mail
+                  startDate = employmentInfo.get(0).getEndDate();
+                  startDate = new Date(startDate.getTime() + 1 * 24 * 3600 * 1000);
+                }
+                decisionDate = UtilityDAO.convertTohijriDate(yearFormat.format(startDate));
+                info.addResult("inpdecisionDate", decisionDate);
               }
-              decisionDate = UtilityDAO.convertTohijriDate(yearFormat.format(startDate));
-              info.addResult("inpdecisionDate", decisionDate);
-            }
-          } else if (changeReason.equals("SCTR")) {
-            OBQuery<EHCMScholarshipSummary> scholarsummaryObj = OBDal.getInstance().createQuery(
-                EHCMScholarshipSummary.class, "employee.id=:employeeId and id = :scholarId");
-            scholarsummaryObj.setNamedParameter("employeeId", employeeId);
-            scholarsummaryObj.setNamedParameter("scholarId", employmentViewId);
-            summaryList = scholarsummaryObj.list();
-            if (summaryList.size() > 0) {
-              endDate = summaryList.get(0).getEndDate();
-              dateafter = new Date(endDate.getTime() + 1 * 24 * 3600 * 1000);
-              decisionDate = UtilityDAO.convertTohijriDate(yearFormat.format(dateafter));
-              info.addResult("inpdecisionDate", decisionDate);
-            }
-          } else if (changeReason.equals("BM")) {
-            OBQuery<EHCMBusMissionSummary> businessObj = OBDal.getInstance().createQuery(
-                EHCMBusMissionSummary.class, "employee.id=:employeeId and id = :scholarId");
-            businessObj.setNamedParameter("employeeId", employeeId);
-            businessObj.setNamedParameter("scholarId", employmentViewId);
-            businessList = businessObj.list();
-            if (businessList.size() > 0) {
-              String missionEndDate = businessList.get(0).getEndDate().toString();
-              String businessEnddate = UtilityDAO.convertTohijriDate(missionEndDate);
-              EHCMEmpBusinessMission mission = businessList.get(0).getEhcmEmpBusinessmission();
-              Date calculateDays = Utility.calculateDateUsingDays(inpclient,
-                  mission.getNoofdaysAfter().toString(), businessEnddate);
-              info.addResult("inpdecisionDate",
-                  (UtilityDAO.convertTohijriDate(yearFormat.format(calculateDays))));
+            } else if (changeReason.equals("SCTR")) {
+              OBQuery<EHCMScholarshipSummary> scholarsummaryObj = OBDal.getInstance().createQuery(
+                  EHCMScholarshipSummary.class, "employee.id=:employeeId and id = :scholarId");
+              scholarsummaryObj.setNamedParameter("employeeId", employeeId);
+              scholarsummaryObj.setNamedParameter("scholarId", employmentViewId);
+              summaryList = scholarsummaryObj.list();
+              if (summaryList.size() > 0) {
+                endDate = summaryList.get(0).getEndDate();
+                dateafter = new Date(endDate.getTime() + 1 * 24 * 3600 * 1000);
+                decisionDate = UtilityDAO.convertTohijriDate(yearFormat.format(dateafter));
+                info.addResult("inpdecisionDate", decisionDate);
+              }
+            } else if (changeReason.equals("BM")) {
+              OBQuery<EHCMBusMissionSummary> businessObj = OBDal.getInstance().createQuery(
+                  EHCMBusMissionSummary.class, "employee.id=:employeeId and id = :scholarId");
+              businessObj.setNamedParameter("employeeId", employeeId);
+              businessObj.setNamedParameter("scholarId", employmentViewId);
+              businessList = businessObj.list();
+              if (businessList.size() > 0) {
+                String missionEndDate = businessList.get(0).getEndDate().toString();
+                String businessEnddate = UtilityDAO.convertTohijriDate(missionEndDate);
+                EHCMEmpBusinessMission mission = businessList.get(0).getEhcmEmpBusinessmission();
+                Date calculateDays = Utility.calculateDateUsingDays(inpclient,
+                    mission.getNoofdaysAfter().toString(), businessEnddate);
+                info.addResult("inpdecisionDate",
+                    (UtilityDAO.convertTohijriDate(yearFormat.format(calculateDays))));
 
+              }
             }
           }
-        }
-        if (decisionDate != null) {
-          int noofdays = sa.elm.ob.hcm.util.UtilityDAO.calculatetheDays(decisionDate, joinDate);
-          info.addResult("inpnoofdays", noofdays);
-        }
-        jnDAte = yearFormat.parse(jnDateCnvrt);
-        departmentId = empinfo.getPosition().getDepartment().getId();
-        JSONObject getauthoriztionInfoDetailsobj = obj.getAuthorizationInfoDetails(departmentId,
-            jnDAte);
-        if (lastfieldChanged.equals("inpjoindate")) {
+          if (decisionDate != null) {
+            int noofdays = sa.elm.ob.hcm.util.UtilityDAO.calculatetheDays(decisionDate, joinDate);
+            info.addResult("inpnoofdays", noofdays);
+          }
+          jnDAte = yearFormat.parse(jnDateCnvrt);
           departmentId = empinfo.getPosition().getDepartment().getId();
-          if (getauthoriztionInfoDetailsobj.length() > 0) {
-            info.addResult("inpauthorisedPerson",
-                getauthoriztionInfoDetailsobj.getString("authorizedPerson"));
-            info.addResult("inpauthorisesPersonJob",
-                getauthoriztionInfoDetailsobj.getString("authorizedJobTitle"));
-          } else {
-            info.addResult("inpauthorisedPerson", "");
-            info.addResult("inpauthorisesPersonJob", "");
+          JSONObject getauthoriztionInfoDetailsobj = obj.getAuthorizationInfoDetails(departmentId,
+              jnDAte);
+          if (lastfieldChanged.equals("inpjoindate")) {
+            departmentId = empinfo.getPosition().getDepartment().getId();
+            if (getauthoriztionInfoDetailsobj.length() > 0) {
+              info.addResult("inpauthorisedPerson",
+                  getauthoriztionInfoDetailsobj.getString("authorizedPerson"));
+              info.addResult("inpauthorisesPersonJob",
+                  getauthoriztionInfoDetailsobj.getString("authorizedJobTitle"));
+            } else {
+              info.addResult("inpauthorisedPerson", "");
+              info.addResult("inpauthorisesPersonJob", "");
+            }
+
           }
+        } else {
+          callouts.SetEmpDetailsNull(info);
 
         }
-
       }
 
       if (lastfieldChanged.equals("inpauthorisedPerson")) { // get active employment info

@@ -55,10 +55,10 @@ left join ehcm_graderatelines rateln on rateln.ehcm_graderates_id=rate.ehcm_grad
 where prconf.ad_client_id=$P{inpClientId}) transall on transall.ehcm_grade_id=ement.employmentgrade
 left join (select abacc.days as annualleave, acc.ehcm_emp_perinfo_id,
 (select p_availedleavedays from ehcm_getavailed_availablelev($P{inpEmpId}, $P{inpEffectiveDate}, null,
-(select ehcm_absence_type_id from ehcm_payroll_report_config where ad_client_id=$P{inpClientId}), $P{inpClientId}, 1, 'CR', null, true, null)) as leave,
+(select ehcm_absence_type_id from ehcm_payroll_report_config where ad_client_id=$P{inpClientId}), $P{inpClientId}, 1, 'CR', null, '1', null)) as leave,
 (select  p_availableleavedays  from ehcm_getavailed_availablelev($P{inpEmpId}, $P{inpEffectiveDate}, null,
 (select ehcm_absence_type_id from ehcm_payroll_report_config where ad_client_id=$P{inpClientId}),
-$P{inpClientId}, 1, 'CR', null, true, null)) as balance
+$P{inpClientId}, 1, 'CR', null, '1', null)) as balance
 from ehcm_payroll_report_config prconf
 left join ehcm_absence_type abtyp on abtyp.ehcm_absence_type_id=prconf.ehcm_absence_type_id
 left join ehcm_absencetype_accruals abacc on abacc.ehcm_absence_type_id=abtyp.ehcm_absence_type_id
@@ -78,14 +78,10 @@ where einfo.ehcm_emp_perinfo_id =$P{inpEmpId} $P!{Aux_inpDepartmentId}]]>
 	<field name="quallification" class="java.lang.String"/>
 	<field name="townbirth" class="java.lang.String"/>
 	<field name="dob" class="java.lang.String"/>
-	<field name="address1" class="java.lang.String">
-		<fieldDescription><![CDATA[--OBTG:NVARCHAR--]]></fieldDescription>
-	</field>
+	<field name="address1" class="java.lang.String"/>
 	<field name="country" class="java.lang.String"/>
 	<field name="mobno" class="java.lang.String"/>
-	<field name="email" class="java.lang.String">
-		<fieldDescription><![CDATA[--OBTG:NVARCHAR--]]></fieldDescription>
-	</field>
+	<field name="email" class="java.lang.String"/>
 	<field name="jobtitle" class="java.lang.String"/>
 	<field name="jobdtl" class="java.lang.String"/>
 	<field name="grade" class="java.lang.String"/>

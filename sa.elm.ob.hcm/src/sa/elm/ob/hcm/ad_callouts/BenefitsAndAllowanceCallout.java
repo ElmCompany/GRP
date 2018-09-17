@@ -2,6 +2,7 @@ package sa.elm.ob.hcm.ad_callouts;
 
 import java.text.DateFormat;
 
+import org.apache.commons.lang.StringUtils;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.erpCommon.ad_callouts.SimpleCallout;
@@ -12,6 +13,7 @@ import sa.elm.ob.hcm.EHCMElmttypeDef;
 import sa.elm.ob.hcm.EHCMEmployeeStatusV;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EmploymentInfo;
+import sa.elm.ob.hcm.ad_callouts.common.UpdateEmpDetailsInCallouts;
 import sa.elm.ob.hcm.ad_process.DecisionTypeConstants;
 import sa.elm.ob.hcm.util.Utility;
 import sa.elm.ob.utility.util.UtilityDAO;
@@ -35,45 +37,53 @@ public class BenefitsAndAllowanceCallout extends SimpleCallout {
     try {
       EmploymentInfo empinfo = null;
       empinfo = Utility.getActiveEmployInfo(employeeId);
+      UpdateEmpDetailsInCallouts callouts = new UpdateEmpDetailsInCallouts();
 
       if (lastfieldChanged.equals("inpehcmEmpPerinfoId")) {
-        EhcmEmpPerInfo employee = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
-        info.addResult("inpempName", employee.getArabicfullname());
-        log4j.debug("employee B&A :" + employee);
+        if (StringUtils.isNotEmpty(employeeId)) {
+          EhcmEmpPerInfo employee = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
+          info.addResult("inpempName", employee.getArabicfullname());
+          log4j.debug("employee B&A :" + employee);
 
-        EHCMEmployeeStatusV employeeStatus = OBDal.getInstance().get(EHCMEmployeeStatusV.class,
-            employeeId);
-        if (employeeStatus != null)
-          info.addResult("inpempStatus", employeeStatus.getStatusvalue());
-        else
-          info.addResult("inpempStatus", "");
+          EHCMEmployeeStatusV employeeStatus = OBDal.getInstance().get(EHCMEmployeeStatusV.class,
+              employeeId);
+          if (employeeStatus != null)
+            info.addResult("inpempStatus", employeeStatus.getStatusvalue());
+          else
+            info.addResult("inpempStatus", "");
 
-        info.addResult("inpehcmGradeclassId", employee.getGradeClass().getId());
-        info.addResult("inpempType", employee.getEhcmActiontype().getPersonType());
-        if (employee.getHiredate() != null) {
-          info.addResult("inphireDate",
-              (UtilityDAO.convertTohijriDate(dateFormat.format(employee.getHiredate()))));
-        }
-        if (empinfo != null) {
-          info.addResult("inpdepartmentId", empinfo.getPosition().getDepartment().getId());
-          if (empinfo.getPosition() != null && empinfo.getPosition().getSection() != null) {
-            info.addResult("inpsectionId", empinfo.getPosition().getSection().getId());
+          info.addResult("inpehcmGradeclassId", employee.getGradeClass().getId());
+          info.addResult("inpempType", employee.getEhcmActiontype().getPersonType());
+          if (employee.getHiredate() != null) {
+            info.addResult("inphireDate",
+                (UtilityDAO.convertTohijriDate(dateFormat.format(employee.getHiredate()))));
           }
-          info.addResult("inpehcmGradeId", empinfo.getGrade().getId());
-          info.addResult("inpehcmPositionId", empinfo.getPosition().getId());
-          info.addResult("inpjobTitle", empinfo.getPosition().getJOBName().getJOBTitle());
-          info.addResult("inpemploymentgrade", empinfo.getEmploymentgrade().getId());
-          info.addResult("inpassignedDept", empinfo.getSECDeptName());
-          info.addResult("inpehcmGradestepsId",
-              empinfo.getEhcmPayscale().getEhcmGradesteps().getId());
-          info.addResult("inpehcmPayscalelineId", empinfo.getEhcmPayscaleline().getId());
-          log4j.debug("inpehcmPayscalelineId:" + empinfo.getEhcmPayscaleline().getId());
-          if (empinfo.getStartDate() != null) {
-            info.addResult("inpstartdate",
-                (UtilityDAO.convertTohijriDate(dateFormat.format(empinfo.getStartDate()))));
+          if (empinfo != null) {
+            info.addResult("inpdepartmentId", empinfo.getPosition().getDepartment().getId());
+            if (empinfo.getPosition() != null && empinfo.getPosition().getSection() != null) {
+              info.addResult("inpsectionId", empinfo.getPosition().getSection().getId());
+            }
+            info.addResult("inpehcmGradeId", empinfo.getGrade().getId());
+            info.addResult("inpehcmPositionId", empinfo.getPosition().getId());
+            info.addResult("inpjobTitle", empinfo.getPosition().getJOBName().getJOBTitle());
+            info.addResult("inpemploymentgrade", empinfo.getEmploymentgrade().getId());
+            info.addResult("inpassignedDept", empinfo.getSECDeptName());
+            info.addResult("inpehcmGradestepsId",
+                empinfo.getEhcmPayscale().getEhcmGradesteps().getId());
+            info.addResult("inpehcmPayscalelineId", empinfo.getEhcmPayscaleline().getId());
+            log4j.debug("inpehcmPayscalelineId:" + empinfo.getEhcmPayscaleline().getId());
+            if (empinfo.getStartDate() != null) {
+              info.addResult("inpstartdate",
+                  (UtilityDAO.convertTohijriDate(dateFormat.format(empinfo.getStartDate()))));
+            }
+            info.addResult("inpdecisionType", DecisionTypeConstants.DECISION_TYPE_CREATE);
+            info.addResult("inporiginalDecisionsNo", "");
           }
-          info.addResult("inpdecisionType", DecisionTypeConstants.DECISION_TYPE_CREATE);
-          info.addResult("inporiginalDecisionsNo", "");
+        } else {
+          callouts.SetEmpDetailsNull(info);
+          info.addResult("JSEXECUTE",
+              "form.getFieldFromColumnName('Ehcm_Payscaleline_ID').setValue('')");
+          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Assigned_Dept').setValue('')");
         }
       }
 
@@ -188,10 +198,14 @@ public class BenefitsAndAllowanceCallout extends SimpleCallout {
         }
 
       } else {
-        info.addResult("inpstartdate",
-            UtilityDAO.convertTohijriDate(dateFormat.format(empinfo.getStartDate())));
-        info.addResult("inpenddate", null);
-
+        if (StringUtils.isNotEmpty(employeeId)) {
+          info.addResult("inpstartdate",
+              UtilityDAO.convertTohijriDate(dateFormat.format(empinfo.getStartDate())));
+          info.addResult("inpenddate", null);
+        } else {
+          info.addResult("inpstartdate", null);
+          info.addResult("inpenddate", null);
+        }
       }
 
       if (lastfieldChanged.equals("inpvaluetype")) {
@@ -204,7 +218,9 @@ public class BenefitsAndAllowanceCallout extends SimpleCallout {
         }
       }
 
-    } catch (Exception e) {
+    } catch (
+
+    Exception e) {
       log4j.error("Exception in BenefitsAndAllowanceCallout Callout", e);
       info.addResult("ERROR", OBMessageUtils.messageBD("HB_INTERNAL_ERROR"));
     }

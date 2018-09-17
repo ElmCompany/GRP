@@ -2178,4 +2178,159 @@ public class UtilityDAO {
     return initialBalanceObj;
 
   }
+
+  public static boolean chkOverlapDecisionStartdate(String employeeId, Date startDate,
+      String clientId) {
+    List<EmploymentInfo> empInfoList = new ArrayList<EmploymentInfo>();
+    boolean overlap = false;
+    try {
+
+      OBQuery<EmploymentInfo> empInfo = OBDal.getInstance().createQuery(EmploymentInfo.class,
+          " as e where e.ehcmEmpPerinfo.id=:employeeId and e.enabled ='Y' and e.client.id=:clientId ORDER BY e.creationDate desc ");
+      empInfo.setNamedParameter("employeeId", employeeId);
+      empInfo.setNamedParameter("clientId", clientId);
+      empInfo.setMaxResult(1);
+      empInfoList = empInfo.list();
+      if (empInfoList.size() > 0) {
+        EmploymentInfo empinforecord = empInfoList.get(0);
+        if (startDate.compareTo(empinforecord.getStartDate()) <= 0) {
+          overlap = true;
+        }
+      }
+    } catch (final Exception e) {
+      log4j.error("Exception in chkOverlapDecisionStartdate", e);
+
+    }
+    return overlap;
+
+  }
+  /**
+   * setting active employment info details
+   * 
+   * @param empPerInfo
+   * @param employInfo
+   * @param isExtraStep
+   * @return
+   * @throws Exception
+   */
+  public static EmploymentInfo insertActEmplymntInfoDetailsInIssueDecision(
+      EhcmEmpPerInfo empPerInfo, EmploymentInfo employInfo, boolean isExtraStep, boolean status)
+      throws Exception {
+    try {
+
+      EmploymentInfo actEmployInfo = UtilityDAO.getActiveEmployInfo(empPerInfo.getId());
+
+      employInfo.setDepartmentName(actEmployInfo.getDepartmentName());
+      employInfo.setDeptcode(actEmployInfo.getDeptcode());
+
+      employInfo.setGrade(actEmployInfo.getGrade());
+      employInfo.setEmpcategory(actEmployInfo.getEmpcategory());
+      employInfo.setEmployeeno(actEmployInfo.getEmployeeno());
+      if (!isExtraStep) {
+        employInfo.setEhcmPayscale(actEmployInfo.getEhcmPayscale());
+        employInfo.setEhcmPayscaleline(actEmployInfo.getEhcmPayscaleline());
+      }
+      employInfo.setEmploymentgrade(actEmployInfo.getEmploymentgrade());
+      employInfo.setJobcode(actEmployInfo.getJobcode());
+      employInfo.setPosition(actEmployInfo.getPosition());
+      employInfo.setJobtitle(actEmployInfo.getJobtitle());
+      employInfo.setLocation(actEmployInfo.getLocation());
+      employInfo.setEhcmPayrollDefinition(actEmployInfo.getEhcmPayrollDefinition());
+      if (actEmployInfo.getSectionName() != null)
+        employInfo.setSectionName(actEmployInfo.getSectionName());
+      employInfo.setSectioncode(actEmployInfo.getSectioncode());
+      employInfo.setEhcmEmpPerinfo(empPerInfo);
+      if (!status)
+        employInfo.setAlertStatus(DecisionTypeConstants.Status_active);
+
+      employInfo.setEhcmEmpSupervisor(getEmployeeSupervisor(empPerInfo));
+      insertSecondaryDetailsInEmployInfo(empPerInfo, employInfo, actEmployInfo);
+
+    } catch (Exception e) {
+      log4j.error("Exception in UtilityDAO in insertActEmplymntInfoDetailsInIssueDecision(): ", e);
+    }
+    return employInfo;
+  }
+
+  /**
+   * insert secondary details part based on current active employe info secondary details
+   * 
+   * @param empPerInfo
+   * @param employInfo
+   * @param actEmployInfo
+   * @throws Exception
+   */
+  public static void insertSecondaryDetailsInEmployInfo(EhcmEmpPerInfo empPerInfo,
+      EmploymentInfo employInfo, EmploymentInfo actEmployInfo) throws Exception {
+    try {
+
+      employInfo.setSecpositionGrade(actEmployInfo.getSecpositionGrade());
+      employInfo.setSecpositionGrade(actEmployInfo.getSecpositionGrade());
+      employInfo.setSecjobno(actEmployInfo.getSecjobno());
+      employInfo.setSecjobcode(actEmployInfo.getSecjobcode());
+      employInfo.setSecjobtitle(actEmployInfo.getSecjobtitle());
+      employInfo.setSECDeptCode(actEmployInfo.getSECDeptCode());
+      employInfo.setSECDeptName(actEmployInfo.getSECDeptName());
+      employInfo.setSECSectionCode(actEmployInfo.getSECSectionCode());
+      employInfo.setSECSectionName(actEmployInfo.getSECSectionName());
+      employInfo.setSECLocation(actEmployInfo.getSECLocation());
+      employInfo.setSECStartdate(actEmployInfo.getSECStartdate());
+      employInfo.setSECEnddate(actEmployInfo.getSECEnddate());
+      employInfo.setSECDecisionNo(actEmployInfo.getSECDecisionNo());
+      employInfo.setSECDecisionDate(actEmployInfo.getSECDecisionDate());
+      employInfo.setSECChangeReason(actEmployInfo.getSECChangeReason());
+      employInfo.setSECEmploymentNumber(actEmployInfo.getSECEmploymentNumber());
+
+    } catch (Exception e) {
+      log4j.error("Exception in UtilityDAO in insertSecondaryDetailsInEmployInfo(): ", e);
+    }
+  }
+
+  /**
+   * getting employee supervisior
+   * 
+   * @param employee
+   * @return
+   */
+  public static EHCMEmpSupervisor getEmployeeSupervisor(EhcmEmpPerInfo employee) {
+    List<EHCMEmpSupervisorNode> supervisorNodeList = null;
+    EHCMEmpSupervisor empSupervisor = null;
+    try {
+
+      OBQuery<EHCMEmpSupervisorNode> supervisiorNodeQry = OBDal.getInstance().createQuery(
+          EHCMEmpSupervisorNode.class,
+          "  as e where e.ehcmEmpPerinfo.id=:employeeId and e.client.id =:client");
+      supervisiorNodeQry.setNamedParameter("employeeId", employee.getId());
+      supervisiorNodeQry.setNamedParameter("client", employee.getClient().getId());
+      supervisorNodeList = supervisiorNodeQry.list();
+      if (supervisorNodeList.size() > 0) {
+        empSupervisor = supervisorNodeList.get(0).getEhcmEmpSupervisor();
+        return empSupervisor;
+      }
+
+    } catch (Exception e) {
+      log4j.error("Exception in UtilityDAO in getEmployeeSupervisor(): ", e);
+    }
+    return empSupervisor;
+  }
+
+  public static EmploymentInfo getHiringEmployInfo(String employeeId) {
+    OBQuery<EmploymentInfo> empInfo = null;
+    EmploymentInfo empinfo = null;
+    List<EmploymentInfo> employmentInfo = new ArrayList<EmploymentInfo>();
+    try {
+      empInfo = OBDal.getInstance().createQuery(EmploymentInfo.class,
+          " ehcmEmpPerinfo.id=:employeeId and changereason='H'");
+      empInfo.setNamedParameter("employeeId", employeeId);
+      empInfo.setFilterOnActive(false);
+      employmentInfo = empInfo.list();
+      if (employmentInfo.size() > 0) {
+        empinfo = employmentInfo.get(0);
+        return empinfo;
+      }
+    } catch (Exception e) {
+      log4j.error("Exception in UtilityDAO in getHiringEmployInfo() ", e);
+    }
+    return empinfo;
+  }
 }

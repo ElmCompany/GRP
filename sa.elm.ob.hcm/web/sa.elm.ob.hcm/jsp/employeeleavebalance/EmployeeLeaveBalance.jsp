@@ -11,10 +11,12 @@
     JSONObject empList = (JSONObject) request.getAttribute("EmployeeList");
     JSONObject absTyp = (JSONObject) request.getAttribute("AbsenceTypeList");
     List<PositionTransactionsDetailsVO> depList =  (List<PositionTransactionsDetailsVO> )request.getAttribute("DepartmentList");
-
-    
     JSONArray empArray=empList.getJSONArray("data");
-    JSONArray absTypArray=absTyp.getJSONArray("data");
+
+     JSONArray absTypArray = new JSONArray();
+     if(absTyp != null && absTyp.has("data") && absTyp.length()>0){
+       absTypArray= absTyp.getJSONArray("data");
+       }
     //JSONArray depArray=depList.getJSONArray("data");
 
 

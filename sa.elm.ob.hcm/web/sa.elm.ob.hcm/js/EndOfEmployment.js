@@ -33,12 +33,18 @@
 						this.setDisabled(selectedRecords.length === 0);
 						}
 //				disabling the print icon if the decision status is under processing
+				if(selectedRecords.length>0){
 			   var decisionStatus=grid.getSelectedRecord().decisionStatus; 
 				if (decisionStatus=="UP"){
 					this.setDisabled(true);
 				}else{
 					this.setDisabled(false);
 				}
+				}
+				else{
+					this.setDisabled(true);
+				}
+				
 				
 				if(selectedRecords.length > 1){
 					this.setDisabled(true);

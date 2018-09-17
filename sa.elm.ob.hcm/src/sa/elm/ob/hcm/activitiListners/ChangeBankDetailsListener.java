@@ -5,6 +5,7 @@ import java.util.Map;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
 import org.activiti.engine.impl.persistence.entity.TaskEntity;
+import org.openbravo.activiti.ActivitiConstants;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -35,7 +36,7 @@ public class ChangeBankDetailsListener implements TaskListener, ApplicationConte
 
     @SuppressWarnings("rawtypes")
     Map variablesMap = taskEntity.getVariables();
-    String changeBankId = (String) variablesMap.get("changeBankId");
+    String changeBankId = variablesMap.get(ActivitiConstants.TARGET_IDENTIFIER).toString();
 
     EhcmChangeBank bank = payrollInformationService.getChangeBankById(changeBankId);
 

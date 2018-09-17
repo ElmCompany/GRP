@@ -22,7 +22,8 @@
 		        grid = view.viewGrid,
 		        selectedRecords = grid.getSelectedRecords();
 				this.setDisabled(true);
-				if (view.viewGrid.getSelectedRecords()[0].decisionStatus == 'I' && selectedRecords.length < 2){
+				
+				if (selectedRecords.length > 0 && view.viewGrid.getSelectedRecords()[0].decisionStatus == 'I' && selectedRecords.length < 2){
 					this.setDisabled(false);					
 				}
 			}

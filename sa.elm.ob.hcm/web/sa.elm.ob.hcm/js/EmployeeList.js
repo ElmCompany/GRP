@@ -97,8 +97,10 @@ $(function() {
 	});
 	$("#inpName2, #inpEmpNo").addClass('HeaderSearchBox');
 	$("#inpName1").addClass('ArabicHeaderSearchBox');
+
 });
 function resetTabHeader() {
+	
 	if (currentWindow == 'EMP') {
 		if (currentTab == 'EMPINF'){
 			$('#inpEmploymentId').val('');
@@ -107,10 +109,36 @@ function resetTabHeader() {
 			$('#inpissued').val('');
 			$('#inpStatus').val('');
 		}
-		if(currentTab=='Dependent')
+		if(currentTab=='Dependent'){
 			$('#inpDependentId').val('');
-		if(currentTab=='EMPQUAL')
+			$('#inpEmploymentId').val('');
+			$('#inpEmpStatus').val('');
+			$('#inpEmployeeStatus').val('');
+			$('#inpissued').val('');
+			$('#inpStatus').val('');
+		}
+		if(currentTab=='EMPQUAL'){
 			$('#inpQualificationId').val('');
+			$('#inpEmploymentId').val('');
+			$('#inpEmpStatus').val('');
+			$('#inpEmployeeStatus').val('');
+			$('#inpissued').val('');
+			$('#inpStatus').val('');	
+		}
+		if(currentTab=='EMPADD' || currentTab=='PREEMP' || currentTab=='PERPAYMETHOD' || currentTab=='MEDIN' || currentTab=='EMPAsset' || currentTab=='EMPCTRCT'){
+			$('#inpEmploymentId').val('');
+			$('#inpEmpStatus').val('');
+			$('#inpEmployeeStatus').val('');
+			$('#inpissued').val('');
+			$('#inpStatus').val('');	
+		}
+	}
+	if(currentWindow == 'DOC' && currentTab=='DOC'){
+		$('#inpEmploymentId').val('');
+		$('#inpEmpStatus').val('');
+		$('#inpEmployeeStatus').val('');
+		$('#inpissued').val('');
+		$('#inpStatus').val('');
 	}
 	
 }

@@ -191,10 +191,8 @@ public class Employee extends HttpSecureAppServlet {
           EhcmEmpPerInfo person = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
 
           if (request.getParameter("inpSalText").equals("HE")
-              || request.getParameter("inpSalText").equals("HSP")
               || request.getParameter("inpSalText").equals("HC")
-              || request.getParameter("inpSalText").equals("HA")
-              || request.getParameter("inpSalText").equals("HP")) {
+              || request.getParameter("inpSalText").equals("HA")) {
 
             OBQuery<Category> cat = OBDal.getInstance().createQuery(Category.class,
                 " as e where e.ehcmCategorytype='EMP' and e.client.id=:clientId ");
@@ -596,6 +594,7 @@ public class Employee extends HttpSecureAppServlet {
         request.setAttribute("inpMcsLetterDate", "");
         request.setAttribute("inpDecisionDate", "");
         request.setAttribute("inpEmpCurrentStatus", "");
+        request.setAttribute("inpmary", vo.getMarrieDate());
 
         // JSONObject ls = dao.getCountry(vars.getClient());
         // for (EmployeeVO vo1 : ls) {

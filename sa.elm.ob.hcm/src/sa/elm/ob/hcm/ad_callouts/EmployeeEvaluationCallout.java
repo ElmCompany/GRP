@@ -15,6 +15,7 @@ import sa.elm.ob.hcm.EHCMComptypeCompetency;
 import sa.elm.ob.hcm.EHCMEmpEvaluation;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EmploymentInfo;
+import sa.elm.ob.hcm.ad_callouts.common.UpdateEmpDetailsInCallouts;
 import sa.elm.ob.hcm.ad_callouts.dao.EmployeeEvaluationCalloutDAO;
 
 /**
@@ -50,12 +51,20 @@ public class EmployeeEvaluationCallout extends SimpleCallout {
       maximum = new BigDecimal(inpmaximum);
 
     try {
+      UpdateEmpDetailsInCallouts callouts = new UpdateEmpDetailsInCallouts();
       if (inpLastFieldChanged.equals("inpehcmEmpPerinfoId")) {
-        EmploymentInfo employinfo = EmployeeEvaluationCalloutDAO
-            .getActiveEmployInfo(inpehcmEmpPerinfoId);
-        EhcmEmpPerInfo employee = employinfo.getEhcmEmpPerinfo();
-        info.addResult("inpehcmGradeId", employinfo.getEmploymentgrade().getId());
-        info.addResult("inpempName", employee.getArabicfullname());
+        if (StringUtils.isNotEmpty(inpehcmEmpPerinfoId)) {
+
+          EmploymentInfo employinfo = EmployeeEvaluationCalloutDAO
+              .getActiveEmployInfo(inpehcmEmpPerinfoId);
+          EhcmEmpPerInfo employee = employinfo.getEhcmEmpPerinfo();
+          info.addResult("inpehcmGradeId", employinfo.getEmploymentgrade().getId());
+          info.addResult("inpempName", employee.getArabicfullname());
+        } else {
+          info.addResult("inpehcmGradeId", null);
+          info.addResult("inpempName", null);
+
+        }
       }
 
       if (inpLastFieldChanged.equals("inpehcmComptypeCompetencyId")

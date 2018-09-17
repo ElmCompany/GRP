@@ -14,7 +14,7 @@ var searchFlag = 0,
 var formId = "748014FEDECF44D3BA89EDAB65573FE7";
 var salaryGrid = jQuery("#SalaryList"),
     lastActiveType = 'Y',
-    CheckPeriod = 'N',
+    checkPeriod = 'N',
     checkDate = 'N',
     checkStartDate = 'N';
 var url = contextPath + "/ContractAjax?action=getGrade";
@@ -336,15 +336,15 @@ function preValidation() {
     dataType: 'json',
     async: false
   }).done(function (response) {
-    CheckPeriod = response.isExists;
+    checkPeriod = response.isExists;
   });
-  if (CheckPeriod == 'Y') {
+  if (checkPeriod == 'Y') {
     OBAlert('Contract Alreay Exists for the same period');
-    CheckPeriod = 'Y';
+    checkPeriod = 'Y';
   } else {
-    CheckPeriod = 'N';
+    checkPeriod = 'N';
   }
-  if (checkDate == 'Y' || CheckPeriod == 'Y' || checkStartDate == 'Y') {
+  if (checkDate == 'Y' || checkPeriod == 'Y' || checkStartDate == 'Y') {
     return false;
   } else {
     return true;
@@ -488,46 +488,17 @@ function IssueDecision() {
     if (preValidation()) {
       OBAsk(askIssue, function (result) {
         if (result) {
-
-          $.ajax({
-            type: 'GET',
-            url: contextPath + '/ContractAjax?action=Checkcontractvalidation',
-            data: {
-              duration: document.getElementById("inpDuration").value,
-              inpEmployeeId: document.getElementById("inpEmployeeId").value,
-              inpContractId: document.getElementById("inpContractId").value
-            },
-            dataType: 'json',
-            async: false
-          }).done(function (response) {
-        	
-            Checkcontractvalidation = response.isExists;
-            Checkcontractmin = response.minservice;
-            Checkcontractmax = response.maxservice;
-            
-
-          });
-          if ( Checkcontractmax == 0 ) {
-        	  	OBAlert(contractserviceEmpty);
-             CheckPeriod = 'Y';
-             return false;
-          	}
-            else if(Checkcontractvalidation == 'Y' && Checkcontractmin > 0 && Checkcontractmax > 0)
-            	{
-            OBAlert(contractservice  +  ' ' + Checkcontractmin + ' ' + contractserviceto + ' ' + Checkcontractmax + ' ' + contractserviceyears );
-            CheckPeriod = 'Y';
-            return false;
-            	}
-            
-           else {
-            var url = "";
-            document.getElementById("SubmitType").value = "IssueDecision";
-            document.getElementById("inpTrxStatus").value = "ISS";
-            var employeeId = document.getElementById("inpEmployeeId").value;
-            document.frmMain.action = contextPath + '/sa.elm.ob.hcm.ad_forms.contract.header/Contract' + url;
-            document.frmMain.submit();
-          }
-
+        	if (checkContract()) {
+        		var url = "";
+                document.getElementById("SubmitType").value = "IssueDecision";
+                document.getElementById("inpTrxStatus").value = "ISS";
+                var employeeId = document.getElementById("inpEmployeeId").value;
+                document.frmMain.action = contextPath + '/sa.elm.ob.hcm.ad_forms.contract.header/Contract' + url;
+                document.frmMain.submit();
+        	}
+        	else {
+        		return false;
+        	}
         } else {
           return false;
         }
@@ -535,7 +506,6 @@ function IssueDecision() {
 
     }
   }
-
 }
 //Validate StartDate,HireDate
 
@@ -592,6 +562,84 @@ function dateValidation() {
 
     $('#inpEndDate').val(calendarInstance.formatDate('dd-mm-yyyy', date));
   }
+}
+
+function  checkContract() {
+	
+	 var type = $('#inpDurationType').val();
+	 var amount = parseInt($('#inpDuration').val(), 10);
+	 var date = calendarInstance.parseDate('dd-mm-yyyy', $('#inpStartDate').val());
+	 
+	 var checkcontractvalidation, checkcontractmin, checkcontractmax;
+	 var days,years;
+	 var isExists;
+	 
+	 $.ajax({
+         type: 'GET',
+         url: contextPath + '/ContractAjax?action=Checkcontractvalidation',
+         data: {
+           duration: document.getElementById("inpDuration").value,
+           inpEmployeeId: document.getElementById("inpEmployeeId").value,
+           inpContractId: document.getElementById("inpContractId").value
+         },
+         dataType: 'json',
+         async: false
+       }).done(function (response) {
+     	
+         checkcontractvalidation = response.isExists;
+         checkcontractmin = response.minservice;
+         checkcontractmax = response.maxservice;
+
+       });
+	 
+	 if ( checkcontractmax == 0 ) {
+ 	  	OBAlert(contractserviceEmpty);
+ 	  	checkPeriod = 'Y';
+        return false;
+	 }
+	 //Min Max contract service validation using Duration and Duration type
+     if ( type == 'y' ) {
+    	 if ( amount >= checkcontractmin && amount <= checkcontractmax ) {
+    		 isExists = 'N';
+    	 }
+    	 else {
+    		 isExists = 'Y';
+    	 }
+     }
+     else if ( type == 'm' ) {
+    	 years = amount / calendarInstance.monthsInYear(date.year());
+    	 if ( years >= checkcontractmin && years <= checkcontractmax ) {
+    		 isExists = 'N';
+    	 }
+    	 else {
+    		 isExists = 'Y';
+    	 }
+     }
+     else if ( type == 'w' ) {
+    	 days = amount * calendarInstance.daysInWeek();
+    	 years = days / calendarInstance.daysInYear(date.year());
+    	 if ( years >= checkcontractmin && years <= checkcontractmax ) {
+    		 isExists = 'N';
+    	 }
+    	 else {
+    		 isExists = 'Y';
+    	 }
+     }
+     else{ //days
+    	 years = amount / calendarInstance.daysInYear(date.year());
+    	 if ( years >= checkcontractmin && years <= checkcontractmax ) {
+    		 isExists = 'N';
+    	 }
+    	 else {
+    		 isExists = 'Y';
+    	 }
+     }
+     if ( isExists == 'Y' ) {
+         OBAlert(contractservice  +  ' ' + checkcontractmin + ' ' + contractserviceto + ' ' + checkcontractmax + ' ' + contractserviceyears );
+         checkPeriod = 'Y';
+         return false;
+     }
+     return true;  
 }
 /*
  * combo box

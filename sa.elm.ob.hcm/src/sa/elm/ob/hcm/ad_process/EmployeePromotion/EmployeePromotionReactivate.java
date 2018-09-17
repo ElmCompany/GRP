@@ -9,7 +9,6 @@ import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.client.kernel.RequestContext;
 import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.service.OBDal;
-import org.openbravo.dal.service.OBQuery;
 import org.openbravo.erpCommon.utility.OBError;
 import org.openbravo.erpCommon.utility.OBErrorBuilder;
 import org.openbravo.erpCommon.utility.OBMessageUtils;
@@ -21,6 +20,8 @@ import org.slf4j.LoggerFactory;
 
 import sa.elm.ob.hcm.EHCMEmpPromotion;
 import sa.elm.ob.hcm.EmploymentInfo;
+import sa.elm.ob.hcm.ad_process.assignedOrReleasePosition.AssingedOrReleaseEmpInPositionDAO;
+import sa.elm.ob.hcm.ad_process.assignedOrReleasePosition.AssingedOrReleaseEmpInPositionDAOImpl;
 import sa.elm.ob.hcm.util.Utility;
 
 /**
@@ -30,6 +31,7 @@ import sa.elm.ob.hcm.util.Utility;
 public class EmployeePromotionReactivate extends DalBaseProcess {
 
   private static final Logger log = LoggerFactory.getLogger(EmployeePromotionReactivate.class);
+  AssingedOrReleaseEmpInPositionDAO assingedOrReleaseEmpInPositionDAO = new AssingedOrReleaseEmpInPositionDAOImpl();
 
   @Override
   protected void doExecute(ProcessBundle bundle) throws Exception {
@@ -50,65 +52,41 @@ public class EmployeePromotionReactivate extends DalBaseProcess {
       EHCMEmpPromotion EmpPromotion = OBDal.getInstance().get(EHCMEmpPromotion.class,
           empPromotionId);
       String empPerInfoId = EmpPromotion.getEhcmEmpPerinfo().getId();
-      log.debug(empPerInfoId);
-
-      OBQuery<EmploymentInfo> empInfoq = OBDal.getInstance().createQuery(EmploymentInfo.class,
-          "as e where e.ehcmEmpPerinfo.id =:empPerInfoId and (e.ehcmEmpPromotion.id !=:empPromoId or e.ehcmEmpPromotion.id is null)"
-              + "order by created desc");
-      empInfoq.setNamedParameter("empPerInfoId", empPerInfoId);
-      empInfoq.setNamedParameter("empPromoId", empPromotionId);
-      log.debug(empPerInfoId);
-      log.debug(empPromotionId);
-      EmploymentInfo empInfo = empInfoq.list().get(0);
-
-      log.debug((EmpPromotion.getDecisionType()));
-
+      EHCMEmpPromotion currectPromotion = null;
+      currectPromotion = EmpPromotion;
       // Delete the record in Employee Detail window
       if ((EmpPromotion.getDecisionType()).equals("UP")) {
-
         decisionType = "UP";
         EmpPromotion = EmpPromotion.getOriginalDecisionsNo();
+
         EmploymentInfo info = Utility.getActiveEmployInfo(EmpPromotion.getEhcmEmpPerinfo().getId());
         EmployeePromotionHandlerDAO.insertEmploymentInfo(EmpPromotion, info, vars, decisionType,
-            lang, null, null);
+            lang, null, null, true);
+        assingedOrReleaseEmpInPositionDAO.updateEmpPositionWhileReactive(currectPromotion, null,
+            null, vars, false);
         EmployeePromotionHandlerDAO.updateEnddateinEmpInfo(EmpPromotion, info, vars);
-      } else if ((EmpPromotion.getDecisionType()).equals("CA")) {
 
+      } else if ((EmpPromotion.getDecisionType()).equals("CA")) {
         decisionType = "CR";
         EmpPromotion = EmpPromotion.getOriginalDecisionsNo();
         EmploymentInfo info = Utility.getActiveEmployInfo(EmpPromotion.getEhcmEmpPerinfo().getId());
         EmployeePromotionHandlerDAO.insertEmploymentInfo(EmpPromotion, info, vars, decisionType,
-            lang, null, null);
+            lang, null, null, true);
+        assingedOrReleaseEmpInPositionDAO.updateEmpPositionWhileReactive(currectPromotion, null,
+            null, vars, true);
         EmployeePromotionHandlerDAO.updateEnddateinEmpInfo(EmpPromotion, info, vars);
-      } else {
 
-        ps = conn
-            .prepareStatement("delete from ehcm_employment_info where ehcm_emp_promotion_id = ?");
-        ps.setString(1, empPromotionId);
-        ps.executeUpdate();
-
-        if (empInfo.getEhcmEmpSecondment() != null) {
-          empInfo.setEndDate(empInfo.getEhcmEmpSecondment().getEndDate());
-        } else if (empInfo.getEhcmEmpTransfer() != null) {
-          empInfo.setEndDate(empInfo.getEhcmEmpTransfer().getEndDate());
-        } else if (empInfo.getEhcmEmpTransferSelf() != null) {
-          empInfo.setEndDate(empInfo.getEhcmEmpTransferSelf().getEndDate());
-        } else {
-          empInfo.setEndDate(null);
-        }
-        empInfo.setEnabled(true);
-        empInfo.setAlertStatus("ACT");
+      } else if (EmpPromotion.getDecisionType().equals("CR")) {
+        EmployeePromotionHandlerDAO.CancelinPromotion(EmpPromotion, vars);
       }
-      ps = conn.prepareStatement("delete from ehcm_posemp_history where ehcm_emp_promotion_id = ?");
-      ps.setString(1, empPromotionId);
-      ps.executeUpdate();
-
       EmpPromotion = OBDal.getInstance().get(EHCMEmpPromotion.class, empPromotionId);
 
       EmpPromotion.setDecisionStatus("UP");
       EmpPromotion.setReactivate(false);
       EmpPromotion.setSueDecision(false);
       EmpPromotion.setDecisionDate(null);
+      // ExtendServiceHandlerDAO.updateEmpRecord(EmpPromotion.getEhcmEmpPerinfo().getId(),);
+      // EmpPromotion.getEhcmEmpPerinfo().setEmploymentStatus("SE");
 
       OBDal.getInstance().save(EmpPromotion);
       OBError result = OBErrorBuilder.buildMessage(null, "success", "@ProcessOK@");

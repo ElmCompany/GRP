@@ -8,7 +8,8 @@ var xmlhttp = new getXMLObject(), currentTab = 'EMPINF',clickGrid='N';
 var searchFlag = 0, onSearch = 0, onDelete = 0, gridW, gridH;
 var formId = "748014FEDECF44D3BA89EDAB65573FE7";
 var employmentGrid = jQuery("#EmploymentList"), lastActiveType = 'Y';
-
+var statusValue=document.getElementById("strStatus").value;
+var changeReasonValue=document.getElementById("strChangeReason").value;
 //issuance dont allow to edit and delete
 $( document ).ready(function() {
 	if($('#inpIssuance').val()=='I' || $('#inpIssuance').val()=='TE' ){
@@ -131,10 +132,30 @@ $( document ).ready(function() {
                      
                      },
                     {
-                         name: 'Status', index: 'Status', width : 60
+                         name: 'Status', index: 'Status', 	stype : 'select', width : 60,	searchoptions : {
+                    		sopt : [ 'eq' ],
+                    		value : statusValue,
+                    		dataInit : function(e) {
+                    			e.className = "Combo gs_org_e";
+                    			e.style.padding = "0";
+                    			e.style.margin = "2px 0 0";
+                    			e.style.width = "95%";
+                    			e.style.height = "18px";
+                    		}
+                    	} 
                      },
                      {
-                     	name:'Change Reason', index:'Change Reason' , width : 80
+                     	name:'ChangeReason', index:'ChangeReason' , stype : 'select',width : 80,searchoptions : {
+                    		sopt : [ 'eq' ],
+                    		value : changeReasonValue,
+                    		dataInit : function(e) {
+                    			e.className = "Combo gs_org_e";
+                    			e.style.padding = "0";
+                    			e.style.margin = "2px 0 0";
+                    			e.style.width = "95%";
+                    			e.style.height = "18px";
+                    		}
+                    	} 
                      }
                      ],
         rowNum : 50,

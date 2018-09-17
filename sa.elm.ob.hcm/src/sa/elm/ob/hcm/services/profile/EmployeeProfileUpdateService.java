@@ -6,7 +6,6 @@ package sa.elm.ob.hcm.services.profile;
 
 import java.util.List;
 
-import sa.elm.ob.hcm.EhcmDependents;
 import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.dto.profile.AddressInformationDTO;
 import sa.elm.ob.hcm.dto.profile.DependentInformationDTO;
@@ -139,6 +138,17 @@ public interface EmployeeProfileUpdateService {
       throws BusinessException, SystemException;
 
   /**
+   * @param userName
+   * @param additionalInformationDTO
+   * @return
+   * @throws BusinessException
+   * @throws SystemException
+   */
+  Boolean updateContactInformationWithWorkflow(String userName,
+      EmployeeAdditionalInformationDTO additionalInformationDTO)
+      throws BusinessException, SystemException;
+
+  /**
    * 
    * @param userName
    * @param NationalID
@@ -146,7 +156,7 @@ public interface EmployeeProfileUpdateService {
    * @throws SystemException
    * @throws BusinessException
    */
-  EhcmDependents getDependentByNationalId(String userName, String NationalID)
+  DependentInformationDTO getDependentByNationalId(String userName, String NationalID)
       throws SystemException, BusinessException;
 
   /**
@@ -160,18 +170,22 @@ public interface EmployeeProfileUpdateService {
   Boolean updateProfilePhoto(String userName, String photoBytes)
       throws SystemException, BusinessException;
 
-  // /**
-  // * Approve the request applied by employee
-  // *
-  // * @param requesterUsername
-  // */
-  // void approveTask(String requesterUsername, String taskId);
-  //
-  // /**
-  // * * Reject the request applied by employee
-  // *
-  // * @param requesterUsername
-  // */
-  // void rejectTask(String requesterUsername, String taskId);
+  /**
+   * @param username
+   * @param dependentInformationDTO
+   * @return
+   */
+  Boolean addDependentWithWorkflow(String username,
+      DependentInformationDTO dependentInformationDTO);
+
+  /**
+   * @param username
+   * @param nationalId
+   * @return
+   * @throws SystemException
+   * @throws BusinessException
+   */
+  Boolean removeDependentWithWorkflow(String username, String nationalId)
+      throws SystemException, BusinessException;
 
 }

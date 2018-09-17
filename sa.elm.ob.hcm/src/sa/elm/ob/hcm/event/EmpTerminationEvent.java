@@ -117,14 +117,15 @@ public class EmpTerminationEvent extends EntityPersistenceEventObserver {
             }
           }
         }
-        if (termination.getDecisionType().equals("CA")) {
-          if (!event.getPreviousState(canceldate).equals(event.getCurrentState(canceldate))) {
-            if (termination.getCancelDate().compareTo(termination.getTerminationDate()) == -1
-                || termination.getCancelDate().compareTo(termination.getTerminationDate()) == 0) {
-              throw new OBException(OBMessageUtils.messageBD("EHCM_EmpProm_CancelDate"));
-            }
-          }
-        }
+        // Removed the cancel date validation
+        // if (termination.getDecisionType().equals("CA")) {
+        // if (!event.getPreviousState(canceldate).equals(event.getCurrentState(canceldate))) {
+        // if (termination.getCancelDate().compareTo(termination.getTerminationDate()) == -1
+        // || termination.getCancelDate().compareTo(termination.getTerminationDate()) == 0) {
+        // throw new OBException(OBMessageUtils.messageBD("EHCM_EmpProm_CancelDate"));
+        // }
+        // }
+        // }
       }
 
       if (!event.getPreviousState(person).equals(event.getCurrentState(person))) {
@@ -235,12 +236,13 @@ public class EmpTerminationEvent extends EntityPersistenceEventObserver {
         if (termination.getOriginalDecisionsNo() == null)
           throw new OBException(OBMessageUtils.messageBD("EHCM_EmpTras_OrgDecNo"));
       }
-      if (termination.getDecisionType().equals("CA")) {
-        if (termination.getCancelDate().compareTo(termination.getTerminationDate()) == -1
-            || termination.getCancelDate().compareTo(termination.getTerminationDate()) == 0) {
-          throw new OBException(OBMessageUtils.messageBD("EHCM_EmpProm_CancelDate"));
-        }
-      }
+      // Removed the cancel date validation
+      // if (termination.getDecisionType().equals("CA")) {
+      // if (termination.getCancelDate().compareTo(termination.getTerminationDate()) == -1
+      // || termination.getCancelDate().compareTo(termination.getTerminationDate()) == 0) {
+      // throw new OBException(OBMessageUtils.messageBD("EHCM_EmpProm_CancelDate"));
+      // }
+      // }
       if (termination.getTerminationDate() != null) {
         OBQuery<EmploymentInfo> info = OBDal.getInstance().createQuery(EmploymentInfo.class,
             " ehcmEmpPerinfo.id='" + termination.getEhcmEmpPerinfo().getId()

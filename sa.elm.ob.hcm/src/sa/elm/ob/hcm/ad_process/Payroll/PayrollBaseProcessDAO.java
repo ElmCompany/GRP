@@ -42,6 +42,7 @@ import sa.elm.ob.hcm.EHCMEligbltyCriteria;
 import sa.elm.ob.hcm.EHCMElmttypeDef;
 import sa.elm.ob.hcm.EHCMEmpBusinessMission;
 import sa.elm.ob.hcm.EHCMEmpScholarship;
+import sa.elm.ob.hcm.EHCMEmpSecondment;
 import sa.elm.ob.hcm.EHCMHoldUnHoldSalary;
 import sa.elm.ob.hcm.EHCMLoanTransaction;
 import sa.elm.ob.hcm.EHCMPayrollDefinition;
@@ -294,7 +295,7 @@ public class PayrollBaseProcessDAO {
     try {
       // Note should not check active flag because active flag set to false after new employment
       String whereClause = " e where e.ehcmEmpPerinfo.id = :empPerInfo and "
-          + "e.changereason in ('H', 'PR', 'PRT', 'OD',  'ID', 'ES', 'EOS','SEC', 'SUS', 'SUE') and "
+          + "e.changereason in ('H', 'PR', 'PRT', 'OD',  'ID', 'ES', 'EOS', 'SEC', 'SUS', 'SUE','JWRSEC','EXSEC','COSEC','SECDLY') and "
           + "((to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:fromdate) "
           + "and to_date(to_char(coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:todate,'dd-MM-yyyy')) "
           + "or (to_date(to_char( coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')) ,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:fromdate) "
@@ -542,7 +543,7 @@ public class PayrollBaseProcessDAO {
     try {
       // Note should not check active flag because active flag set to false after new employment
       String whereClause = " e where e.ehcmEmpPerinfo.id = :empPerInfo and "
-          + "e.changereason in ('H', 'PR', 'PRT', 'OD',  'ID', 'ES', 'EOS', 'SEC', 'SUS', 'SUE') and "
+          + "e.changereason in ('H', 'PR', 'PRT', 'OD',  'ID', 'ES', 'EOS', 'SEC', 'SUS', 'SUE','JWRSEC','EXSEC','COSEC','SECDLY') and "
           + "((to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:fromdate) "
           + "and to_date(to_char(coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:todate,'dd-MM-yyyy')) "
           + "or (to_date(to_char( coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')) ,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:fromdate) "
@@ -709,7 +710,7 @@ public class PayrollBaseProcessDAO {
     try {
       String whereClause = " e where e.employee.id = :employeeId and e.elementType.id = :elementId "
           + "and e.decisionType<>'CA' and e.issueDecision='Y' "
-          + "and e.id not in(select a.originalDecisionNo from EHCM_Benefit_Allowance a where a.originalDecisionNo is not null) "
+          + "and e.id not in(select a.originalDecisionNo from EHCM_Benefit_Allowance a where a.originalDecisionNo is not null and a.issueDecision='Y' and a.employee.id = :employeeId) "
           + "and ((to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:startDate) "
           + "and to_date(to_char(coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:endDate,'dd-MM-yyyy')) "
           + "or (to_date(to_char( coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')) ,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:startDate) "
@@ -1948,7 +1949,7 @@ public class PayrollBaseProcessDAO {
       OBQuery<EhcmDisciplineAction> disciplineAction = OBDal.getInstance().createQuery(
           EhcmDisciplineAction.class,
           " as e where e.employee.id = :empId and e.decisionType<>'CA' and e.decisionStatus ='I' and (e.payrollProcessLine.id = null or e.payrollProcessLine.id =:payrollline ) "
-              + "and e.id not in(select a.originalDecisionNo from ehcm_discipline_action a where a.originalDecisionNo is not null) "
+              + "and e.id not in(select a.originalDecisionNo.id from ehcm_discipline_action a where a.originalDecisionNo is not null and a.decisionStatus='I' and a.employee.id=:empId) "
               + "and e.effectiveDate <= to_date(:enddate,'dd-MM-yyyy') and e.effectiveDate >= to_date(:startdate,'dd-MM-yyyy') ");
       disciplineAction.setNamedParameter("empId", employeeId);
       disciplineAction.setNamedParameter("enddate", endDate);
@@ -1988,7 +1989,7 @@ public class PayrollBaseProcessDAO {
       OBQuery<EHCMLoanTransaction> loanTransaction = OBDal.getInstance().createQuery(
           EHCMLoanTransaction.class,
           " as e where e.employee.id =:empID and e.decisionStatus='I' and e.remamount > 0 "
-              + " and e.id not in(select a.originalDecisionNo from EHCM_Loan_Transaction a where a.originalDecisionNo is not null and a.decisionStatus='I' and a.employee.id =:empID ) "
+              + " and e.id not in(select a.originalDecisionNo.id from EHCM_Loan_Transaction a where a.originalDecisionNo is not null and a.decisionStatus='I' and a.employee.id =:empID ) "
               + " and e.firstInstallmentPeriod.startDate <= :periodDate");
       loanTransaction.setNamedParameter("empID", EmpID);
       loanTransaction.setNamedParameter("periodDate", periodStartDate);
@@ -2452,7 +2453,6 @@ public class PayrollBaseProcessDAO {
       query.setParameter("startdate", Utility.formatDate(payPeriodStartDate));
       query.setParameter("enddate", Utility.formatDate(payPeriodEndDate));
       query.setParameter("clientId", employment.getClient().getId());
-      log.info("where :" + query.getQueryString());
       leaveList = query.list();
       if (leaveList != null && leaveList.size() > 0) {
         for (Object leaveLnObj : leaveList) {
@@ -3473,7 +3473,8 @@ public class PayrollBaseProcessDAO {
   }
 
   public static BigDecimal calculateScholarshipDeductionValue(EmploymentInfo employment,
-      Date startDate, Date endDate, BigDecimal perDayValue, BigDecimal minDays) {
+      Date startDate, Date endDate, BigDecimal perDayValue, BigDecimal minDays,
+      BigDecimal differenceDays, Date payrollEndDate) {
     BigDecimal totalScholarshipDeductionValue = BigDecimal.ZERO;
     try {
       // Pay Scale
@@ -3490,7 +3491,17 @@ public class PayrollBaseProcessDAO {
           JSONObject scholarshipJSON = PayrollBaseProcess.getOverlapingDateRange(
               scholarship.getStartDate(), scholarship.getEndDate(), startDate, endDate);
           if (scholarshipJSON != null) {
+
             BigDecimal scholarshipDays = new BigDecimal(scholarshipJSON.getLong("days"));
+
+            // If Scholarship enddate is payroll end date, Check and add extra days in month
+            Date scholarshipEndDate = PayrollConstants.dateFormat
+                .parse(scholarshipJSON.getString("endDate"));
+            if (differenceDays.compareTo(BigDecimal.ZERO) > 0
+                && scholarshipEndDate.compareTo(payrollEndDate) == 0) {
+              scholarshipDays = scholarshipDays.add(differenceDays);
+            }
+
             log.info("Applicable Scholarship Days in Payscale ==> " + scholarshipDays);
             totalScholarshipDays = totalScholarshipDays.add(scholarshipDays);
           }
@@ -3513,7 +3524,7 @@ public class PayrollBaseProcessDAO {
     }
   }
 
-  public static BigDecimal calculateScholarshipDeductionValue(EmploymentInfo employment,
+  public static BigDecimal calculateScholarshipDeductionValues(EmploymentInfo employment,
       Date startDate, Date endDate, BigDecimal processingDays, BigDecimal differenceDays,
       Date payrollEndDate, EHCMElmttypeDef payrollElement, BigDecimal minDays) {
     BigDecimal totalScholarshipDeductionValue = BigDecimal.ZERO;
@@ -3615,7 +3626,7 @@ public class PayrollBaseProcessDAO {
   }
 
   public static BigDecimal calculateSuspensionValue(EmploymentInfo employment, Date startDate,
-      Date endDate, BigDecimal perDayValue) {
+      Date endDate, BigDecimal perDayValue, BigDecimal differenceDays, Date payrollEndDate) {
     BigDecimal totalSuspensionValue = BigDecimal.ZERO;
     try {
       String dbFormattedStartDate = sa.elm.ob.utility.util.Utility.formatDate(startDate);
@@ -3629,10 +3640,19 @@ public class PayrollBaseProcessDAO {
       if (!PayrollBaseProcess.errorFlagMinor) {
         for (EmployeeSuspension suspensionObj : suspensionList) {
           JSONObject suspensionJSON = PayrollBaseProcess.getOverlapingDateRange(
-              suspensionObj.getStartDate(), suspensionObj.getEndDate(), startDate, endDate);
+              suspensionObj.getStartDate(), suspensionObj.getExpectedEndDate(), startDate, endDate);
           if (suspensionJSON != null) {
             BigDecimal suspensionDays = new BigDecimal(suspensionJSON.getLong("days"));
+
+            // If suspension enddate is payroll end date, Check and add extra days in month
+            Date suspensionEndDate = PayrollConstants.dateFormat
+                .parse(suspensionJSON.getString("endDate"));
+            if (differenceDays.compareTo(BigDecimal.ZERO) > 0
+                && suspensionEndDate.compareTo(payrollEndDate) == 0) {
+              suspensionDays = suspensionDays.add(differenceDays);
+            }
             log.info("Applicable Suspension Days in Payscale ==> " + suspensionDays);
+
             totalSuspensionDays = totalSuspensionDays.add(suspensionDays);
           }
         }
@@ -3678,6 +3698,153 @@ public class PayrollBaseProcessDAO {
           + empPerInfo.getName();
       return suspensionList;
     }
+  }
+
+  /**
+   * Get secondment period along with payroll period
+   * 
+   * @param elementGrp
+   * @param element
+   * @param employee
+   * @param periodStartDate
+   * @param periodEndDate
+   * @return
+   */
+  public static JSONArray getSecondmentDetails(EhcmElementGroup elementGrp, EHCMElmttypeDef element,
+      EhcmEmpPerInfo employee, Date periodStartDate, Date periodEndDate) {
+    JSONArray jsonArray = new JSONArray();
+    JSONObject secJson = null;
+    Calendar c = Calendar.getInstance();
+    boolean needAct = false;
+    try {
+
+      String empmtPayStartDate = sa.elm.ob.utility.util.Utility.formatDate(periodStartDate);
+      String empmtPayEndDate = sa.elm.ob.utility.util.Utility.formatDate(periodEndDate);
+
+      OBQuery<EHCMEmpSecondment> secondmentList = OBDal.getInstance().createQuery(
+          EHCMEmpSecondment.class,
+          "e where e.ehcmEmpPerinfo.id=:empID and e.decisionStatus=:status and  e.decisionType<>'CA'"
+              + "and e.id not in(select a.originalDecisionsNo.id from EHCM_Emp_Secondment a where a.originalDecisionsNo is not null and a.decisionStatus='I' and a.ehcmEmpPerinfo.id=:empID) "
+              + "and ((to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:startDate) "
+              + "and to_date(to_char(coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')),'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:endDate,'dd-MM-yyyy')) "
+              + "or (to_date(to_char( coalesce (e.endDate,to_date('21-06-2058','dd-MM-yyyy')) ,'dd-MM-yyyy'),'dd-MM-yyyy') >= to_date(:startDate) "
+              + "and to_date(to_char(e.startDate,'dd-MM-yyyy'),'dd-MM-yyyy') <= to_date(:endDate,'dd-MM-yyyy'))) "
+              + "order by e.startDate ");
+      secondmentList.setNamedParameter("empID", employee.getId());
+      secondmentList.setNamedParameter("status", "I");
+      secondmentList.setNamedParameter("startDate", empmtPayStartDate);
+      secondmentList.setNamedParameter("endDate", empmtPayEndDate);
+      List<EHCMEmpSecondment> a = secondmentList.list();
+      for (EHCMEmpSecondment secondment : a) {
+        needAct = false;
+        Date tempEndDate = null;
+        // elementGrp.getEhcmElementGroupLineList().contains(element);
+
+        // check element is present in secondement element group.
+        for (EhcmElementGroupLine line : secondment.getPaymentType()
+            .getEhcmElementGroupLineList()) {
+          if (line.getEhcmElmttypeDef().equals(element)) {
+            break;
+          }
+        }
+
+        if (periodStartDate.compareTo(secondment.getStartDate()) < 0) {
+          secJson = new JSONObject();
+          // if sec > perstart
+          secJson.put("STARTDATE",
+              sa.elm.ob.utility.util.Utility.formatDate(periodStartDate, "yyyy-MM-dd"));
+
+          c.setTime(secondment.getStartDate());
+          c.add(Calendar.DAY_OF_MONTH, -1);
+          Date endDate = c.getTime();
+          secJson.put("ENDDATE", sa.elm.ob.utility.util.Utility.formatDate(endDate, "yyyy-MM-dd"));
+          secJson.put("ELMGRP", elementGrp.getId());
+          needAct = true;
+          jsonArray.put(secJson);
+        }
+
+        if (periodStartDate.compareTo(secondment.getStartDate()) >= 0) {
+          // if per > sec
+          secJson = new JSONObject();
+
+          secJson.put("STARTDATE",
+              sa.elm.ob.utility.util.Utility.formatDate(periodStartDate, "yyyy-MM-dd"));
+          if (periodEndDate.compareTo(secondment.getEndDate()) >= 0) {
+            secJson.put("ENDDATE", secondment.getEndDate());
+            tempEndDate = secondment.getEndDate();
+          } else {
+            secJson.put("ENDDATE",
+                sa.elm.ob.utility.util.Utility.formatDate(periodEndDate, "yyyy-MM-dd"));
+            tempEndDate = periodEndDate;
+          }
+          secJson.put("ELMGRP", secondment.getPaymentType().getId());
+          needAct = false;
+          jsonArray.put(secJson);
+        }
+
+        if (needAct) {
+          // set actual sec
+          secJson = new JSONObject();
+
+          secJson.put("STARTDATE", secondment.getStartDate().toString());
+          if (periodEndDate.compareTo(secondment.getEndDate()) >= 0) {
+            secJson.put("ENDDATE", secondment.getEndDate().toString());
+            tempEndDate = secondment.getEndDate();
+          } else {
+            secJson.put("ENDDATE",
+                sa.elm.ob.utility.util.Utility.formatDate(periodEndDate, "yyyy-MM-dd"));
+            tempEndDate = periodEndDate;
+          }
+          secJson.put("ELMGRP", secondment.getPaymentType().getId());
+          jsonArray.put(secJson);
+        }
+        c.setTime(tempEndDate);
+        c.add(Calendar.DAY_OF_MONTH, 1);
+        Date nextDate = c.getTime();
+        periodStartDate = nextDate;
+
+      }
+      if (periodStartDate.compareTo(periodEndDate) <= 0) {
+        secJson = new JSONObject();
+        secJson.put("STARTDATE",
+            sa.elm.ob.utility.util.Utility.formatDate(periodStartDate, "yyyy-MM-dd"));
+        secJson.put("ENDDATE",
+            sa.elm.ob.utility.util.Utility.formatDate(periodEndDate, "yyyy-MM-dd"));
+        secJson.put("ELMGRP", elementGrp.getId());
+        secJson.put("ELIGIBLE", true);
+        jsonArray.put(secJson);
+      }
+    } catch (Exception e) {
+      log.error("Error in PayrollProcess.java : getSecondmentDetails ", e);
+      e.printStackTrace();
+    }
+    return jsonArray;
+  }
+
+  /**
+   * check element is present in secondement element group.
+   * 
+   * @param elementGrp
+   * @param element
+   * @return
+   */
+  public static boolean isElementInElementGrp(String elementGrp, EHCMElmttypeDef element) {
+    boolean isContain = false;
+    try {
+      EhcmElementGroup elementGroup = OBDal.getInstance().get(EhcmElementGroup.class, elementGrp);
+
+      for (EhcmElementGroupLine line : elementGroup.getEhcmElementGroupLineList()) {
+        if (line.getEhcmElmttypeDef().equals(element)) {
+          isContain = true;
+          break;
+        }
+      }
+      return isContain;
+    } catch (Exception e) {
+      log.error("Error in PayrollProcess.java : isElementInElementGrp ", e);
+      e.printStackTrace();
+    }
+    return isContain;
   }
 
 }

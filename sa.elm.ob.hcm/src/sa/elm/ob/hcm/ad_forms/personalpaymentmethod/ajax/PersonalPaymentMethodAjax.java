@@ -195,7 +195,9 @@ public class PersonalPaymentMethodAjax extends HttpSecureAppServlet {
               PersonalPaymethdId);
           objLine.setEhcmPersonalPaymethd(method);
           objLine.setEfinBank(OBDal.getInstance().get(EfinBank.class, bankname));
-          objLine.setBankBranch(OBDal.getInstance().get(EfinBankBranch.class, bankbranch));
+          if (objLine.getEfinBank().getEfinBankBranchList().size() > 0) {
+            objLine.setBankBranch(OBDal.getInstance().get(EfinBankBranch.class, bankbranch));
+          }
           objLine.setAccountName(accountname);
           objLine.setAccountNumber(accountnum);
           objLine.setPercentage(new BigDecimal(percentage));
@@ -287,6 +289,7 @@ public class PersonalPaymentMethodAjax extends HttpSecureAppServlet {
           xmlData
               .append("<page>" + 0 + "</page><total>" + 0 + "</total><records>" + 0 + "</records>");
         xmlData.append("</rows>");
+        request.setAttribute("inpbranch", dao.getBankBranchOnLoad(vars.getClient()));
         response.getWriter().write(xmlData.toString());
       }
       // getpayrollpaymenttypemethodcurrency
@@ -376,6 +379,26 @@ public class PersonalPaymentMethodAjax extends HttpSecureAppServlet {
             jsonResponse.put("BankId", bankdet.getId());
             jsonResponse.put("Branchcode",
                 bankdet.getBranchCode() + " - " + bankdet.getBranchName());
+            jsonArray.put(jsonResponse);
+          }
+        }
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(jsonArray.toString());
+      }
+
+      else if (action.equals("bankdetailsofbranch")) {
+
+        dao = new PersonalPaymentMethodDAO(con);
+        JSONArray jsonArray = null;
+        List<EfinBankBranch> bankdetaillist = null;
+        bankdetaillist = dao.getBankBranchOnBank(vars.getClient());
+        jsonArray = new JSONArray();
+        if (bankdetaillist != null && bankdetaillist.size() > 0) {
+          for (EfinBankBranch bankBranch : bankdetaillist) {
+            jsonResponse = new JSONObject();
+            jsonResponse.put("BranchId", bankBranch.getId());
+            jsonResponse.put("Branchcode",
+                bankBranch.getBranchCode() + " - " + bankBranch.getBranchName());
             jsonArray.put(jsonResponse);
           }
         }

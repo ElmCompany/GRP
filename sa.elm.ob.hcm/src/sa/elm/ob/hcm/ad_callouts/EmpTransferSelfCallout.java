@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 
 import javax.servlet.ServletException;
 
+import org.apache.commons.lang.StringUtils;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.dal.service.OBQuery;
@@ -20,6 +21,7 @@ import sa.elm.ob.hcm.EhcmEmpPerInfo;
 import sa.elm.ob.hcm.EhcmPosition;
 import sa.elm.ob.hcm.EmploymentInfo;
 import sa.elm.ob.hcm.Jobs;
+import sa.elm.ob.hcm.ad_callouts.common.UpdateEmpDetailsInCallouts;
 
 @SuppressWarnings("serial")
 public class EmpTransferSelfCallout extends SimpleCallout {
@@ -48,7 +50,7 @@ public class EmpTransferSelfCallout extends SimpleCallout {
     String employmentInfoId = "";
     log4j.debug("lastfield:" + inpLastFieldChanged);
     try {
-
+      UpdateEmpDetailsInCallouts callouts = new UpdateEmpDetailsInCallouts();
       /*
        * get Latest active EmploymentInfo by using EmployeeId and set the value based on Employment
        * Info
@@ -64,50 +66,55 @@ public class EmpTransferSelfCallout extends SimpleCallout {
       }
       /* Employee change */
       if (inpLastFieldChanged.equals("inpehcmEmpPerinfoId")) {
-        log4j.debug("entered ehcmempperinfo");
-        /* get Employee Details by using employeeId */
-        EhcmEmpPerInfo employee = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
-        info.addResult("inpempName", employee.getArabicfullname());
-        if (employee.getHiredate() != null) {
-          String query = " select eut_convert_to_hijri_timestamp('"
-              + dateFormat.format(employee.getHiredate()) + "')";
+        if (StringUtils.isNotEmpty(employeeId)) {
+          log4j.debug("entered ehcmempperinfo");
+          /* get Employee Details by using employeeId */
+          EhcmEmpPerInfo employee = OBDal.getInstance().get(EhcmEmpPerInfo.class, employeeId);
+          info.addResult("inpempName", employee.getArabicfullname());
+          if (employee.getHiredate() != null) {
+            String query = " select eut_convert_to_hijri_timestamp('"
+                + dateFormat.format(employee.getHiredate()) + "')";
 
-          st = conn.prepareStatement(query);
-          rs = st.executeQuery();
-          if (rs.next())
-            info.addResult("inphireDate", rs.getString("eut_convert_to_hijri_timestamp"));
+            st = conn.prepareStatement(query);
+            rs = st.executeQuery();
+            if (rs.next())
+              info.addResult("inphireDate", rs.getString("eut_convert_to_hijri_timestamp"));
 
-        }
-        info.addResult("inpempType", employee.getEhcmActiontype().getPersonType());
-        /*
-         * get Latest active EmploymentInfo by using EmployeeId and set the value based on
-         * Employment Info
-         */
-        if (empinfo != null) {
-          employmentInfoId = empinfo.getId();
-          info.addResult("inpdepartmentId", empinfo.getPosition().getDepartment().getId());
-          inpdepartmentId = empinfo.getPosition().getDepartment().getId();
-          info.addResult("inpsectionId", empinfo.getPosition().getSection().getId());
-          info.addResult("inpehcmGradeId", empinfo.getGrade().getId());
-          inpehcmGradeId = empinfo.getGrade().getId();
-          info.addResult("inpehcmPositionId", empinfo.getPosition().getId());
-          log4j.debug("inpehcmPositionId:" + empinfo.getPosition().getJOBNo());
-          info.addResult("inpjobTitle", empinfo.getPosition().getJOBName().getJOBTitle());
-          info.addResult("inpemploymentgrade", empinfo.getEmploymentgrade().getId());
-          info.addResult("inpassignedDept", empinfo.getSECDeptName());
-
-          if (inptransferType.equals("ID")) {
-            info.addResult("inpnewDepartmentId", empinfo.getPosition().getDepartment().getId());
-            info.addResult("inpnewSectionId", empinfo.getPosition().getSection().getId());
-            log4j.debug("inpnewEhcmPositionId:" + inpnewEhcmPositionId);
-            inpnewDepartmentId = empinfo.getPosition().getDepartment().getId();
           }
+          info.addResult("inpempType", employee.getEhcmActiontype().getPersonType());
+          /*
+           * get Latest active EmploymentInfo by using EmployeeId and set the value based on
+           * Employment Info
+           */
+          if (empinfo != null) {
+            employmentInfoId = empinfo.getId();
+            info.addResult("inpdepartmentId", empinfo.getPosition().getDepartment().getId());
+            inpdepartmentId = empinfo.getPosition().getDepartment().getId();
+            info.addResult("inpsectionId", empinfo.getPosition().getSection().getId());
+            info.addResult("inpehcmGradeId", empinfo.getGrade().getId());
+            inpehcmGradeId = empinfo.getGrade().getId();
+            info.addResult("inpehcmPositionId", empinfo.getPosition().getId());
+            log4j.debug("inpehcmPositionId:" + empinfo.getPosition().getJOBNo());
+            info.addResult("inpjobTitle", empinfo.getPosition().getJOBName().getJOBTitle());
+            info.addResult("inpemploymentgrade", empinfo.getEmploymentgrade().getId());
+            info.addResult("inpassignedDept", empinfo.getSECDeptName());
+
+            if (inptransferType.equals("ID")) {
+              info.addResult("inpnewDepartmentId", empinfo.getPosition().getDepartment().getId());
+              info.addResult("inpnewSectionId", empinfo.getPosition().getSection().getId());
+              log4j.debug("inpnewEhcmPositionId:" + inpnewEhcmPositionId);
+              inpnewDepartmentId = empinfo.getPosition().getDepartment().getId();
+            }
+          }
+          if (employee.isEnabled())
+            info.addResult("inpempStatus", "ACT");
+          else
+            info.addResult("inpempStatus", "INACT");
+          info.addResult("inpehcmGradeclassId", employee.getGradeClass().getId());
+        } else {
+          callouts.SetEmpDetailsNull(info);
+          info.addResult("JSEXECUTE", "form.getFieldFromColumnName('Assigned_Dept').setValue('')");
         }
-        if (employee.isEnabled())
-          info.addResult("inpempStatus", "ACT");
-        else
-          info.addResult("inpempStatus", "INACT");
-        info.addResult("inpehcmGradeclassId", employee.getGradeClass().getId());
       }
       /* New Department change */
       if (inpLastFieldChanged.equals("inpnewDepartmentId")

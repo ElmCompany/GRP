@@ -31,12 +31,17 @@
 					this.setDisabled(selectedRecords.length === 0);
 				}
 				//Enable the print icon if the decision status is Issued
+				if(selectedRecords.length>0){
 				var decisionStatus=grid.getSelectedRecord().decisionStatus;
 				if (decisionStatus=="I"){
 					this.setDisabled(false);
 				}else{
 					this.setDisabled(true);
-				}				
+				}
+				}
+				else{
+					this.setDisabled(true);
+				}
 			}
 	};
 	OB.ToolbarRegistry.registerButton(buttonProps.buttonType, isc.OBToolbarIconButton, buttonProps, 400,'19DA64CBD4A744438D207D4F37235ECC');

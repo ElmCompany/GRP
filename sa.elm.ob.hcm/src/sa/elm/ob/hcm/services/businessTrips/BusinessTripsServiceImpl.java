@@ -2,11 +2,13 @@ package sa.elm.ob.hcm.services.businessTrips;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.codehaus.jettison.json.JSONObject;
+import org.openbravo.activiti.ActivitiConstants;
 import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.erpCommon.utility.OBMessageUtils;
@@ -47,8 +49,6 @@ public class BusinessTripsServiceImpl implements BusinessTripsService {
 
   private static final String CONVERT_TO_HIJRI_DATE_FORMAT = "yyyy-MM-dd";
 
-  private final String BUSINESS_MISSION_WORKFLOW_KEY = "businessMissionWorkflow";
-
   @Autowired
   BusinessTripDAO businessTripDAO;
 
@@ -64,7 +64,6 @@ public class BusinessTripsServiceImpl implements BusinessTripsService {
   @Override
   public Boolean submitBusinessTripRequest(String username,
       BusinessTripRequestDTO businessTripRequestDTO) throws BusinessException, SystemException {
-    // TODO Auto-generated method stub
     createOrUpdateBusinessTrip(username, businessTripRequestDTO, Constants.CREATE_DECISION);
     return true;
   }
@@ -72,7 +71,6 @@ public class BusinessTripsServiceImpl implements BusinessTripsService {
   private void createOrUpdateBusinessTrip(String username,
       BusinessTripRequestDTO businessTripRequestDTO, String decisionType)
       throws BusinessException, SystemException {
-    // TODO Auto-generated method stub
     // find employee by user name
     EhcmEmpPerInfo employeeOB = employeeProfileDAO.getEmployeeProfileByUser(username);
     EHCMEmpBusinessMission businessMissionOB = createBusinessMission(employeeOB,
@@ -85,7 +83,7 @@ public class BusinessTripsServiceImpl implements BusinessTripsService {
   }
 
   private void createOrUpdateBusinessTripWithWorkflow(String username,
-      BusinessTripRequestDTO businessTripRequestDTO, String decisionType)
+      BusinessTripRequestDTO businessTripRequestDTO, String decisionType, String subject)
       throws BusinessException, SystemException {
 
     // find employee by user name
@@ -102,17 +100,25 @@ public class BusinessTripsServiceImpl implements BusinessTripsService {
     boolean isDepManager = firstLineManagerId.equals(departmentManagerId) ? true : false;
 
     Map<String, Object> variablesMap = new HashMap<String, Object>();
-    variablesMap.put("username", username);
-    variablesMap.put("decisionNo", businessMissionOB.getDecisionNo());
-    variablesMap.put("decisionType", decisionType);
+    variablesMap.put(ActivitiConstants.TARGET_IDENTIFIER, businessMissionOB.getDecisionNo());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_USERNAME, username);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_NAME, employeeOB.getName());
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_SUBJECT, subject);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_LETTER_NUMBER, "");
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TAKS_REQUEST_DATE,
+        sa.elm.ob.utility.util.Utility
+            .convertTohijriDate(DateUtils.convertDateToString("yyyy-MM-dd", new Date())));
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_STATUS, Constants.REQUEST_IN_PROGRESS);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_TYPE, decisionType);
+    variablesMap.put(sa.elm.ob.utility.util.Constants.TASK_REQUESTER_EMAIL, employeeOB.getEmail());
+
     variablesMap.put("lineManager", firstLineManagerId);
     variablesMap.put("departmentManager", departmentManagerId);
-    variablesMap.put("emailAddress", employeeOB.getEmail());
     variablesMap.put("missionType", businessTripRequestDTO.getMissionType());
     variablesMap.put("isDepManager", isDepManager);
     variablesMap.put("governor", governor);
 
-    workflowUtilityService.startWorkflow(BUSINESS_MISSION_WORKFLOW_KEY, variablesMap);
+    startWorkflow(variablesMap);
   }
 
   /**
@@ -123,7 +129,6 @@ public class BusinessTripsServiceImpl implements BusinessTripsService {
    */
   private void businessMissionValidations(EHCMEmpBusinessMission businessMissionOB)
       throws BusinessException, SystemException {
-    // TODO Auto-generated method stub
     // checking decision overlap
     JSONObject result = new JSONObject();
     EHCMMissionCategory businessMissionCategory = null;
@@ -233,7 +238,7 @@ public class BusinessTripsServiceImpl implements BusinessTripsService {
   private EHCMEmpBusinessMission createBusinessMission(EhcmEmpPerInfo employeeOB,
       BusinessTripRequestDTO businessTripRequestDTO, String decisionType)
       throws SystemException, BusinessException {
-    // TODO Auto-generated method stub
+
     EHCMEmpBusinessMission busineesMissionOB = businessTripDAO.createBusinessMission(employeeOB,
         businessTripRequestDTO, decisionType);
     return busineesMissionOB;
@@ -279,14 +284,14 @@ public class BusinessTripsServiceImpl implements BusinessTripsService {
    */
   private List<BusinessTripRequestDTO> mapBusinessTrip(
       List<EHCMEmpBusinessMission> businessMissionList) {
-    // TODO Auto-generated method stub
+
     List<BusinessTripRequestDTO> businessTripList = new ArrayList<BusinessTripRequestDTO>();
     BusinessTripRequestDTO businessTripRequestDTO = null;
     for (EHCMEmpBusinessMission businessMissionOB : businessMissionList) {
       businessTripRequestDTO = new BusinessTripRequestDTO();
       if (businessMissionOB.getLetterDate() != null) {
         businessTripRequestDTO.setLetterDate(UtilityDAO.convertTohijriDate(DateUtils
-            .convertDateToString(OPEN_BRAVO_DATE_FORMAT, businessMissionOB.getLetterDate())));
+            .convertDateToString(CONVERT_TO_HIJRI_DATE_FORMAT, businessMissionOB.getLetterDate())));
       }
       businessTripRequestDTO.setLetterNo(businessMissionOB.getLetterNo());
       businessTripRequestDTO.setMissionType(businessMissionOB.getMissionType().getSearchKey());
@@ -295,7 +300,7 @@ public class BusinessTripsServiceImpl implements BusinessTripsService {
       businessTripRequestDTO.setToCountry(businessMissionOB.getToCountry().getName());
       businessTripRequestDTO.setToCity(businessMissionOB.getToCity().getName());
       businessTripRequestDTO.setFromCity(businessMissionOB.getFromCity().getName());
-      businessTripRequestDTO.setMissionDays(businessMissionOB.getMissionBalance().intValue());
+      businessTripRequestDTO.setMissionDays(businessMissionOB.getMissionDays().intValue());
 
       businessTripRequestDTO.setStartDate(UtilityDAO.convertTohijriDate(DateUtils
           .convertDateToString(CONVERT_TO_HIJRI_DATE_FORMAT, businessMissionOB.getStartDate())));
@@ -307,7 +312,12 @@ public class BusinessTripsServiceImpl implements BusinessTripsService {
       businessTripRequestDTO.setFoodProvided(businessMissionOB.isFoodProvided());
       businessTripRequestDTO.setTicketsProvided(businessMissionOB.isTicketsProvided());
       businessTripRequestDTO.setRoundTrip(businessMissionOB.isRoundTrip());
+      businessTripRequestDTO.setTaskDescription(businessMissionOB.getTaskDescription());
       businessTripList.add(businessTripRequestDTO);
+
+      if (businessMissionOB.getOriginalDecisionNo() != null)
+        businessTripRequestDTO
+            .setOrginalDecNo(businessMissionOB.getOriginalDecisionNo().getDecisionNo());
     }
     return businessTripList;
   }
@@ -342,7 +352,7 @@ public class BusinessTripsServiceImpl implements BusinessTripsService {
       BusinessTripRequestDTO businessTripRequestDTO) throws BusinessException, SystemException {
 
     createOrUpdateBusinessTripWithWorkflow(username, businessTripRequestDTO,
-        Constants.CREATE_DECISION);
+        Constants.CREATE_DECISION, "Business Request");
     return true;
   }
 
@@ -354,23 +364,37 @@ public class BusinessTripsServiceImpl implements BusinessTripsService {
     BusinessTripRequestDTO businessTripRequestDTO = getBusinessTripRequestByOrginalDecNo(
         originalDecNo);
 
+    businessTripRequestDTO.setOrginalDecNo(originalDecNo);
+
     createOrUpdateBusinessTripWithWorkflow(username, businessTripRequestDTO,
-        Constants.CANCEL_DECISION);
+        Constants.CANCEL_DECISION, "Cancel Busintess Request");
     return true;
   }
 
   @Override
-  public Boolean submitPaymentBusinessTripRequestWithWorkflow(String username, String originalDecNo,
-      BusinessPaymentDTO businessPaymentDTO) throws BusinessException, SystemException {
+  public Boolean submitPaymentBusinessTripRequestWithWorkflow(String username, String originalDecNo)
+      throws BusinessException, SystemException {
 
     // fill businessTrip Request Details by Original Decision Number
     BusinessTripRequestDTO businessTripRequestDTO = getBusinessTripRequestByOrginalDecNo(
         originalDecNo);
+
+    businessTripRequestDTO.setOrginalDecNo(originalDecNo);
+
+    BusinessPaymentDTO businessPaymentDTO = new BusinessPaymentDTO();
+    businessPaymentDTO.setPaymentAmount(100);
+    businessPaymentDTO.setAdvancePercentage(3);
+    businessPaymentDTO.setAdvanceAmount(50);
     businessTripRequestDTO.setPaymentDetails(businessPaymentDTO);
 
     createOrUpdateBusinessTripWithWorkflow(username, businessTripRequestDTO,
-        Constants.DECISION_TYPE_BUSINESSMISSION_PAYMENT);
+        Constants.DECISION_TYPE_BUSINESSMISSION_PAYMENT, "Payment Request for Business Trip");
     return true;
+  }
+
+  private void startWorkflow(Map<String, Object> variablesMap) {
+    workflowUtilityService.startWorkflow(
+        sa.elm.ob.utility.util.Constants.BUSINESS_MISSION_WORKFLOW_KEY, variablesMap);
   }
 
 }

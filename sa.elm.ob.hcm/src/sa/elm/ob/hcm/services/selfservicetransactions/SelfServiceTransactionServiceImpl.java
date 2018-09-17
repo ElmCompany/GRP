@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import sa.elm.ob.hcm.GenericActivitiData;
 import sa.elm.ob.hcm.ad_process.Constants;
-import sa.elm.ob.hcm.dao.activiti.CommonActivitiDAO;
+import sa.elm.ob.hcm.dao.activiti.SelfServiceTransactionDAO;
 import sa.elm.ob.hcm.dto.profile.AddressInformationDTO;
 import sa.elm.ob.hcm.dto.profile.DependentInformationDTO;
 import sa.elm.ob.hcm.dto.profile.PersonalInformationDTO;
@@ -17,7 +17,7 @@ import sa.elm.ob.hcm.dto.profile.PersonalInformationDTO;
 public class SelfServiceTransactionServiceImpl implements SelfServiceTransactionService {
 
   @Autowired
-  private CommonActivitiDAO commonActivitiDAO;
+  private SelfServiceTransactionDAO commonActivitiDAO;
 
   ObjectMapper mapper = new ObjectMapper();
 
@@ -87,7 +87,7 @@ public class SelfServiceTransactionServiceImpl implements SelfServiceTransaction
         AddressInformationDTO address = mapper.readValue(data.toString(),
             AddressInformationDTO.class);
         return address;
-      } else if (type.equals(Constants.UPDATE_DEPENDENT)) {
+      } else if (type.equals(Constants.UPDATE_DEPENDENT) || type.equals(Constants.ADD_DEPENDENT)) {
         DependentInformationDTO dependent = mapper.readValue(data.toString(),
             DependentInformationDTO.class);
         return dependent;

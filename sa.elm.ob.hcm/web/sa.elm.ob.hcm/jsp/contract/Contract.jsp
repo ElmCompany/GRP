@@ -32,6 +32,7 @@
     <script type="text/javascript" src="../web/js/utils.js"></script>
     <script type="text/javascript" src="../web/js/windowKeyboard.js"></script>
     <script type="text/javascript" src="../web/js/searchs.js"></script>
+    <script type="text/javascript" src="../web/js/common/common.js"></script>
     <script type="text/javascript">
     function validate(action) {return true;}
     function onLoadDo(){
@@ -334,11 +335,11 @@
                                                                  
                                                                  <TD class="TitleCell" align="right" style="min-width:110px;"><span class="LabelText" ><%= Resource.getProperty("hcm.Duration", lang) %></span></TD>
                                                                  <TD class="">                                                       
-                                                                <input type="text" id="inpDuration" class="dojoValidateValid" value="${requestScope.inpDuration}" maxlength="4" name="inpDuration"  onkeypress='return event.charCode >= 48 && event.charCode <= 57' onkeydown="return onChangeEvent(event);" onchange="document.getElementById('messageBoxID').style.display = 'none';enableForm(); dateValidation();"
+                                                                <input type="text" id="inpDuration" class="dojoValidateValid" value="${requestScope.inpDuration}" maxlength="4" name="inpDuration"  onkeypress='return event.charCode >= 48 && event.charCode <= 57' onkeydown="return onChangeEvent(event);" onchange="document.getElementById('messageBoxID').style.display = 'none';enableForm(); dateValidation(); checkContract();"
                                                                   style="width: 50px;background-color: #FFFFCC !important;"></input>
                                                                  </TD>
                                                                 <TD class="" align="right" style="min-width:60px;"><span class="LabelText" ><%= Resource.getProperty("hcm.DurationType", lang) %></span></TD>
-                                                                <td class="TextBox_ContentCell"><select id="inpDurationType" name="inpDurationType" class="ComboKey Combo_TwoCells_width"  onkeydown="return onChangeEvent(event);" onchange="document.getElementById('messageBoxID').style.display = 'none';enableForm();dateValidation();" style="width: 148px">
+                                                                <td class="TextBox_ContentCell"><select id="inpDurationType" name="inpDurationType" class="ComboKey Combo_TwoCells_width"  onkeydown="return onChangeEvent(event);" onchange="document.getElementById('messageBoxID').style.display = 'none';enableForm();dateValidation(); checkContract();" style="width: 148px">
                                                                      <option value='d'><%= Resource.getProperty("hcm.days", lang) %></option>
                                                                      <option value='w'><%= Resource.getProperty("hcm.weeks", lang) %></option>
                                                                      <option value='m'><%= Resource.getProperty("hcm.months", lang) %></option>
@@ -492,7 +493,6 @@ direction='ltr';
 </script>
 <script type="text/javascript">onLoadDo();</script>
 <script type="text/javascript" src="../web/js/jquery-1.7.2.min.js"></script>
-<script type="text/javascript" src="../web/js/common/common.js"></script>
 <script type="text/javascript" src="../web/sa.elm.ob.utility/js/jquery.plugin.js"></script> 
 <script type="text/javascript" src="../web/sa.elm.ob.utility/js/jquery.calendars.package-2.0.2/jquery.calendars.js"></script> 
 <script type="text/javascript" src="../web/sa.elm.ob.utility/js/jquery.calendars.package-2.0.2/jquery.calendars.ummalqura.js"></script> 

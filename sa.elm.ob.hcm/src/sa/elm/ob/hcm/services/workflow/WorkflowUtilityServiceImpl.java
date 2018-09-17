@@ -12,7 +12,6 @@ import sa.elm.ob.hcm.dao.workflow.WorkFlowDAO;
 import sa.elm.ob.hcm.selfservice.exceptions.BusinessException;
 import sa.elm.ob.hcm.selfservice.exceptions.SystemException;
 import sa.elm.ob.hcm.util.ActivitiProcess;
-import sa.elm.ob.hcm.util.ActivitiProcessImpl;
 
 @Service
 public class WorkflowUtilityServiceImpl implements WorkflowUtilityService {
@@ -23,7 +22,8 @@ public class WorkflowUtilityServiceImpl implements WorkflowUtilityService {
   @Autowired
   EmployeeProfileDAO employeeProfileDAO;
 
-  ActivitiProcess activitiProcess = new ActivitiProcessImpl();
+  @Autowired
+  ActivitiProcess activitiProcess;
 
   @Override
   public String getLineManagerByUserName(String empUsername) throws SystemException {
