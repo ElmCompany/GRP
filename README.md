@@ -1,16 +1,18 @@
 # GRP
 
-إن نظام ELM GRP هو نظام متكامل ومترابط يحتوي على جميع الإجراءات المتعلقة بالقطاع الحكومي كوظائف أساسية في النظام منفردا عن أنظمة تخطيط الموارد الأخرى. ولقد تم تصميمه من قبل شركة علم الرائدة في صناعة البرمجيات للقطاع الحكومي كونها الذراع الأيمن لتكنولوجيا المعلومات في القطاعات الحكومية السعودية.
+نظام ELM GRP هو نظام متكامل ومترابط يحتوي على جميع الإجراءات المتعلقة بالقطاع الحكومي كوظائف أساسية في النظام منفردا عن أنظمة تخطيط الموارد الأخرى. ولقد تم تصميمه من قبل شركة علم الرائدة في صناعة البرمجيات للقطاع الحكومي  .
 يلبي نظام ELM GRP معظم مهام وإجراءات العمل المتعددة في مختلف القطاعات الحكومية مثل:
 *	النظام المالي والميزانية: يتضمن إجراءات الميزانية، انشاء الارتباطات والمناقلات، تصدير أوامر الصرف والدفع واوامر القبض، الاستعلامات المالية، والتقارير المالية.
 *	نظام الموارد البشرية: يتضمن إجراءات الهيكل التنظيمي والوظيفي، قرار التعيين والقرارات الحكومية (اجازات، انتداب، خارج دوام وجميع الإجراءات الحكومية الأخرى)، نظام الرواتب، نظام الخدمة الذاتية، ونظام تقييم الآداء الوظيفي.
 *	نظام المشتريات والمخزون والعهد: يتضمن إجراءات المشتريات الحكومية (طلب شراء، عروض أسعار، فتح مظاريف، اوامر شراء (مباشر، منافسات)، نظام المخزون (تعريف المستودعات وهيكلتها، الأصناف، حركات المستودعات وعمليات الجرد، ونظام العهد العينة للموظفين.
 
-ELM GRP is an integrated and coherent system contains all actions related to the government sector as core functions of the system apart from other resource planning systems. It has been designed by ELM, the leading company in the software industry for the government sector being the right arm of information technology in the Saudi government sectors.
+
+ELM GRP is an integrated and coherent system contains all actions related to the government sector as core functions of the system apart from other resource planning systems. It has been designed by ELM, the leading company in the software industry for the government sector  
 The ELM GRP system fulfills most of the various functions and actions in different government sectors such as:
 * Financial System and Budget: Includes budget procedures, establishment of budget encumbrance and transfers, Invoices orders (Amer Serf), payment and order to receipts, financial inquiries, and financial reports.
 * Human Resources System: includes organizational and functional structure procedures, Hiring decision and government decisions (vacations, Business Mission, Overtime and all other government procedures), payroll system, self-service system and employee performance appraisal system.
 * Procurement, inventory and Custodies: Includes government procurement procedures (purchase order, quotations, open envelopes, direct purchase orders, competitions), inventory system (warehouse definition and structure, items, warehouse movements and inventories Operations, and employee custodies
+
 
 
 ## Getting Started
